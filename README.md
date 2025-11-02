@@ -1,25 +1,3 @@
-🩺 SwasthaLife — AI-Powered Online Healthcare & Disease Prediction Platform
-🌐 Ranked Among the Top Digital Health Platforms on Google
-
-SwasthaLife is a next-generation AI-driven healthcare platform that brings the hospital experience online.
-It empowers users to predict diseases, consult doctors virtually, manage medical records, receive e-prescriptions, and order medicines — all from one secure web portal.
-
-Our mission is simple yet bold:
-
-“To shift hospitals into online mode — making healthcare smarter, faster, and accessible to every individual.”
-
-🚀 Vision
-
-SwasthaLife is redefining healthcare through technology.
-By merging AI-based disease prediction with real-time doctor consultation and digital health management, we aim to deliver complete healthcare solutions right from your browser.
-
-💡 Core Features
-🤖 1. AI-Based Disease Prediction
-
-Predicts potential diseases using Machine Learning trained on verified datasets.
-
-Users can input symptoms, feelings, or known diseases to get accurate predictions.
-
 # 🩺 SwasthaLife — AI-Powered Online Healthcare & Disease Prediction Platform
 
 SwasthaLife is a next-generation AI-driven healthcare platform that brings the hospital experience online. It empowers users to predict diseases, consult doctors virtually, manage medical records, receive e-prescriptions, and order medicines — all from one secure web portal.
