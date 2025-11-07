@@ -18,7 +18,7 @@ function Teams() {
             <div className="col-md-3 mb-4">
               <div className="border border-warning p-3 h-100 d-flex flex-column justify-content-center align-items-center">
                 <img
-                  src="https://cdn.britannica.com/25/222725-050-170F622A/Indian-cricketer-Mahendra-Singh-Dhoni-2011.jpg"
+                  src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiga0kfrowvddqvuXCFSrMbKbyTroH85fnZfSFstoa4ldj_ZBuQq-1ohgp2gnvDOIvNj1pe0Jn1HAtTlNrHHLXqiLlHT_cj04dncQs7E7FQ1bjAZAXKhESXWAnYJVoSqVNfCbHJXCYlSq2TblWTFD4BSrb0gpaqWgW7xw2MBIHyFqb2PkM82FyZgU4bV7VK/s325/main-qimg-729a2f53e666804f98311e0c84515cd7-lq.jpeg"
                   alt="Team Leader"
                   className="img-fluid mb-2"
                   style={{ height: "220px" }}
@@ -40,7 +40,7 @@ function Teams() {
             <div className="col-md-3 mb-4">
               <div className="border border-warning p-3 h-100 d-flex flex-column justify-content-center align-items-center">
                 <img
-                  src="https://cdn.britannica.com/25/222725-050-170F622A/Indian-cricketer-Mahendra-Singh-Dhoni-2011.jpg"
+                  src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiga0kfrowvddqvuXCFSrMbKbyTroH85fnZfSFstoa4ldj_ZBuQq-1ohgp2gnvDOIvNj1pe0Jn1HAtTlNrHHLXqiLlHT_cj04dncQs7E7FQ1bjAZAXKhESXWAnYJVoSqVNfCbHJXCYlSq2TblWTFD4BSrb0gpaqWgW7xw2MBIHyFqb2PkM82FyZgU4bV7VK/s325/main-qimg-729a2f53e666804f98311e0c84515cd7-lq.jpeg"
                   alt="Member 1"
                   className="img-fluid mb-2"
                   style={{ height: "200px" }}
@@ -59,7 +59,7 @@ function Teams() {
             <div className="col-md-3 mb-4">
               <div className="border border-warning p-3 h-100 d-flex flex-column justify-content-center align-items-center">
                 <img
-                  src="https://cdn.britannica.com/25/222725-050-170F622A/Indian-cricketer-Mahendra-Singh-Dhoni-2011.jpg"
+                  src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiga0kfrowvddqvuXCFSrMbKbyTroH85fnZfSFstoa4ldj_ZBuQq-1ohgp2gnvDOIvNj1pe0Jn1HAtTlNrHHLXqiLlHT_cj04dncQs7E7FQ1bjAZAXKhESXWAnYJVoSqVNfCbHJXCYlSq2TblWTFD4BSrb0gpaqWgW7xw2MBIHyFqb2PkM82FyZgU4bV7VK/s325/main-qimg-729a2f53e666804f98311e0c84515cd7-lq.jpeg"
                   alt="Member 2"
                   className="img-fluid mb-2"
                   style={{ height: "200px" }}
@@ -78,7 +78,7 @@ function Teams() {
             <div className="col-md-3 mb-4">
               <div className="border border-warning p-3 h-100 d-flex flex-column justify-content-center align-items-center">
                 <img
-                  src="https://cdn.britannica.com/25/222725-050-170F622A/Indian-cricketer-Mahendra-Singh-Dhoni-2011.jpg"
+                  src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiga0kfrowvddqvuXCFSrMbKbyTroH85fnZfSFstoa4ldj_ZBuQq-1ohgp2gnvDOIvNj1pe0Jn1HAtTlNrHHLXqiLlHT_cj04dncQs7E7FQ1bjAZAXKhESXWAnYJVoSqVNfCbHJXCYlSq2TblWTFD4BSrb0gpaqWgW7xw2MBIHyFqb2PkM82FyZgU4bV7VK/s325/main-qimg-729a2f53e666804f98311e0c84515cd7-lq.jpeg"
                   alt="Member 3"
                   className="img-fluid mb-2"
                   style={{ height: "200px" }}
@@ -97,7 +97,7 @@ function Teams() {
             <div className="col-md-3 mb-4">
               <div className="border border-warning p-3 h-100 d-flex flex-column justify-content-center align-items-center">
                 <img
-                  src="https://cdn.britannica.com/25/222725-050-170F622A/Indian-cricketer-Mahendra-Singh-Dhoni-2011.jpg"
+                  src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiga0kfrowvddqvuXCFSrMbKbyTroH85fnZfSFstoa4ldj_ZBuQq-1ohgp2gnvDOIvNj1pe0Jn1HAtTlNrHHLXqiLlHT_cj04dncQs7E7FQ1bjAZAXKhESXWAnYJVoSqVNfCbHJXCYlSq2TblWTFD4BSrb0gpaqWgW7xw2MBIHyFqb2PkM82FyZgU4bV7VK/s325/main-qimg-729a2f53e666804f98311e0c84515cd7-lq.jpeg"
                   alt="Member 4"
                   className="img-fluid mb-2"
                   style={{ height: "200px" }}

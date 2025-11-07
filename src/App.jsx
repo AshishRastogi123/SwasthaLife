@@ -1,19 +1,23 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Home from "./components/Home";
+import Login from "./components/LoginSignIn/login";
+import UserButton from "./components/UserButton";
+import SymptomForm from "./components/form/form";
+import Chatbot from "./components/ChatBot/ChatBot";
 
 function App() {
-  const [count, setCount] = useState(0);
-
   return (
     <>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login/>} />
+          <Route path="/dashboard" element={<UserButton />} />
+          <Route path="/form" element={<SymptomForm />} />
+          <Route path="/chatbot" element={<Chatbot />} />
         </Routes>
       </BrowserRouter>
     </>

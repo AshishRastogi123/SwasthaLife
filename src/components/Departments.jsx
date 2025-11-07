@@ -1,17 +1,22 @@
 import React from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 
+import Button from "./UserButton";
+
 function Departments() {
   return (
     <>
       <div className="bg-white text-center p-3 rounded">
-        <p className="h1 text-primary fw-bold">Our All Departments</p>
+        <p className="h1 text-primary fw-bold">
+          Welcome to the Health Diagnosis & Prediction System
+        </p>
         <p>
-          Hard work can be painful, but it's worth it. Don't give up! The
-          struggle is temporary, but the reward is great. Keep going!
+          Health challenges may be tough, but your past data can
+          lead to better outcomes. Don't lose hope temporary - struggles often
+          lead to lasting wellness. Stay informed, stay proactive!
         </p>
 
-        <div className="container text-center mt-4">
+        {/* <div className="container text-center mt-4">
           <div className="row">
             <div className="col-md-3 mb-4">
               <div className="border border-warning p-3 h-100 d-flex flex-column justify-content-center align-items-center">
@@ -117,7 +122,8 @@ function Departments() {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
+        <Button />
       </div>
     </>
   );
