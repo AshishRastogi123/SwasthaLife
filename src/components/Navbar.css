@@ -2,9 +2,11 @@ body, html {
       margin: 0;
       padding: 0;
       height: 100%;
+      overflow-x: hidden;
     }
 
     .main {
+      padding-top: 70px; /* Add padding to account for fixed navbar */
       background-image: url("https://t3.ftcdn.net/jpg/02/19/91/48/360_F_219914874_fcqxEeJ6clfwf43OcCNAMGNBySKzF5hl.jpg");
       background-size: cover;
       background-position: center;
@@ -14,7 +16,16 @@ body, html {
     }
     
     .navbar-custom {
-      background-color: #0d47a1;
+      /* blue navbar as requested */
+      background-color: #0d47a1; /* deep blue */
+      box-shadow: 0 2px 6px rgba(2,6,23,0.25);
+      position: fixed !important;
+      width: 100%;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      padding: 0.5rem 1rem;
     }
 
     .logo {
@@ -25,29 +36,90 @@ body, html {
     }
 
     .nav-link {
-      color: #fff !important;
-      font-weight: bold;
-      transition: 0.3s;
+      color: #ffffff !important; /* white links on blue background */
+      font-weight: 700;
+      transition: color 0.22s ease, transform 0.22s ease;
+      position: relative;
+      display: inline-block;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* animated underline and lift on hover */
+    .nav-link::after {
+      content: "";
+      position: absolute;
+      /* reduce left/right so underline is wider */
+      left: 6%;
+      right: 6%;
+      bottom: -6px;
+      height: 3px;
+      background: #ff7200;
+      transform: scaleX(0);
+      transform-origin: center;
+      transition: transform 0.22s ease, opacity 0.18s ease;
+      border-radius: 2px;
+      opacity: 0.95;
     }
 
     .nav-link:hover {
-      color: #ff7200 !important;
+      transform: translateY(-3px);
+    }
+
+    .nav-link:hover::after {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+
+    /* Apply orange color and same underline animation to all nav links on hover/focus */
+    .nav-link:hover,
+    .nav-link:focus {
+      color: #ff7200 !important; /* orange */
+    }
+
+    /* slightly faster underline animation for all links */
+    .nav-link::after {
+      transition: transform 0.18s ease;
+      background: #ff7200;
+    }
+
+    /* keyboard focus visible state */
+    .nav-link:focus {
+      outline: 2px solid rgba(255,114,0,0.12);
+      outline-offset: 4px;
+      border-radius: 3px;
+    }
+
+    /* Project name styling (contrasts on blue) */
+    .project-name {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: 0.6px;
+      text-shadow: 0 1px 0 rgba(0,0,0,0.15);
+      transition: color 0.18s ease, transform 0.18s ease;
+      cursor: default;
+    }
+
+    .project-name:hover {
+      color: #ff7200; /* orange on hover */
+      transform: translateY(-2px);
     }
     .content{
-      padding-bottom:8%;
+      padding-bottom: 6%;
+      padding-top: 2%;
     }
     .content h4 {
       font-size: 2vw;
       letter-spacing: 2px;
-      margin-top: 15%;
+      margin-top: 8%;
       font-family: Georgia, serif;
       color: #2d0278;
       font-weight: bold;
-      
     }
 
     .content span {
-    font-weight: bold;
+      font-weight: bold;
       color: #2d0278;
       font-size: 4vw;
     }
@@ -62,19 +134,50 @@ body, html {
     }
 
     .cn {
-      background-color: blue;
-      border: none;
-      border-radius: 18px;
-      padding: 10px 20px;
+      background-color: #2b87ff;
+      border: 2px solid transparent;
+      border-radius: 30px;
+      padding: 12px 28px;
       color: white;
-      font-size: clamp(1px, 2vw, 24px); 
-      
-      transition: 0.4s ease;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       text-decoration: none;
-      
+      display: inline-flex;
+      align-items: center;
+      box-shadow: 0 4px 6px rgba(43, 135, 255, 0.25);
     }
 
     .cn:hover {
       background-color: white;
-      color: black;
+      color: #2b87ff;
+      border-color: #2b87ff;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(43, 135, 255, 0.3);
+    }
+
+    .emergency-btn {
+      background: linear-gradient(135deg, #ff4b4b 0%, #dc2626 100%);
+      border: 2px solid transparent;
+      border-radius: 30px;
+      padding: 12px 28px;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      box-shadow: 0 4px 6px rgba(220, 38, 38, 0.25);
+      cursor: pointer;
+    }
+
+    .emergency-btn:hover {
+      background: white;
+      color: #dc2626;
+      border-color: #dc2626;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(220, 38, 38, 0.3);
     }

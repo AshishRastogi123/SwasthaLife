@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 function Login() {
   const navigate = useNavigate();
@@ -51,34 +52,103 @@ function Login() {
     handleValidate(data);
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.6 } }
+  };
+
+  const leftPanelVariants = {
+    hidden: { x: -100, opacity: 0 },
+    visible: { x: 0, opacity: 1, transition: { duration: 0.8, delay: 0.2 } }
+  };
+
+  const rightPanelVariants = {
+    hidden: { x: 100, opacity: 0 },
+    visible: { x: 0, opacity: 1, transition: { duration: 0.8, delay: 0.4 } }
+  };
+
+  const inputVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+  };
+
   return (
-    <div
+    <motion.div
       className="vh-100 d-flex justify-content-center align-items-center"
       style={{
         background: "linear-gradient(135deg, #E3F2FD, #FCE4EC)",
       }}
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
     >
       <div className="container">
         <div className="row justify-content-center">
-          <div className="col-md-5 d-flex flex-column align-items-center justify-content-center text-center bg-white shadow rounded-start p-4">
-            <h4 className="fw-bold mb-3">An easy way to manage</h4>
-            <h2 className="fw-bold text-primary mb-4">Your Health Online</h2>
-            <img
+          <motion.div
+            className="col-md-5 d-flex flex-column align-items-center justify-content-center text-center bg-white shadow rounded-start p-4"
+            variants={leftPanelVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <motion.h4
+              className="fw-bold mb-3"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+            >
+              An easy way to manage
+            </motion.h4>
+            <motion.h2
+              className="fw-bold text-primary mb-4"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+            >
+              Your Health Online
+            </motion.h2>
+            <motion.img
               src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png"
               alt="health"
               style={{ width: "80%", maxWidth: "250px" }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 1 }}
             />
-            <a href="/" className="mt-3 text-decoration-none fw-semibold">
+            <motion.a
+              href="/"
+              className="mt-3 text-decoration-none fw-semibold"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 1.2 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
               Go back
-            </a>
-          </div>
+            </motion.a>
+          </motion.div>
 
-          <div className="col-md-5 bg-light shadow rounded-end p-4">
-            <h4 className="text-center fw-bold mb-4">
-              WelCome to SwathaLife Portal
-            </h4>
+          <motion.div
+            className="col-md-5 bg-light shadow rounded-end p-4"
+            variants={rightPanelVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <motion.h4
+              className="text-center fw-bold mb-4"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+            >
+              Welcome to SwasthaLife Portal
+            </motion.h4>
 
-            <div className="mb-3">
+            <motion.div
+              className="mb-3"
+              variants={inputVariants}
+              initial="hidden"
+              animate="visible"
+              transition={{ delay: 0.8 }}
+            >
               <input
                 type="email"
                 name="email"
@@ -87,9 +157,15 @@ function Login() {
                 onChange={handleChange}
               />
               <p className="text-danger">{error.email}</p>
-            </div>
+            </motion.div>
 
-            <div className="mb-3">
+            <motion.div
+              className="mb-3"
+              variants={inputVariants}
+              initial="hidden"
+              animate="visible"
+              transition={{ delay: 1 }}
+            >
               <input
                 type="password"
                 name="password"
@@ -98,9 +174,15 @@ function Login() {
                 onChange={handleChange}
               />
               <p className="text-danger">{error.password}</p>
-            </div>
+            </motion.div>
 
-            <div className="mb-3">
+            <motion.div
+              className="mb-3"
+              variants={inputVariants}
+              initial="hidden"
+              animate="visible"
+              transition={{ delay: 1.2 }}
+            >
               <input
                 type="password"
                 name="conPassword"
@@ -109,47 +191,91 @@ function Login() {
                 onChange={handleChange}
               />
               <p className="text-danger">{error.conPassword}</p>
-            </div>
+            </motion.div>
 
-            <div className="d-grid">
-              <button
+            <motion.div
+              className="d-grid"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 1.4 }}
+            >
+              <motion.button
                 className="btn btn-primary fw-semibold"
                 onClick={handleClick}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 Login
-              </button>
-            </div>
+              </motion.button>
+            </motion.div>
 
-            <hr />
-            <p className="text-center text-muted">Or Login with</p>
+            <motion.hr
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 1.6 }}
+            />
+            <motion.p
+              className="text-center text-muted"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 1.8 }}
+            >
+              Or Login with
+            </motion.p>
 
-            <div className="d-flex justify-content-center gap-3">
-              <button className="btn btn-outline-primary">
+            <motion.div
+              className="d-flex justify-content-center gap-3"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 2 }}
+            >
+              <motion.button
+                className="btn btn-outline-primary"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <i className="bi bi-facebook me-2"></i> Facebook
-              </button>
-              <button className="btn btn-outline-info">
+              </motion.button>
+              <motion.button
+                className="btn btn-outline-info"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <i className="bi bi-twitter me-2"></i> Twitter
-              </button>
-              <button className="btn btn-outline-primary">
+              </motion.button>
+              <motion.button
+                className="btn btn-outline-primary"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <i className="bi bi-linkedin me-2"></i> LinkedIn
-              </button>
-              <button className="btn btn-outline-danger">
+              </motion.button>
+              <motion.button
+                className="btn btn-outline-danger"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <i className="bi bi-google me-2"></i> Google
-              </button>
-            </div>
+              </motion.button>
+            </motion.div>
 
-            <div className="text-center mt-3">
+            <motion.div
+              className="text-center mt-3"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 2.2 }}
+            >
               <p>
                 Don't have an account?
                 <Link to="/Signup" className="text-decoration-none">
                   Register
                 </Link>
               </p>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

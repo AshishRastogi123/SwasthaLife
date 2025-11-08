@@ -1,0 +1,116 @@
+.emergency-section {
+    background: #f5e9e9;
+    padding: 2rem 1rem;
+    margin: 2rem 0;
+    margin-left: 25px;
+    margin-right: 25px;
+}
+
+.emergency-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(220, 38, 38, 0.1);
+}
+
+.emergency-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #dc2626;
+}
+
+.emergency-header h2 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.emergency-header p {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.emergency-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.submit-btn {
+    background: #dc2626;
+    color: white;
+    padding: 1rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.submit-btn:hover {
+    background: #b91c1c;
+}
+
+.success-message {
+    text-align: center;
+    padding: 2rem;
+    background: #f0fdf4;
+    border-radius: 8px;
+    color: #166534;
+}
+
+.success-message h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 640px) {
+    .emergency-container {
+        padding: 1.5rem;
+    }
+    
+    .emergency-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 0.5rem;
+    }
+    
+    .submit-btn {
+        padding: 0.75rem;
+    }
+}

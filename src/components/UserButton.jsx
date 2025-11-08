@@ -33,10 +33,15 @@ function UserButton() {
     <div
       className="d-flex justify-content-center align-items-center vh-100"
       style={{
-        background: "linear-gradient(135deg, #E3F2FD 0%, #3392d5ff 100%)",
+        background: "linear-gradient(135deg, #dbeafe 0%, #dbeafe 70%, #dcfce7 100%)",
+        borderRadius: "18px",
+        marginRight: "16px",
+        marginLeft: "16px",
+        marginBottom: "0px",
       }}
     >
       <div className="container">
+        <h1 style={{ color: "#2446a3", textAlign: "center", marginBottom: "80px", fontSize: "2.8rem", fontWeight: "900" }}>Check Your Health</h1>
         <div className="row justify-content-center g-4">
           {cards.map((card, index) => (
             <div key={index} className="col-md-3 d-flex justify-content-center">
@@ -50,7 +55,7 @@ function UserButton() {
                 className="card text-center shadow-sm border-0"
                 style={{
                   width: "18rem",
-                  borderRadius: "20px",
+                  borderRadius: "18px",
                   cursor: "pointer",
                   backgroundColor: card.color,
                   transition: "all 0.3s ease-in-out",

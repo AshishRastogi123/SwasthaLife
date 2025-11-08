@@ -11,9 +11,7 @@ function Departments() {
           Welcome to the Health Diagnosis & Prediction System
         </p>
         <p>
-          Health challenges may be tough, but your past data can
-          lead to better outcomes. Don't lose hope temporary - struggles often
-          lead to lasting wellness. Stay informed, stay proactive!
+          
         </p>
 
         {/* <div className="container text-center mt-4">
