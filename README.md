@@ -1,16 +1,107 @@
-# React + Vite
+# SwasthaLife
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+SwasthaLife is a cutting-edge healthcare web application that leverages artificial intelligence to predict and prevent diseases before they become critical. Our platform makes healthcare accessible, affordable, and proactive for everyone, empowering users to take control of their health through innovative technology and compassionate care.
 
-Currently, two official plugins are available:
+## 🎥 Demo
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+![Demo GIF](src/components/Images/vision.gif)
 
-## React Compiler
+## 🌟 Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **AI-Powered Disease Prediction**: Utilize advanced AI algorithms to analyze health data and predict potential health issues.
+- **Intelligent Chatbot**: Get instant health advice and support through our AI-powered chatbot.
+- **Department Information**: Explore various medical departments and their services.
+- **Appointment Booking**: Easily schedule appointments with healthcare professionals.
+- **Symptom Checker**: Input symptoms to receive personalized health recommendations.
+- **User Authentication**: Secure login and signup functionality for personalized experiences.
+- **Emergency Form**: Quick access to emergency healthcare services.
+- **Blog & Resources**: Stay informed with health-related articles and resources.
+- **Contact Support**: Direct communication with our healthcare team.
+- **Responsive Design**: Optimized for all devices with a modern, user-friendly interface.
 
-## Expanding the ESLint configuration
+## 🛠️ Tech Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- **Frontend**: React 19.1.1, Vite 7.1.7
+- **Styling**: Bootstrap 5.3.8, Framer Motion 12.23.24
+- **Routing**: React Router DOM 7.9.4
+- **AI Integration**: Google Generative AI 0.24.1
+- **Icons**: Bootstrap Icons 1.13.1
+- **Build Tools**: ESLint 9.36.0, Vite Plugins
+
+## 🚀 Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/your-username/swasthalife.git
+   cd swasthalife
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**:
+   Create a `.env` file in the root directory and add your Google AI API key:
+   ```
+   VITE_GOOGLE_AI_API_KEY=your_api_key_here
+   ```
+
+4. **Start the development server**:
+   ```bash
+   npm run dev
+   ```
+
+5. **Build for production**:
+   ```bash
+   npm run build
+   ```
+
+6. **Preview the production build**:
+   ```bash
+   npm run preview
+   ```
+
+## 📖 Usage
+
+1. Navigate to the home page to explore the main features.
+2. Sign up or log in to access personalized health recommendations.
+3. Use the symptom checker to input your symptoms and receive AI-powered insights.
+4. Chat with our AI chatbot for instant health advice.
+5. Book appointments with healthcare professionals through the appointment system.
+6. Explore different medical departments to learn about available services.
+
+## 🤝 Contributing
+
+We welcome contributions from the community! To contribute:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👥 Our Mission
+
+At SwasthaLife, our mission is to revolutionize healthcare by leveraging cutting-edge AI technology to predict and prevent diseases before they become critical. We believe in making healthcare accessible, affordable, and proactive for everyone, regardless of their location or background.
+
+## 💡 Core Values
+
+- **Compassion**: We care deeply about every individual and their health journey.
+- **Innovation**: We embrace cutting-edge technology to improve healthcare outcomes.
+- **Community**: We believe in the power of community for better health and wellness.
+- **Trust**: We build trust through transparency, reliability, and ethical practices.
+
+## 📞 Contact
+
+For questions, support, or partnerships, please reach out to us at:
+- Email: info@swasthalife.com
+- Website: [www.swasthalife.com](https://www.swasthalife.com)
+
+---
+
+*Founded in 2023, SwasthaLife is committed to transforming healthcare through technology and compassion.*
