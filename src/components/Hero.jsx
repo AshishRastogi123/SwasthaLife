@@ -30,7 +30,7 @@ function Hero() {
               />
             </div>
             <div className="button-group" style={{ display: 'flex', gap: '20px', marginTop: '20px' }}>
-              <a href="#" className="cn">
+              <a href="/BookAppointment" className="cn">
                 <i className="fas fa-calendar-alt me-2"></i>
                 Book Appointment
               </a>

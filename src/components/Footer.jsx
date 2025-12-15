@@ -19,10 +19,12 @@ const Footer = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="d-flex justify-content-center justify-content-lg-between p-4 border-bottom"
-          style={{ borderColor: "#4b5563 !important" }}
+          style={{ borderColor: "#4b5563" }}
         >
           <div className="me-5 d-none d-lg-block">
-            <span style={{ fontWeight: "600", color: "#e5e7eb" }}>Get connected with OUR Team on social networks:</span>
+            <span style={{ fontWeight: "600", color: "#e5e7eb" }}>
+              Get connected with OUR Team on social networks:
+            </span>
           </div>
           <div className="d-flex">
             <motion.a
@@ -31,7 +33,7 @@ const Footer = () => {
               whileHover={{ scale: 1.2 }}
               style={{ color: "#ffffff", textDecoration: "none" }}
             >
-              <i className="fab fa-facebook-f fa-lg"></i>
+              <i className="fab fa-facebook-f fa-lg" />
             </motion.a>
             <motion.a
               href="#"
@@ -39,7 +41,15 @@ const Footer = () => {
               whileHover={{ scale: 1.2 }}
               style={{ color: "#ffffff", textDecoration: "none" }}
             >
-              <i className="fab fa-youtube fa-lg"></i>
+              <i className="fab fa-youtube fa-lg" />
+            </motion.a>
+            <motion.a
+              href="/"
+              className="me-4"
+              whileHover={{ scale: 1.2 }}
+              style={{ color: "#ffffff", textDecoration: "none" }}
+            >
+              <i className="fab fa-google fa-lg" />
             </motion.a>
             <motion.a
               href="#"
@@ -47,7 +57,15 @@ const Footer = () => {
               whileHover={{ scale: 1.2 }}
               style={{ color: "#ffffff", textDecoration: "none" }}
             >
-              <i className="fab fa-google fa-lg"></i>
+              <i className="fab fa-instagram fa-lg" />
+            </motion.a>
+            <motion.a
+              href="https://www.linkedin.com/posts/ashish-rastogi-77153331a_swasthalife-ai-machinelearning-activity-7393677787397701632-avt5?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFG4SeoBit4S_OLiFR_U7JLjNYnSIN8mAKI"
+              className="me-4"
+              whileHover={{ scale: 1.2 }}
+              style={{ color: "#ffffff", textDecoration: "none" }}
+            >
+              <i className="fab fa-linkedin-in fa-lg" />
             </motion.a>
             <motion.a
               href="#"
@@ -55,23 +73,7 @@ const Footer = () => {
               whileHover={{ scale: 1.2 }}
               style={{ color: "#ffffff", textDecoration: "none" }}
             >
-              <i className="fab fa-instagram fa-lg"></i>
-            </motion.a>
-            <motion.a
-              href="#"
-              className="me-4"
-              whileHover={{ scale: 1.2 }}
-              style={{ color: "#ffffff", textDecoration: "none" }}
-            >
-              <i className="fab fa-linkedin-in fa-lg"></i>
-            </motion.a>
-            <motion.a
-              href="#"
-              className="me-4"
-              whileHover={{ scale: 1.2 }}
-              style={{ color: "#ffffff", textDecoration: "none" }}
-            >
-              <i className="fab fa-github fa-lg"></i>
+              <i className="fab fa-github fa-lg" />
             </motion.a>
           </div>
         </motion.section>
@@ -98,7 +100,13 @@ const Footer = () => {
                     style={{ borderRadius: "10px", width: "100px" }}
                   />
                 </div>
-                <p style={{ color: "#e5e7eb", lineHeight: "1.6", fontSize: "0.95rem" }}>
+                <p
+                  style={{
+                    color: "#e5e7eb",
+                    lineHeight: "1.6",
+                    fontSize: "0.95rem",
+                  }}
+                >
                   Empowering lives through innovation, our dedicated team built
                   a responsive website that predicts diseases—bringing
                   healthcare one step closer, faster, and smarter.
@@ -113,17 +121,38 @@ const Footer = () => {
                   Departments
                 </h6>
                 <p>
-                  <a href="#" style={{ color: "#e5e7eb", textDecoration: "none", fontWeight: "500" }}>
+                  <a
+                    href="#"
+                    style={{
+                      color: "#e5e7eb",
+                      textDecoration: "none",
+                      fontWeight: "500",
+                    }}
+                  >
                     Family Medicine
                   </a>
                 </p>
                 <p>
-                  <a href="#" style={{ color: "#e5e7eb", textDecoration: "none", fontWeight: "500" }}>
+                  <a
+                    href="#"
+                    style={{
+                      color: "#e5e7eb",
+                      textDecoration: "none",
+                      fontWeight: "500",
+                    }}
+                  >
                     Female Health
                   </a>
                 </p>
                 <p>
-                  <a href="#" style={{ color: "#e5e7eb", textDecoration: "none", fontWeight: "500" }}>
+                  <a
+                    href="#"
+                    style={{
+                      color: "#e5e7eb",
+                      textDecoration: "none",
+                      fontWeight: "500",
+                    }}
+                  >
                     Optician
                   </a>
                 </p>
@@ -137,22 +166,50 @@ const Footer = () => {
                   Useful Links
                 </h6>
                 <p>
-                  <a href="#" style={{ color: "#e5e7eb", textDecoration: "none", fontWeight: "500" }}>
+                  <a
+                    href="#"
+                    style={{
+                      color: "#e5e7eb",
+                      textDecoration: "none",
+                      fontWeight: "500",
+                    }}
+                  >
                     Our Health Experts
                   </a>
                 </p>
                 <p>
-                  <a href="#" style={{ color: "#e5e7eb", textDecoration: "none", fontWeight: "500" }}>
+                  <a
+                    href="#"
+                    style={{
+                      color: "#e5e7eb",
+                      textDecoration: "none",
+                      fontWeight: "500",
+                    }}
+                  >
                     Appointments
                   </a>
                 </p>
                 <p>
-                  <a href="#" style={{ color: "#e5e7eb", textDecoration: "none", fontWeight: "500" }}>
+                  <a
+                    href="#"
+                    style={{
+                      color: "#e5e7eb",
+                      textDecoration: "none",
+                      fontWeight: "500",
+                    }}
+                  >
                     Our Helpers
                   </a>
                 </p>
                 <p>
-                  <a href="#" style={{ color: "#e5e7eb", textDecoration: "none", fontWeight: "500" }}>
+                  <a
+                    href="#"
+                    style={{
+                      color: "#e5e7eb",
+                      textDecoration: "none",
+                      fontWeight: "500",
+                    }}
+                  >
                     Our Medicine
                   </a>
                 </p>
@@ -165,17 +222,55 @@ const Footer = () => {
                 >
                   Contact Us
                 </h6>
-                <p style={{ color: "#e5e7eb", fontSize: "0.9rem", lineHeight: "1.5" }}>
-                  <strong style={{ color: "#ffffff" }}>Address:</strong> Invertis Village, Delhi Lucknow
-                  Highway NH-24, Bareilly, Uttar Pradesh - 243123, India
+                <p
+                  style={{
+                    color: "#e5e7eb",
+                    fontSize: "0.9rem",
+                    lineHeight: "1.5",
+                  }}
+                >
+                  <a
+                    href="https://www.google.com/maps/place/Invertis+University,+Bareilly+-Top+University+In+Uttar+Pradesh+(U.P)/@28.2919024,79.4569444,4992m/data=!3m1!1e3!4m10!1m2!2m1!1sInvertis+Village+Bareilly+UP!3m6!1s0x39a0023f8a1f8cdd:0x5b10af261bf34c99!8m2!3d28.2919024!4d79.4929933!15sChxJbnZlcnRpcyBWaWxsYWdlIEJhcmVpbGx5IFVQkgEKdW5pdmVyc2l0eaoBXwoKL20vMHRrZzNmMRABKgwiCGludmVydGlzKAAyHxABIhu3wKq4PD62dhSgvS-S4QNjomrYoSWdR9TfpuAyIBACIhxpbnZlcnRpcyB2aWxsYWdlIGJhcmVpbGx5IHVw4AEA!16s%2Fm%2F0tkg3f1?entry=ttu&g_ep=EgoyMDI1MTExMC4wIKXMDSoASAFQAw%3D%3D"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      color: "#ffffff",
+                      textDecoration: "none",
+                      fontSize: "1.5rem",
+                    }}
+                  >
+                    <i className="bi bi-geo-alt-fill"></i>
+                  </a>{" "}
+                  Invertis University , Invertis Village, Delhi Lucknow Highway
+                  NH-24, Bareilly, Uttar Pradesh - 243123, India
                 </p>
                 <p style={{ color: "#e5e7eb", fontSize: "0.9rem" }}>
-                  <strong style={{ color: "#ffffff" }}>Email:</strong> info@techteam.org
+                  <strong style={{ color: "#ffffff" }}>Email:</strong>{" "}
+                  <a
+                    href="https://mail.google.com/mail/?view=cm&fs=1&to=info@swasthalife.org"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: "#e5e7eb", textDecoration: "none" }}
+                  >
+                    info@swasthalife.org
+                  </a>
                 </p>
+
                 <p style={{ color: "#e5e7eb", fontSize: "0.9rem" }}>
-                  <strong style={{ color: "#ffffff" }}>Phone:</strong>
-                  <br />
-                  +91 84456 31880 , +91 97560 21146
+                  <strong style={{ color: "#ffffff" }}>Phone: </strong>
+                  <a
+                    href="tel:+918445631880"
+                    className="text-white text-decoration-none"
+                  >
+                    +91 84456 31880
+                  </a>
+                  {" "}
+                  <a
+                    href="tel:+919756021146"
+                    className="text-white text-decoration-none"
+                  >
+                    +91 79004 04660
+                  </a>
                 </p>
               </div>
             </div>
@@ -193,13 +288,13 @@ const Footer = () => {
             borderTop: "1px solid #4b5563",
           }}
         >
-          © 2025 techteamrights:{" "}
+          © 2025 swasthaliferights:{" "}
           <a
             className="fw-bold"
             href="#"
             style={{ color: "#2563eb", textDecoration: "none" }}
           >
-            techteamindia.in
+            swasthalifeindia.in
           </a>
         </motion.div>
       </footer>

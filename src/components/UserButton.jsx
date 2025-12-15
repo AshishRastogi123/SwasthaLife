@@ -18,7 +18,7 @@ function UserButton() {
       desc: "Explore different health departments and services.",
       img: "https://cdn-icons-png.flaticon.com/512/942/942748.png",
       color: "#E8F5E9",
-      path: "/departments",
+      path: "/department",
     },
     {
       title: "Use Our Chatbot",

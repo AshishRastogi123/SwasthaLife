@@ -3,27 +3,27 @@ import { motion } from "framer-motion";
 import "bootstrap/dist/css/bootstrap.min.css";
 import ashish from "./Images/Team/Ashish.png";
 import Hardik1 from "./Images/Team/Hardik1.jpg";
-import Tiwari_photo from "./Images/Team/Tiwari_photo.jpg";
+import Tiwari from "./Images/Team/Tiwari.jpg";
 import manju from "./Images/Team/manju.jpg";
-import ansh from "./Images/Team/ansh.jpg";
+
 function Teams() {
   const teamMembers = [
     {
       img: ashish,
       name: "Ashish Kumar Rastogi",
-      role: "Team Leader, Product Designer",
-      expert: "AI/ML Engineering & Frontend Development",
+      role: "Team Leader",
+      expert: "AI/ML Engineering",
       desc: "Ashish leads the team with expertise in AI and machine learning, driving innovative solutions for health prediction and user engagement."
     },
     {
       img: Hardik1,
       name: "Hardik Agarwal",
-      role: "Data Analyst",
+      role: "Data Scientist",
       expert: "Data Science & Analytics",
       desc: "Hardik specializes in data analysis and predictive modeling, ensuring accurate health insights through advanced algorithms."
     },
     {
-      img: Tiwari_photo,
+      img: Tiwari,
       name: "Aditya Tiwari",
       role: "Software Engineer",
       expert: "Full-Stack Development",
@@ -37,11 +37,11 @@ function Teams() {
       desc: "Manju provides medical expertise, aligning our platform with clinical standards and ensuring trustworthy health recommendations."
     },
     {
-      img: ansh,
+      img: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiga0kfrowvddqvuXCFSrMbKbyTroH85fnZfSFstoa4ldj_ZBuQq-1ohgp2gnvDOIvNj1pe0Jn1HAtTlNrHHLXqiLlHT_cj04dncQs7E7FQ1bjAZAXKhESXWAnYJVoSqVNfCbHJXCYlSq2TblWTFD4BSrb0gpaqWgW7xw2MBIHyFqb2PkM82FyZgU4bV7VK/s325/main-qimg-729a2f53e666804f98311e0c84515cd7-lq.jpeg",
       name: "Ansh Saxena",
-      role: "Backend handling",
-      expert: "Backend Development",
-      desc: " focuses on creating intuitive designs, enhancing user interaction and accessibility in our health platform."
+      role: "UI/UX Designer",
+      expert: "User Experience Design",
+      desc: "Member4 focuses on creating intuitive designs, enhancing user interaction and accessibility in our health platform."
     }
   ];
 
