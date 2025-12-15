@@ -6,6 +6,7 @@ import Home from "./components/Home";
 import About from "./components/About";
 import Department from "./components/Department";
 import Login from "./components/LoginSignIn/login";
+import Signup from "./components/LoginSignIn/Signup";
 import UserButton from "./components/UserButton";
 import SymptomForm from "./components/form/form";
 import Chatbot from "./components/ChatBot/ChatBot";
@@ -19,6 +20,7 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/department" element={<Department />} />
           <Route path="/login" element={<Login/>} />
+          <Route path="/Signup" element={<Signup />} />
           <Route path="/dashboard" element={<UserButton />} />
           <Route path="/form" element={<SymptomForm />} />
           <Route path="/chatbot" element={<Chatbot />} />
