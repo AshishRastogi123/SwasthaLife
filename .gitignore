@@ -25,3 +25,6 @@ dist-ssr
 *ChatBot
 *backend
 *Datset
+*Recycle
+*.gitignore
+*.code-search
