@@ -44,14 +44,34 @@ function Signup() {
     return errs;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate(data);
     setError(errs);
     if (Object.keys(errs).length === 0) {
-      // Fake signup success — replace with API call later
-      alert("Signup successful! Please login.");
-      navigate("/login");
+      try {
+        const response = await fetch("http://localhost:3000/api/auth/signup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: data.fullname,
+            email: data.email,
+            password: data.password,
+          }),
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          alert(result.message || "Signup successful! Please login.");
+          navigate("/login");
+        } else {
+          alert(result.message || "Signup failed.");
+        }
+      } catch (error) {
+        alert("An error occurred. Please try again.");
+      }
     }
   };
 
