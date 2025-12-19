@@ -1,4 +1,3 @@
-import React from "react";
 import TypeWriter from "./TypeWriter";
 import "./TypeWriter.css";
 import EmergencyForm from "./EmergencyForm";

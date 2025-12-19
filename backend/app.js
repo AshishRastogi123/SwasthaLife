@@ -14,7 +14,12 @@ connectDB();
 
 // Middlewares
 app.use(morgan('dev'));
-app.use(cors());
+
+app.use(cors({
+   origin: ['http://localhost:5173', 'http://localhost:3000'], // Both ports
+  credentials: true,
+  optionsSuccessStatus: 200
+}));
 app.use(express.json());
 
 // Routes
