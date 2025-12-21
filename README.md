@@ -27,6 +27,9 @@ SwasthaLife is a cutting-edge healthcare web application that leverages artifici
 - **AI Integration**: Google Generative AI 0.24.1
 - **Icons**: Bootstrap Icons 1.13.1
 - **Build Tools**: ESLint 9.36.0, Vite Plugins
+- **Backend**: Node.js, Express 5.2.1, MongoDB (Mongoose 9.0.2)
+- **Authentication**: JWT (jsonwebtoken 9.0.3), bcryptjs 3.0.3
+- **Other Backend Tools**: Morgan 1.10.1, CORS 2.8.5, Cookie Parser 1.4.7
 
 ## 🚀 Installation
 
