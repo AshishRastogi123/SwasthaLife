@@ -4,7 +4,7 @@ SwasthaLife is a cutting-edge healthcare web application that leverages artifici
 
 ## 🎥 Demo
 
-![Demo GIF](src/components/Images/vision.gif)
+![Demo GIF](frontend/src/components/Images/vision.gif)
 
 ## 🌟 Features
 
