@@ -78,6 +78,8 @@ function Login() {
         if (result.token) {
 
           localStorage.setItem("token", result.token);
+          localStorage.setItem("user", JSON.stringify(result.user));
+          window.dispatchEvent(new Event("authChanged"));
           toast.success("Login successful ");
         }
         

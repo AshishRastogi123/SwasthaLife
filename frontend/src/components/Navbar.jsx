@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Navbar.css";
 import logo from "./Images/LogoFinal.png";
@@ -6,16 +6,39 @@ import newlog from "./swastha.png";
 
 function Navbar() {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+
+  // 🔹 Load user from localStorage
+  useEffect(() => {
+    const loadUser = () => {
+      const storedUser = localStorage.getItem("user");
+      setUser(storedUser ? JSON.parse(storedUser) : null);
+    };
+
+    loadUser();
+    window.addEventListener("authChanged", loadUser);
+
+    return () => window.removeEventListener("authChanged", loadUser);
+  }, []);
+
+  // 🔹 Logout
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    window.dispatchEvent(new Event("authChanged"));
+    navigate("/login");
+  };
+
   return (
     <nav className="navbar navbar-expand-lg navbar-custom fixed-top">
       <div className="container-fluid">
+        {/* LOGO */}
         <a
           className="navbar-brand logo"
           href="#"
           onClick={(e) => {
             e.preventDefault();
             navigate("/");
-            window.location.reload();
           }}
         >
           <div className="d-flex align-items-center">
@@ -29,14 +52,19 @@ function Navbar() {
                 marginRight: "10px",
               }}
             />
-            {/* <span className="project-name">SwasthaLife</span> */}
-            {/* <span className="display-7 fw-bold text-primary text-gradient bg-gradient p-3 rounded shadow-lg">
-              <span className="text-warning">Swastha</span>
-              <span className="text-success">Life</span>
-            </span> */}
-            < img src={newlog} alt="SwasthaLife" style={{ height: "auto", width: "170px", borderRadius: "8px", marginRight: "10px"}} />
+            <img
+              src={newlog}
+              alt="SwasthaLife"
+              style={{
+                height: "auto",
+                width: "170px",
+                borderRadius: "8px",
+              }}
+            />
           </div>
         </a>
+
+        {/* TOGGLER */}
         <button
           className="navbar-toggler bg-light"
           type="button"
@@ -46,6 +74,7 @@ function Navbar() {
           <span className="navbar-toggler-icon"></span>
         </button>
 
+        {/* NAV LINKS */}
         <div
           className="collapse navbar-collapse justify-content-center"
           id="navbarNav"
@@ -58,62 +87,74 @@ function Navbar() {
               "DOCUMENTATIONS",
               "BLOG",
               "CONTACT",
-            ].map((item, index) => {
-              const isAccent = [
-                "HOME",
-                "ABOUT",
-                "DEPARTMENT",
-                // "PAGES",
-                "DOCUMENTATIONS",
-                "BLOG",
-                "CONTACT",
-              ].includes(item);
-              return (
-                <li className="nav-item mx-2" key={index}>
-                  <a
-                    className={`nav-link fw-semibold text-uppercase px-3 ${
-                      isAccent ? "accent-link" : ""
-                    }`}
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (item === "ABOUT") {
-                        navigate("/about");
-                      } else if (item === "HOME") {
-                        navigate("/");
-                      } else if (item === "DEPARTMENT") {
-                        navigate("/department");
-                      } else if (item === "DOCUMENTATIONS") {
-                        navigate("/documentation");
-                      }
-                      // else if (item === "PAGES") {
-                      //   navigate("/Pages");}
-                      else if (item === "BLOG") {
-                        navigate("/Blog");
-                      } else if (item === "CONTACT") {
-                        navigate("/contact");
-                      } else {
-                        // Handle other navigation items as needed
-                      }
-                    }}
-                    style={{ letterSpacing: "0.8px", cursor: "pointer" }}
-                  >
-                    {item}
-                  </a>
-                </li>
-              );
-            })}
+            ].map((item, index) => (
+              <li className="nav-item mx-2" key={index}>
+                <span
+                  className="nav-link fw-semibold text-uppercase px-3 accent-link"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => {
+                    if (item === "HOME") navigate("/");
+                    if (item === "ABOUT") navigate("/about");
+                    if (item === "DEPARTMENT") navigate("/department");
+                    if (item === "DOCUMENTATIONS") navigate("/documentation");
+                    if (item === "BLOG") navigate("/blog");
+                    if (item === "CONTACT") navigate("/contact");
+                  }}
+                >
+                  {item}
+                </span>
+              </li>
+            ))}
           </ul>
         </div>
-        <div className="d-flex ms-auto me">
-          <button
-            className="btn btn-light text-primary fw-bold fs-5 fs-sm-5 fs-md-4 fs-lg-3 fs-xl-2"
-            onClick={() => navigate("/login")}>
-            Login
-          </button>
+
+        {/* 🔹 RIGHT SIDE (LOGIN / USER) */}
+        <div className="d-flex align-items-center ms-auto">
+         {user ? (
+  <div className="d-flex align-items-center gap-3">
+    {/* Profile (Photo ↑ Name ↓) */}
+    <div
+      className="text-center"
+      style={{ cursor: "pointer" }}
+      onClick={() => navigate("/profile")}
+    >
+      <img
+        src={user.profilePic || "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png"}
+        alt="profile"
+        width="42"
+        height="42"
+        className="rounded-circle mb-1"
+        style={{ objectFit: "cover" }}
+      />
+
+      <div
+        className="fw-semibold text-light"
+        style={{ fontSize: "0.75rem", lineHeight: "1rem" }}
+      >
+        {user.name}
+      </div>
+    </div>
+
+    {/* Logout */}
+    <button
+      className="btn btn-outline-light btn-sm"
+      onClick={handleLogout}
+    >
+      Logout
+    </button>
+  </div>
+          ) : (
+            <button
+              className="btn btn-light text-primary fw-bold fs-8"
+              onClick={() => navigate("/login")}
+            >
+              Login
+            </button>
+          )}
         </div>
       </div>
     </nav>
   );
 }
+
 export default Navbar;
