@@ -94,7 +94,7 @@ function Login() {
         // Navigate to home page
         
       } else {
-        toast.error("Error message");
+        toast.warning("Warning: Email or Password are wrong.");
         setError({ ...error, form: result.message || "Login failed. Please check your credentials." });
       }
     } catch (err) {
