@@ -119,7 +119,8 @@ function Navbar() {
       onClick={() => navigate("/profile")}
     >
       <img
-        src={user.profilePic || "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png"}
+        src={user.profilePic ||
+                  `https://ui-avatars.com/api/?name=${user.name}`}
         alt="profile"
         width="42"
         height="42"
