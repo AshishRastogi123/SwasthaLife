@@ -96,37 +96,75 @@ const SymptomForm = () => {
   const closeModal = () => setShowModal(false);
 
   const buildPayload = () => {
-    const chosen = Object.entries(form.symptoms)
-      .filter(([k, v]) => v.checked)
-      .map(([k, v]) => ({ symptom: k, details: v.details }));
+    const symptomsObj = {};
+
+    Object.entries(form.symptoms).forEach(([key, val]) => {
+      symptomsObj[key.toLowerCase().replace(" ", "")] = val.checked;
+    });
 
     return {
-      name: `${form.firstName} ${form.lastName}`,
-      age: form.age,
+      firstName: form.firstName,
+      lastName: form.lastName,
+      age: Number(form.age),
+      dob: form.dob || undefined,
       gender: form.gender,
-      dob: form.dob,
-      phone: form.phone,
-      height: form.height,
-      weight: form.weight,
+      phone: form.phone || undefined,
+      heightCm: form.height ? Number(form.height) : undefined,
+      weightKg: form.weight ? Number(form.weight) : undefined,
+
       vitals: {
-        bp: form.bp,
-        pulse: form.pulse,
-        spo2: form.spo2,
-        bloodSugar: form.bloodSugar,
+        bp: form.bp || undefined,
+        pulse: form.pulse ? Number(form.pulse) : undefined,
+        spo2: form.spo2 ? Number(form.spo2) : undefined,
+        bloodSugar: form.bloodSugar
+          ? Number(form.bloodSugar)
+          : undefined,
       },
-      lifestyle: form.lifestyle,
-      familyHistory: form.familyHistory,
-      allergies: form.allergies,
-      symptoms: chosen,
+
+      lifestyle: form.lifestyle || undefined,
+      familyHistory: form.familyHistory
+        ? form.familyHistory.split(",").map((s) => s.trim())
+        : [],
+      allergies: form.allergies
+        ? form.allergies.split(",").map((s) => s.trim())
+        : [],
+
+      symptoms: symptomsObj,
     };
   };
 
+
   const payload = buildPayload();
 
-  const confirmAndSend = () => {
-    alert("Form Submitted Successfully");
-    setShowModal(false);
+  const confirmAndSend = async () => {
+    try {
+      const payload = buildPayload();
+
+      const res = await fetch("http://localhost:3000/api/prediction", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        credentials: "include", // cookie JWT support
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Submission failed");
+        return;
+      }
+
+      alert("Prediction data saved successfully ✅");
+      setShowModal(false);
+    } catch (err) {
+      console.error(err);
+      alert("Server error while submitting data");
+    }
   };
+
 
   return (
     <>
@@ -149,9 +187,8 @@ const SymptomForm = () => {
                     name="firstName"
                     value={form.firstName}
                     onChange={handleFieldChange}
-                    className={`form-control ${
-                      errors.firstName ? "is-invalid" : ""
-                    }`}
+                    className={`form-control ${errors.firstName ? "is-invalid" : ""
+                      }`}
                   />
                   {errors.firstName && (
                     <div className="invalid-feedback">{errors.firstName}</div>
@@ -166,9 +203,8 @@ const SymptomForm = () => {
                     name="lastName"
                     value={form.lastName}
                     onChange={handleFieldChange}
-                    className={`form-control ${
-                      errors.lastName ? "is-invalid" : ""
-                    }`}
+                    className={`form-control ${errors.lastName ? "is-invalid" : ""
+                      }`}
                   />
                   {errors.lastName && (
                     <div className="invalid-feedback">{errors.lastName}</div>
@@ -214,9 +250,8 @@ const SymptomForm = () => {
                     name="gender"
                     value={form.gender}
                     onChange={handleFieldChange}
-                    className={`form-select ${
-                      errors.gender ? "is-invalid" : ""
-                    }`}
+                    className={`form-select ${errors.gender ? "is-invalid" : ""
+                      }`}
                   >
                     <option value="">Select</option>
                     <option>Male</option>
@@ -455,10 +490,11 @@ const SymptomForm = () => {
               <div className="mt-3" style={{ maxHeight: "60vh", overflowY: "auto" }}>
                 <table className="table table-bordered">
                   <tbody>
-                    <tr>
-                      <th style={{ width: 220 }}>Name</th>
-                      <td>{payload.name || "-"}</td>
+                    <tr> 
+                        <th style={{ width: 220 }}>Name</th>
+                        <td>{form.firstName} {form.lastName}</td>
                     </tr>
+                    
                     <tr>
                       <th>Age</th>
                       <td>{payload.age || "-"}</td>
@@ -526,28 +562,20 @@ const SymptomForm = () => {
                     <tr>
                       <th>Symptoms</th>
                       <td>
-                        {payload.symptoms && payload.symptoms.length ? (
-                          <table className="table mb-0">
-                            <thead>
-                              <tr>
-                                <th style={{ width: "50%" }}>Symptom</th>
-                                <th>Details</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {payload.symptoms.map((s, i) => (
-                                <tr key={i}>
-                                  <td>{s.symptom}</td>
-                                  <td>{s.details || "-"}</td>
-                                </tr>
+                        {payload.symptoms ? (
+                          <ul className="mb-0">
+                            {Object.entries(payload.symptoms)
+                              .filter(([_, v]) => v === true)
+                              .map(([k]) => (
+                                <li key={k}>{k}</li>
                               ))}
-                            </tbody>
-                          </table>
+                          </ul>
                         ) : (
                           "-"
                         )}
                       </td>
                     </tr>
+
                   </tbody>
                 </table>
               </div>
