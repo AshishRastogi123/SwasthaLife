@@ -1,8 +1,8 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const predictionSchema = new mongoose.Schema(
   {
-    // 🔗 User reference (Auth completed already)
+    // 🔗 User reference
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -25,68 +25,44 @@ const predictionSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
-    dob: {
-      type: Date,
-    },
+    dob: Date,
     gender: {
       type: String,
       enum: ["Male", "Female", "Other"],
       required: true,
     },
-    phone: {
-      type: String,
-    },
+    phone: String,
 
-    // 📏 Body Metrics (optional)
-    heightCm: {
-      type: Number,
-    },
-    weightKg: {
-      type: Number,
-    },
+    // 📏 Body Metrics
+    heightCm: Number,
+    weightKg: Number,
 
-    // ❤️ Vitals (optional but structured)
+    // ❤️ Vitals
     vitals: {
-      bp: {
-        type: String, // "120/80"
-      },
-      pulse: {
-        type: Number, // bpm
-      },
-      spo2: {
-        type: Number, // %
-      },
-      bloodSugar: {
-        type: Number,
-      },
+      bp: String,
+      pulse: Number,
+      spo2: Number,
+      bloodSugar: Number,
     },
 
     // 🧬 Lifestyle & History
-    lifestyle: {
-      type: String, // sedentary / active
-    },
-    familyHistory: {
-      type: [String], // ["diabetes", "heart disease"]
-    },
-    allergies: {
-      type: [String], // ["penicillin"]
-    },
+    lifestyle: String,
+    familyHistory: [String],
+    allergies: [String],
 
-    // 🤒 Symptoms (important for ML)
+    // 🤒 Symptoms (ML-friendly booleans)
     symptoms: {
-      fever: Boolean,
-      headache: Boolean,
-      cough: Boolean,
-      fatigue: Boolean,
-      bodyPain: Boolean,
-      soreThroat: Boolean,
-      nausea: Boolean,
-      other: {
-        type: String,
-      },
+      fever: { type: Boolean, default: false },
+      headache: { type: Boolean, default: false },
+      cough: { type: Boolean, default: false },
+      fatigue: { type: Boolean, default: false },
+      bodyPain: { type: Boolean, default: false },
+      soreThroat: { type: Boolean, default: false },
+      nausea: { type: Boolean, default: false },
+      other: { type: String },
     },
 
-    // 🤖 Prediction Output (future use)
+    // 🤖 Prediction Output
     prediction: {
       disease: String,
       probability: Number,
@@ -96,4 +72,4 @@ const predictionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("Prediction", predictionSchema);
+module.exports = mongoose.model("Prediction", predictionSchema);
