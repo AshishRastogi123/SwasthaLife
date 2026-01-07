@@ -233,9 +233,8 @@ const SymptomForm = () => {
     if (!form.gender) errs.gender = "Gender is required";
     if (!form.symptoms || form.symptoms.length === 0) 
       errs.symptoms = "Please select at least one symptom";
-    else if (form.symptoms.length > 10)
-      errs.symptoms = "Maximum 10 symptoms allowed";
-    
+    // No maximum limit enforced — allow any number of selected symptoms
+
     return errs;
   };
 
@@ -385,7 +384,8 @@ const SymptomForm = () => {
         };
       }
 
-      const res = await fetch('/api/prediction', {
+      const base = import.meta.env.VITE_API_URL !== undefined ? import.meta.env.VITE_API_URL : 'http://localhost:3000';
+      const res = await fetch(`${String(base).replace(/\/$/, '')}/api/prediction`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -660,7 +660,7 @@ const SymptomForm = () => {
                 <h6>
                   Symptoms <span className="text-danger">*</span>
                   <small className="text-muted ms-2">
-                    (Select 1-10 symptoms)
+                    (Select one or more symptoms)
                   </small>
                 </h6>
                 
