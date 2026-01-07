@@ -2,6 +2,8 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import joblib
 import numpy as np
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 # -----------------------------
 # Load model & symptom columns
@@ -21,6 +23,22 @@ app = FastAPI(
     title="SwasthaLife Disease Prediction API",
     description="ML microservice for symptom-based disease prediction",
     version="1.0.0"
+)
+
+# Allow CORS from local frontend origins during development
+from fastapi.middleware.cors import CORSMiddleware
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # -----------------------------

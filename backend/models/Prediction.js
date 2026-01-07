@@ -50,16 +50,10 @@ const predictionSchema = new mongoose.Schema(
     familyHistory: [String],
     allergies: [String],
 
-    // 🤒 Symptoms (ML-friendly booleans)
+    // 🤒 Symptoms: store as an array of ML symptom keys (e.g., ['cough','fever'])
     symptoms: {
-      fever: { type: Boolean, default: false },
-      headache: { type: Boolean, default: false },
-      cough: { type: Boolean, default: false },
-      fatigue: { type: Boolean, default: false },
-      bodyPain: { type: Boolean, default: false },
-      soreThroat: { type: Boolean, default: false },
-      nausea: { type: Boolean, default: false },
-      other: { type: String },
+      type: [String],
+      default: [],
     },
 
     // 🤖 Prediction Output
