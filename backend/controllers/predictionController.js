@@ -2,14 +2,27 @@ const http = require('http');
 const Prediction = require("../models/Prediction");
 
 // Helper to call FastAPI ML service
-const fetchPredictionFromML = (symptoms) => {
+// Accepts either { symptoms: [...] } or { input_vector: [...] } or just a symptoms array
+const fetchPredictionFromML = (payload, debug = false) => {
   return new Promise((resolve, reject) => {
-    const data = JSON.stringify({ symptoms });
+    let bodyObj = null;
+
+    // Payload may be an array (symptoms) or an object
+    if (Array.isArray(payload)) {
+      bodyObj = { symptoms: payload };
+    } else if (payload && typeof payload === 'object') {
+      if (payload.input_vector) bodyObj = { input_vector: payload.input_vector };
+      else if (payload.symptoms) bodyObj = { symptoms: Array.isArray(payload.symptoms) ? payload.symptoms : Object.keys(payload.symptoms).filter(k => !!payload.symptoms[k]) };
+    }
+
+    if (!bodyObj) return reject(new Error('No valid payload provided to ML service'));
+
+    const data = JSON.stringify(bodyObj);
 
     const options = {
       hostname: 'localhost',
       port: 8000,
-      path: '/predict',
+      path: debug ? '/predict?debug=1' : '/predict',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -23,7 +36,11 @@ const fetchPredictionFromML = (symptoms) => {
       res.on('data', (chunk) => (body += chunk));
       res.on('end', () => {
         try {
-          const parsed = JSON.parse(body);
+          const parsed = body ? JSON.parse(body) : null;
+          if (res.statusCode >= 400) {
+            const msg = parsed && (parsed.detail || parsed.message) ? (parsed.detail || parsed.message) : `ML service error: ${res.statusCode}`;
+            return reject(new Error(msg));
+          }
           resolve(parsed);
         } catch (err) {
           reject(err);
@@ -62,12 +79,21 @@ const createPrediction = async (req, res) => {
       prediction: clientPrediction,
     } = req.body;
 
+    // Preserve client provided prediction if present
     let prediction = clientPrediction || null;
 
-    // If no prediction provided by client, call ML service server-side
-    if (!prediction) {
+    // Normalize symptoms input: accept array or object of booleans
+    let normalizedSymptoms = [];
+    if (Array.isArray(symptoms)) {
+      normalizedSymptoms = symptoms;
+    } else if (symptoms && typeof symptoms === 'object') {
+      normalizedSymptoms = Object.keys(symptoms).filter((k) => !!symptoms[k]);
+    }
+
+    if (!clientPrediction) {
+      // If no prediction provided by client, call ML service server-side (send normalized array)
       try {
-        const ml = await fetchPredictionFromML(symptoms);
+        const ml = await fetchPredictionFromML(normalizedSymptoms);
         if (ml && (ml.predicted_disease || ml.predicted_disease === '')) {
           prediction = {
             disease: ml.predicted_disease,
@@ -94,7 +120,8 @@ const createPrediction = async (req, res) => {
       lifestyle,
       familyHistory,
       allergies,
-      symptoms,
+      // Always store normalized array of symptom keys
+      symptoms: normalizedSymptoms,
       prediction,
     });
 
@@ -110,4 +137,84 @@ const createPrediction = async (req, res) => {
   }
 };
 
-module.exports = { createPrediction };
+// Endpoint to only return ML prediction (no DB save, no auth required)
+const predictOnly = async (req, res) => {
+  try {
+    const { symptoms, input_vector } = req.body;
+
+    // Prefer input_vector if provided (client provided full 0/1 vector)
+    let payload = null;
+    if (input_vector && Array.isArray(input_vector)) {
+      payload = { input_vector };
+    } else if (Array.isArray(symptoms)) {
+      payload = symptoms;
+    } else if (symptoms && typeof symptoms === 'object') {
+      payload = Object.keys(symptoms).filter(k => !!symptoms[k]);
+    }
+
+    if (!payload) return res.status(400).json({ message: 'At least one symptom or input_vector is required' });
+
+    try {
+      const debugFlag = req.query && (req.query.debug === '1' || req.query.debug === 'true');
+      const ml = await fetchPredictionFromML(payload, debugFlag);
+      if (!ml || !('predicted_disease' in ml)) return res.status(502).json({ message: 'Invalid response from ML service' });
+      // include input_vector from ML if provided (debug)
+      const response = { predicted_disease: ml.predicted_disease, confidence: ml.confidence };
+      if (ml.input_vector) response.input_vector = ml.input_vector;
+      return res.status(200).json(response);
+    } catch (err) {
+      console.error('ML prediction error:', err.message);
+      return res.status(502).json({ message: err.message || 'ML service error' });
+    }
+  } catch (err) {
+    console.error('Prediction-only error:', err);
+    return res.status(500).json({ message: 'Server error while fetching prediction' });
+  }
+};
+
+// Fetch symptom columns from ML service
+const fetchColumnsFromML = () => {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'localhost',
+      port: 8000,
+      path: '/columns',
+      method: 'GET',
+      timeout: 3000,
+    };
+
+    const req = http.request(options, (res) => {
+      let body = '';
+      res.on('data', (chunk) => (body += chunk));
+      res.on('end', () => {
+        try {
+          const parsed = body ? JSON.parse(body) : null;
+          if (res.statusCode >= 400) return reject(new Error(parsed && parsed.detail ? parsed.detail : `ML service error: ${res.statusCode}`));
+          resolve(parsed && parsed.columns ? parsed.columns : null);
+        } catch (err) {
+          reject(err);
+        }
+      });
+    });
+
+    req.on('error', (err) => reject(err));
+    req.on('timeout', () => {
+      req.destroy(new Error('ML service timeout'));
+    });
+
+    req.end();
+  });
+};
+
+const getColumns = async (req, res) => {
+  try {
+    const cols = await fetchColumnsFromML();
+    if (!cols) return res.status(502).json({ message: 'Could not fetch columns from ML service' });
+    return res.status(200).json({ columns: cols });
+  } catch (err) {
+    console.error('Columns fetch error:', err.message);
+    return res.status(502).json({ message: err.message || 'ML service error' });
+  }
+};
+
+module.exports = { createPrediction, predictOnly, getColumns };

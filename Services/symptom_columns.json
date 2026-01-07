@@ -1,0 +1,10 @@
+[
+  "fatigue","weight_gain","weight_loss","fever","chills","sweating","weakness","lethargy","restlessness","mood_swings","anxiety","depression",
+  "cough","continuous_sneezing","breathlessness","congestion","runny_nose","sinus_pressure","phlegm","blood_in_sputum","rusty_sputum","mucoid_sputum",
+  "stomach_pain","abdominal_pain","nausea","vomiting","diarrhoea","constipation","indigestion","acidity","loss_of_appetite","burning_micturition","spotting_urination",
+  "headache","dizziness","loss_of_balance","unsteadiness","slurred_speech","altered_sensorium","coma","loss_of_smell","visual_disturbances","lack_of_concentration",
+  "joint_pain","muscle_pain","muscle_weakness","back_pain","neck_pain","stiff_neck","knee_pain","hip_joint_pain","painful_walking","movement_stiffness","swelling_joints",
+  "itching","skin_rash","nodal_skin_eruptions","skin_peeling","blister","yellow_crust_ooze","red_spots_over_body","dischromic_patches","pus_filled_pimples","blackheads","scurring","silver_like_dusting","inflammatory_nails",
+  "chest_pain","fast_heart_rate","palpitations","cold_hands_and_feets","swollen_blood_vessels","prominent_veins_on_calf",
+  "blurred_and_distorted_vision","watering_from_eyes","redness_of_eyes","throat_irritation","patches_in_throat","foul_smell_of_urine"
+]

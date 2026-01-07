@@ -290,29 +290,78 @@ const SymptomForm = () => {
       setSaveStatus(null);
 
       const payload = buildPayload();
-      // Call FastAPI ML service
-      const res = await fetch("http://localhost:8000/predict", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ symptoms: payload.symptoms }),
+      // Use VITE_API_URL when available (dev) otherwise default to localhost backend
+      const base = import.meta.env.VITE_API_URL !== undefined ? import.meta.env.VITE_API_URL : 'http://localhost:3000';
+
+      const colsUrl = base ? `${String(base).replace(/\/$/, '')}/api/predict/columns` : '/api/predict/columns';
+      const colsRes = await fetch(colsUrl);
+      if (!colsRes.ok) {
+        const text = await colsRes.text();
+        setPredicting(false);
+        setSaveStatus({ ok: false, message: `Could not fetch symptom columns: ${text || colsRes.statusText}` });
+        return;
+      }
+      const colsJson = await colsRes.json();
+      const columns = colsJson.columns || [];
+
+      // Build full binary input vector (1 = selected, 0 = not selected)
+      const selectedSet = new Set(payload.symptoms || []);
+      const input_vector = columns.map((c) => selectedSet.has(c) ? 1 : 0);
+
+      const url = base ? `${String(base).replace(/\/$/, '')}/api/predict?debug=1` : '/api/predict?debug=1';
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input_vector }),
       });
-      const data = await res.json();
+
+      // Parse response safely (handle empty/non-JSON bodies)
+      let data = null;
+      const ct = res.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        try {
+          data = await res.json();
+        } catch (e) {
+          data = null;
+        }
+      } else {
+        const text = await res.text();
+        try {
+          data = text ? JSON.parse(text) : null;
+        } catch (e) {
+          data = null;
+        }
+      }
+
       setPredicting(false);
 
       if (!res.ok) {
+        const message = (data && (data.detail || data.message)) || res.statusText || `Request failed with status ${res.status}`;
         setPredictionResult(null);
-        setSaveStatus({ ok: false, message: data.detail || data.message || "Prediction failed" });
+        setSaveStatus({ ok: false, message });
         return;
+      }
+
+      if (!data) {
+        setPredictionResult(null);
+        setSaveStatus({ ok: false, message: 'Invalid response from prediction service' });
+        return;
+      }
+
+      // Optionally show input_vector for verification (returned from ML when debug enabled)
+      if (data.input_vector) {
+        console.debug('ML returned input_vector (debug):', data.input_vector);
       }
 
       // Show prediction in modal instead of alert
       setPredictionResult({ disease: data.predicted_disease, confidence: data.confidence });
-      setSaveStatus({ ok: true, message: "Prediction ready — save to patient records if needed." });
+      setSaveStatus({ ok: true, message: 'Prediction ready — save to patient records if needed.' });
 
     } catch (err) {
       console.error(err);
       setPredicting(false);
-      setSaveStatus({ ok: false, message: "Server error while requesting prediction" });
+      setSaveStatus({ ok: false, message: err.message || 'Server error while requesting prediction' });
     }
   };
 
@@ -346,10 +395,19 @@ const SymptomForm = () => {
         body: JSON.stringify(body),
       });
 
-      const data = await res.json();
+      // Safely parse response (handle empty/non-JSON)
+      let data = null;
+      const ct = res.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        try { data = await res.json(); } catch (e) { data = null; }
+      } else {
+        const text = await res.text();
+        try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
+      }
+
       setSaving(false);
       if (!res.ok) {
-        setSaveStatus({ ok: false, message: data.message || 'Failed to save record' });
+        setSaveStatus({ ok: false, message: (data && data.message) || 'Failed to save record' });
         return;
       }
 
@@ -692,7 +750,7 @@ const SymptomForm = () => {
         {/* Popup Modal */}
         {showModal && (
           <div
-            className="modal-backdrop fade show"
+            className="fade show"
             style={{
               position: "fixed",
               inset: 0,
