@@ -19,7 +19,34 @@ SwasthaLife is a cutting-edge healthcare web application that leverages artifici
 - **Contact Support**: Direct communication with our healthcare team.
 - **Responsive Design**: Optimized for all devices with a modern, user-friendly interface.
 
-## 🛠️ Tech Stack
+## � Project Pitch Overview
+
+### Introduction
+SwasthaLife is an AI-powered healthcare platform that helps people identify diseases early and get the right guidance instantly.
+
+### Problem Statement
+Millions of people do not know which disease they are suffering from. Many rely on online searches, self-medication, or delay visiting doctors, which leads to serious health risks—especially for rural and middle-class communities.
+
+### Solution
+SwasthaLife uses artificial intelligence to provide three intelligent ways for users to access health guidance:
+- **Users who know the disease name**
+- **Users who know only their symptoms**
+- **Users who describe their condition in natural language**
+
+Based on the input, the system predicts possible diseases and provides instant, actionable guidance.
+
+### Technology & Innovation
+- Machine Learning models trained on medical symptom datasets.
+- Modern, API-driven backend designed to scale on cloud infrastructure.
+- Future integration plans: Microsoft Azure AI and cloud services to improve prediction accuracy and scalability.
+
+### Impact
+SwasthaLife aims to support early disease detection, reduce unnecessary hospital visits, and improve access to basic healthcare guidance—particularly for underserved and remote populations.
+
+### Vision
+SwasthaLife is currently in the launch stage, with a vision to scale across India as a trusted AI-powered health companion, improving healthcare accessibility for millions.
+
+## �🛠️ Tech Stack
 
 - **Frontend**: React 19.1.1, Vite 7.1.7
 - **Styling**: Bootstrap 5.3.8, Framer Motion 12.23.24
