@@ -7,7 +7,7 @@ body, html {
 
     .main {
       padding-top: 70px; /* Add padding to account for fixed navbar */
-      background-image: url("https://t3.ftcdn.net/jpg/02/19/91/48/360_F_219914874_fcqxEeJ6clfwf43OcCNAMGNBySKzF5hl.jpg");
+      background-image: url("background.jpg");
       background-size: cover;
       background-position: center;
       max-width: 100%;

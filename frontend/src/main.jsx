@@ -6,7 +6,7 @@ import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap/dist/js/bootstrap.js";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import "./toast.css";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <App />
@@ -18,7 +18,6 @@ createRoot(document.getElementById("root")).render(
       closeOnClick
       pauseOnHover
       draggable
-      theme="colored"
     />
   </StrictMode>
 );

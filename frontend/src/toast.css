@@ -1,0 +1,40 @@
+/* Base toast */
+.Toastify__toast {
+  border-radius: 10px;
+  font-weight: 500;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* Success – Medical Blue */
+/* Blue success check icon */
+.Toastify__toast--success .Toastify__toast-icon svg path {
+  fill: #1976d2;
+}
+
+/* Remove green background */
+.Toastify__toast--success .Toastify__toast-icon svg rect {
+  fill: transparent;
+}
+
+/* Error – Emergency Red */
+.Toastify__toast--error {
+  background: #d32f2f;
+  color: #ffffff;
+}
+
+/* Warning */
+.Toastify__toast--warning {
+  background: #f9a825;
+  color: #212121;
+}
+
+/* Info */
+.Toastify__toast--info {
+  background: #0288d1;
+  color: #ffffff;
+}
+
+/* Progress bar */
+.Toastify__progress-bar {
+  background: rgba(36, 63, 184, 0.7);
+}
