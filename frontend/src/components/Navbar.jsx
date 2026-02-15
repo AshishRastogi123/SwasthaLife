@@ -44,7 +44,7 @@ function Navbar() {
           <div className="d-flex align-items-center">
             <img
               src={logo}
-              alt="SwasthaLife Logo"
+              alt="SwasthaLife"
               style={{
                 height: "50px",
                 width: "50px",

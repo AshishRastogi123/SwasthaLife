@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { toast } from "react-toastify";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
@@ -13,6 +14,8 @@ const DiseaseStep2 = () => {
   // receive diseaseName and basicData from step1
   const diseaseName = location.state?.diseaseName || "Selected Disease";
   const basicData = location.state?.basicData || {};
+
+  const [isLoading, setIsLoading] = useState(false);
 
   // mapping: for each disease provide fields (name,label,type,required,options)
   const diseaseFields = {
@@ -186,9 +189,30 @@ const DiseaseStep2 = () => {
     setErrors((p) => ({ ...p, [name]: "" }));
   };
 
-  const validateAndSubmit = (e) => {
+  // Map disease-specific fields to symptom names (can be enhanced)
+  const mapFieldsToSymptoms = () => {
+    const symptoms = [];
+    
+    // Convert field names to symptom-like format
+    Object.entries(specificData).forEach(([key, value]) => {
+      if (value === "" || value === null || value === 0) return;
+      
+      // Convert camelCase to readable symptom
+      const symptom = key
+        .replace(/([A-Z])/g, " $1")
+        .toLowerCase()
+        .trim();
+      
+      symptoms.push(symptom);
+    });
+    
+    return symptoms.length > 0 ? symptoms : ["suspected " + diseaseName.toLowerCase()];
+  };
+
+  const validateAndSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
+    
     // validate required fields
     fields.forEach((f) => {
       if (f.required && (!specificData[f.name] && specificData[f.name] !== 0)) {
@@ -202,22 +226,88 @@ const DiseaseStep2 = () => {
       return;
     }
 
-    // Build final payload
-    const payload = {
-      disease: diseaseName,
-      basicData,
-      specificData,
-      timestamp: new Date().toISOString(),
-    };
+    setIsLoading(true);
 
-    // since backend is not present, show alert + console
-    console.log("Prediction payload:", payload);
-    alert(
-      `Submitted details for "${diseaseName}".\n\n(Currently You are well fine.)`
-    );
+    try {
+      const token = localStorage.getItem("token");
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-    // optional - navigate to a 'result' page or back
-    // navigate("/prediction-result", { state: { payload }});
+      if (!token) {
+        toast.error("You must be logged in to submit a prediction");
+        navigate("/login");
+        setIsLoading(false);
+        return;
+      }
+
+      // Prepare payload matching backend schema
+      const payload = {
+        firstName: basicData.fullName?.split(" ")[0] || "User",
+        lastName: basicData.fullName?.split(" ").slice(1).join(" ") || "",
+        age: parseInt(basicData.age, 10),
+        dob: basicData.dob,
+        gender: basicData.gender,
+        phone: basicData.mobile || "",
+        heightCm: parseFloat(basicData.heightCm),
+        weightKg: parseFloat(basicData.weightKg),
+        vitals: {
+          bloodPressure: basicData.bloodPressure,
+          bloodSugar: basicData.bloodSugar,
+          bmi: parseFloat(basicData.bmi),
+        },
+        lifestyle: {
+          smoking: basicData.smoking,
+          alcohol: basicData.alcohol,
+          physicalActivity: basicData.physicalActivity,
+          sleepHours: parseFloat(basicData.sleepHours),
+          waterIntake: parseFloat(basicData.waterIntake),
+          dietType: basicData.dietType,
+        },
+        familyHistory: {},
+        allergies: [],
+        // Map disease-specific data to symptoms
+        symptoms: mapFieldsToSymptoms(),
+        // Additional context for the prediction
+        diseaseContext: {
+          disease: diseaseName,
+          specificData: specificData,
+        },
+      };
+
+      console.log("Sending prediction payload:", payload);
+
+      const response = await fetch("http://localhost:3000/api/prediction", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast.success("Prediction submitted successfully!");
+        console.log("Prediction result:", result);
+        
+        // Navigate to results page with the response
+        navigate("/prediction-result", { 
+          state: { 
+            payload,
+            result,
+            disease: diseaseName,
+          } 
+        });
+      } else {
+        toast.error(result.message || "Failed to submit prediction");
+        console.error("Backend error:", result);
+      }
+    } catch (error) {
+      console.error("Prediction submission error:", error);
+      toast.error("Error submitting prediction: " + error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const sectionVariants = { hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0 } };
@@ -229,13 +319,13 @@ const DiseaseStep2 = () => {
         <motion.section initial="hidden" whileInView="visible" variants={sectionVariants} transition={{ duration: 0.6 }} className="py-5" style={{ background: "linear-gradient(135deg, #dbeafe 0%, #dcfce7 100%)", color: "#1e293b", textAlign: "center", padding: "60px 20px", marginTop: "76px" }}>
           <div className="container">
             <h1 className="display-5 fw-bold" style={{ color: "#2563eb" }}>{diseaseName} — Detailed Questions</h1>
-            <p style={{ color: "#374151" }} className="mt-2">Here we ask a few more questions specific to <strong>{diseaseName}</strong>. These help the prediction model.</p>
+            <p style={{ color: "#374151" }} className="mt-2">Here we ask a few more questions specific to <strong>{diseaseName}</strong>. These help the ML model provide better prediction.</p>
 
             {/* show small summary of basicData */}
             <div className="mt-4" style={{ maxWidth: 900, margin: "0 auto", textAlign: "left" }}>
               <div className="card shadow-sm border-0" style={{ borderRadius: 12 }}>
                 <div className="card-body">
-                  <h6 className="fw-bold" style={{ color: "#2563eb" }}>Basic Details (from previous Details)</h6>
+                  <h6 className="fw-bold" style={{ color: "#2563eb" }}>Basic Details Summary</h6>
                   <div style={{ color: "#374151", fontSize: "0.95rem" }}>
                     <div><strong>Name:</strong> {basicData.fullName || "-"}</div>
                     <div><strong>Age:</strong> {basicData.age || "-"}</div>
@@ -256,7 +346,7 @@ const DiseaseStep2 = () => {
                 <form onSubmit={validateAndSubmit}>
                   <div className="card border-0 shadow-sm" style={{ borderRadius: 12 }}>
                     <div className="card-body p-4 p-md-5">
-                      <h4 className="mb-3" style={{ color: "#2563eb" }}>{diseaseName} — Please fill below</h4>
+                      <h4 className="mb-3" style={{ color: "#2563eb" }}>{diseaseName} — Specific Questions</h4>
 
                       {fields.length === 0 && (
                         <div className="alert alert-info">No additional questions for this disease. You can submit basic details directly.</div>
@@ -268,19 +358,19 @@ const DiseaseStep2 = () => {
                             <label className="form-label fw-semibold">{f.label}{f.required ? " *" : ""}</label>
 
                             {f.type === "text" && (
-                              <input type="text" name={f.name} value={specificData[f.name]} onChange={handleSpecificChange} className={`form-control ${errors[f.name] ? "is-invalid" : ""}`} />
+                              <input type="text" name={f.name} value={specificData[f.name]} onChange={handleSpecificChange} className={`form-control ${errors[f.name] ? "is-invalid" : ""}`} disabled={isLoading} />
                             )}
 
                             {f.type === "number" && (
-                              <input type="number" name={f.name} value={specificData[f.name]} onChange={handleSpecificChange} className={`form-control ${errors[f.name] ? "is-invalid" : ""}`} />
+                              <input type="number" name={f.name} value={specificData[f.name]} onChange={handleSpecificChange} className={`form-control ${errors[f.name] ? "is-invalid" : ""}`} disabled={isLoading} />
                             )}
 
                             {f.type === "textarea" && (
-                              <textarea name={f.name} value={specificData[f.name]} onChange={handleSpecificChange} className={`form-control ${errors[f.name] ? "is-invalid" : ""}`} rows="3" />
+                              <textarea name={f.name} value={specificData[f.name]} onChange={handleSpecificChange} className={`form-control ${errors[f.name] ? "is-invalid" : ""}`} rows="3" disabled={isLoading} />
                             )}
 
                             {f.type === "select" && (
-                              <select name={f.name} value={specificData[f.name]} onChange={handleSpecificChange} className={`form-control ${errors[f.name] ? "is-invalid" : ""}`}>
+                              <select name={f.name} value={specificData[f.name]} onChange={handleSpecificChange} className={`form-control ${errors[f.name] ? "is-invalid" : ""}`} disabled={isLoading}>
                                 <option value="">Select</option>
                                 {f.options && f.options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
                               </select>
@@ -292,15 +382,24 @@ const DiseaseStep2 = () => {
                       </div>
 
                       <div className="d-flex justify-content-between mt-4">
-                        <button type="button" className="btn btn-outline-secondary" style={{ borderRadius: 25 }} onClick={() => navigate(-1)}>← Back</button>
-                        <button type="submit" className="btn" style={{ background: "#2563eb", color: "#fff", borderRadius: 25 }}>Submit</button>
+                        <button type="button" className="btn btn-outline-secondary" style={{ borderRadius: 25 }} onClick={() => navigate(-1)} disabled={isLoading}>← Back</button>
+                        <motion.button
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.97 }}
+                          type="submit"
+                          className="btn"
+                          style={{ background: "#2563eb", color: "#fff", borderRadius: 25 }}
+                          disabled={isLoading}
+                        >
+                          {isLoading ? "Submitting..." : "Submit & Predict"}
+                        </motion.button>
                       </div>
                     </div>
                   </div>
                 </form>
 
                 <p className="text-center mt-3" style={{ color: "#6b7280" }}>
-                  Note: This is a flow. on Submit we will send data to the prediction show results.
+                  Note: Your data is secure and will be saved with your profile.
                 </p>
               </div>
             </div>

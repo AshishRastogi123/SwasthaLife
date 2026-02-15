@@ -71,13 +71,27 @@ const createPrediction = async (req, res) => {
       phone,
       heightCm,
       weightKg,
-      vitals,
-      lifestyle,
-      familyHistory,
-      allergies,
-      symptoms,
+      vitals = {},
+      lifestyle = {},
+      familyHistory = {},
+      allergies = [],
+      symptoms = [],
+      diseaseContext = {},
       prediction: clientPrediction,
     } = req.body;
+
+    // Validate required fields
+    if (!firstName || !lastName || !age || !gender) {
+      return res.status(400).json({
+        message: "Required fields: firstName, lastName, age, gender",
+      });
+    }
+
+    if (!symptoms || symptoms.length === 0) {
+      return res.status(400).json({
+        message: "At least one symptom is required",
+      });
+    }
 
     // Preserve client provided prediction if present
     let prediction = clientPrediction || null;
@@ -85,27 +99,44 @@ const createPrediction = async (req, res) => {
     // Normalize symptoms input: accept array or object of booleans
     let normalizedSymptoms = [];
     if (Array.isArray(symptoms)) {
-      normalizedSymptoms = symptoms;
+      normalizedSymptoms = symptoms.filter(s => s && s.trim() !== "");
     } else if (symptoms && typeof symptoms === 'object') {
       normalizedSymptoms = Object.keys(symptoms).filter((k) => !!symptoms[k]);
     }
 
+    if (normalizedSymptoms.length === 0) {
+      return res.status(400).json({
+        message: "At least one symptom is required",
+      });
+    }
+
+    // Call ML service if no prediction provided
     if (!clientPrediction) {
-      // If no prediction provided by client, call ML service server-side (send normalized array)
       try {
+        console.log("Calling ML service with symptoms:", normalizedSymptoms);
         const ml = await fetchPredictionFromML(normalizedSymptoms);
-        if (ml && (ml.predicted_disease || ml.predicted_disease === '')) {
+        
+        if (ml && ml.predicted_disease) {
           prediction = {
             disease: ml.predicted_disease,
             probability: ml.confidence || null,
             modelUsed: 'FastAPI-ML',
           };
+          console.log("ML prediction received:", prediction);
         }
       } catch (err) {
         console.warn('Could not fetch prediction from ML service:', err.message);
+        // Don't fail - allow saving even if ML service is down
+        prediction = {
+          disease: diseaseContext.disease || 'Unknown',
+          probability: null,
+          modelUsed: 'Fallback',
+          error: err.message,
+        };
       }
     }
 
+    // Create prediction record in database
     const created = await Prediction.create({
       userId,
       firstName,
@@ -120,19 +151,24 @@ const createPrediction = async (req, res) => {
       lifestyle,
       familyHistory,
       allergies,
-      // Always store normalized array of symptom keys
       symptoms: normalizedSymptoms,
       prediction,
+      diseaseContext,
+      createdAt: new Date(),
     });
+
+    console.log("Prediction saved:", created._id);
 
     return res.status(201).json({
       message: "Prediction data saved successfully",
       data: created,
+      prediction: prediction,
     });
   } catch (error) {
     console.error("Prediction save error:", error);
     return res.status(500).json({
       message: "Server error while saving prediction",
+      error: error.message,
     });
   }
 };
@@ -147,20 +183,30 @@ const predictOnly = async (req, res) => {
     if (input_vector && Array.isArray(input_vector)) {
       payload = { input_vector };
     } else if (Array.isArray(symptoms)) {
-      payload = symptoms;
+      payload = symptoms.filter(s => s && s.trim() !== "");
     } else if (symptoms && typeof symptoms === 'object') {
       payload = Object.keys(symptoms).filter(k => !!symptoms[k]);
     }
 
-    if (!payload) return res.status(400).json({ message: 'At least one symptom or input_vector is required' });
+    if (!payload || (Array.isArray(payload) && payload.length === 0)) {
+      return res.status(400).json({ message: 'At least one symptom or input_vector is required' });
+    }
 
     try {
       const debugFlag = req.query && (req.query.debug === '1' || req.query.debug === 'true');
       const ml = await fetchPredictionFromML(payload, debugFlag);
-      if (!ml || !('predicted_disease' in ml)) return res.status(502).json({ message: 'Invalid response from ML service' });
-      // include input_vector from ML if provided (debug)
-      const response = { predicted_disease: ml.predicted_disease, confidence: ml.confidence };
+      
+      if (!ml || !('predicted_disease' in ml)) {
+        return res.status(502).json({ message: 'Invalid response from ML service' });
+      }
+      
+      const response = { 
+        predicted_disease: ml.predicted_disease, 
+        confidence: ml.confidence 
+      };
+      
       if (ml.input_vector) response.input_vector = ml.input_vector;
+      
       return res.status(200).json(response);
     } catch (err) {
       console.error('ML prediction error:', err.message);
