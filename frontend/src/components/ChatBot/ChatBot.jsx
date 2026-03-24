@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import ReactMarkdown from "react-markdown";
 import "./ChatBot.css";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
@@ -54,10 +55,10 @@ function Chatbot() {
 
   // Quick prompts for user convenience
   const quickPrompts = [
-    "I have fever and cough, what should I do?",
-    "What does a high blood sugar reading suggest?",
-    "Short on breath — what could this mean?",
-    "How to reduce headache quickly at home?",
+    "I've been having chest pain for the past hour. What should I do?",
+    "My blood pressure is 180/110. Is this an emergency?",
+    "I have a persistent cough and fever over 101°F for 3 days.",
+    "Severe headache with nausea and sensitivity to light.",
   ];
 
   useEffect(() => {
@@ -92,12 +93,30 @@ function Chatbot() {
         throw new Error("Failed to initialize the AI model");
       }
 
-      // prepare a concise healthcare prompt
+      // prepare a doctor-like prompt
       const prompt = `
-You are a concise AI health assistant.
-Answer only what is asked. Be short, clear, and professional.
-If user asks for prediction, give only one prediction line + short advice.
-If user asks for guidance, give only 2-3 bullet points.
+You are Dr. Swastha, an empathetic and professional AI physician assistant.
+
+Be thorough but concise. Show empathy and concern for the patient's well-being.
+
+Always ask follow-up questions to gather more information if the user's description is incomplete (e.g., duration, severity, other symptoms, medical history, age, gender, vital signs).
+
+Provide possible explanations with caveats, emphasizing that this is not a diagnosis.
+
+Detect the language of the user's message:
+- If the user speaks in Hindi, respond entirely in Hindi.
+- If the user speaks in English, respond in English.
+- Keep medical terms in English for clarity, even in Hindi responses.
+
+Structure responses:
+- Greeting/Acknowledgment
+- Assessment based on symptoms
+- Possible conditions (1-2 most likely)
+- Recommendations (including when to seek immediate medical help)
+- Follow-up questions if more info needed
+- Reminder to consult a real doctor
+
+End every response with: "Please remember, I'm an AI assistant and cannot provide medical diagnoses. Consult a healthcare professional for personalized advice." (in the same language as the response)
 
 User: ${textToSend}
 `;
@@ -246,7 +265,7 @@ User: ${textToSend}
             </motion.button>
 
             <motion.div className="sw-avatar" aria-hidden>
-              SL
+              Dr. S
             </motion.div>
 
             <div style={{ flex: 1 }}>
@@ -256,7 +275,7 @@ User: ${textToSend}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.5 }}
               >
-                SwasthaLife AI
+                Dr. Swastha AI
               </motion.div>
               <motion.div
                 className="sw-chat-subtitle"
@@ -264,7 +283,7 @@ User: ${textToSend}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.6 }}
               >
-                Health guidance & symptom-based predictions — informational only
+                AI Physician Assistant — For informational purposes only, not a substitute for professional medical advice
               </motion.div>
             </div>
 
@@ -326,9 +345,7 @@ User: ${textToSend}
                 animate="visible"
                 transition={{ delay: 0.8 }}
               >
-                Hi — <strong>SwasthaLife AI</strong>. Describe your symptoms;
-                I'll suggest possible conditions and next steps. Not a
-                substitute for a doctor.
+                Hello, I'm Dr. Swastha, your AI physician assistant. Please describe your symptoms in detail, including how long you've had them, any other relevant medical history, and your age/gender if comfortable sharing. I'll provide preliminary insights, but remember, this is not a diagnosis—please consult a qualified healthcare professional for proper medical advice.
               </motion.div>
             )}
 
@@ -341,7 +358,13 @@ User: ${textToSend}
                 animate="visible"
                 transition={{ delay: index * 0.05 }}
               >
-                <div style={{ whiteSpace: "pre-wrap" }}>{message.text}</div>
+                <div className="sw-markdown-response">
+                  {message.sender === "bot" ? (
+                    <ReactMarkdown>{message.text}</ReactMarkdown>
+                  ) : (
+                    <div style={{ whiteSpace: "pre-wrap" }}>{message.text}</div>
+                  )}
+                </div>
                 <div style={{ fontSize: 11, color: "#6b7280", marginTop: 6 }}>
                   {new Date(message.ts).toLocaleString()}
                 </div>
@@ -375,7 +398,7 @@ User: ${textToSend}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Describe your symptoms..."
+              placeholder="Describe your symptoms and medical concerns..."
               rows={1}
               aria-label="Type your message"
               initial={{ opacity: 0, y: 10 }}
