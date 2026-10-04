@@ -1,325 +1,217 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
+import { apiRequest } from "../../api";
 
-const BookAppointment = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    department: "",
-    date: "",
-    message: "",
-  });
+const initialForm = {
+  departmentId: "",
+  doctorId: "",
+  appointmentDate: "",
+  appointmentTime: "",
+  reason: "",
+};
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+const today = new Date().toISOString().slice(0, 10);
+
+function AppointmentStatus({ status }) {
+  const classes = {
+    PENDING: "text-bg-warning",
+    CONFIRMED: "text-bg-success",
+    CANCELLED: "text-bg-secondary",
+    COMPLETED: "text-bg-primary",
+    NO_SHOW: "text-bg-danger",
+  };
+  return <span className={`badge ${classes[status] || "text-bg-secondary"}`}>{status}</span>;
+}
+
+export default function BookAppointment() {
+  const navigate = useNavigate();
+  const [departments, setDepartments] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [slots, setSlots] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  const [form, setForm] = useState(initialForm);
+  const [loading, setLoading] = useState(true);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const departmentDoctors = useMemo(
+    () => doctors.filter((doctor) => doctor.departmentId?._id === form.departmentId),
+    [doctors, form.departmentId]
+  );
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [departmentResult, doctorResult, appointmentResult] = await Promise.all([
+          apiRequest("/api/departments"),
+          apiRequest("/api/doctors"),
+          apiRequest("/api/appointments/mine"),
+        ]);
+        setDepartments(departmentResult.data || []);
+        setDoctors(doctorResult.data || []);
+        setAppointments(appointmentResult.data || []);
+      } catch (loadError) {
+        if (loadError.message.includes("401") || loadError.message.includes("Unauthorized")) {
+          navigate("/login");
+        } else {
+          setError(loadError.message);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!form.doctorId || !form.appointmentDate) {
+      setSlots([]);
+      return;
+    }
+    const loadSlots = async () => {
+      setSlotsLoading(true);
+      setError("");
+      try {
+        const result = await apiRequest(
+          `/api/appointments/available?doctorId=${encodeURIComponent(form.doctorId)}&date=${encodeURIComponent(form.appointmentDate)}`
+        );
+        setSlots(result.data || []);
+      } catch (slotError) {
+        setSlots([]);
+        setError(slotError.message);
+      } finally {
+        setSlotsLoading(false);
+      }
+    };
+    loadSlots();
+  }, [form.doctorId, form.appointmentDate]);
+
+  const updateField = (event) => {
+    const { name, value } = event.target;
+    setForm((current) => ({
+      ...current,
+      [name]: value,
+      ...(name === "departmentId" ? { doctorId: "", appointmentTime: "" } : {}),
+      ...(name === "doctorId" || name === "appointmentDate" ? { appointmentTime: "" } : {}),
+    }));
+    setError("");
+    setSuccess("");
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    alert("Appointment request submitted successfully!");
-    console.log("Appointment Data:", formData);
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      department: "",
-      date: "",
-      message: "",
-    });
+  const submit = async (event) => {
+    event.preventDefault();
+    setSubmitting(true);
+    setError("");
+    setSuccess("");
+    try {
+      const result = await apiRequest("/api/appointments", {
+        method: "POST",
+        body: JSON.stringify(form),
+      });
+      setAppointments((current) => [result.data, ...current]);
+      setForm(initialForm);
+      setSlots([]);
+      setSuccess(result.message || "Appointment request persisted successfully.");
+    } catch (submitError) {
+      setError(submitError.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const sectionVariants = {
-    hidden: { opacity: 0, y: 50 },
-    visible: { opacity: 1, y: 0 },
+  const cancel = async (appointmentId) => {
+    setError("");
+    try {
+      const result = await apiRequest(`/api/appointments/${appointmentId}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: "CANCELLED" }),
+      });
+      setAppointments((current) =>
+        current.map((appointment) => (appointment._id === appointmentId ? result.data : appointment))
+      );
+    } catch (cancelError) {
+      setError(cancelError.message);
+    }
   };
+
+  if (loading) return <><Navbar /><main className="container py-5 mt-5"><p>Loading appointment booking...</p></main></>;
 
   return (
     <>
       <Navbar />
-      <div
-        style={{
-          fontFamily: "'Poppins', 'Montserrat', 'Segoe UI', Arial, sans-serif",
-        }}
-      >
-        {/* Hero Section */}
-        <motion.section
-          initial="hidden"
-          whileInView="visible"
-          variants={sectionVariants}
-          transition={{ duration: 0.6 }}
-          className="hero-section py-5"
-          style={{
-            background: "linear-gradient(135deg, #dbeafe 0%, #dcfce7 100%)",
-            color: "#1e293b",
-            textAlign: "center",
-            padding: "80px 20px",
-            marginTop: "76px",
-          }}
-        >
-          <div className="container">
-            <motion.h1
-              initial={{ opacity: 0, y: -20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="display-5 fw-bold mb-4"
-              style={{ color: "#2563eb" }}
-            >
-              Book Your Appointment
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="lead"
-              style={{ fontSize: "1.2rem", color: "#374151" }}
-            >
-              Schedule your health check-up with our specialized departments
-              easily and securely.
-            </motion.p>
-          </div>
-        </motion.section>
-
-        {/* Appointment Form Section */}
-        <motion.section
-          initial="hidden"
-          whileInView="visible"
-          variants={sectionVariants}
-          transition={{ duration: 0.6 }}
-          className="appointment-section py-5"
-          style={{ background: "#ffffff", padding: "60px 20px" }}
-        >
-          <div className="container">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-center mb-5"
-            >
-              <h2 className="fw-bold mb-3" style={{ color: "#2563eb" }}>
-                Appointment Form
-              </h2>
-              <p className="text-muted" style={{ fontSize: "1rem" }}>
-                Fill in the form below, and our team will contact you soon to
-                confirm your appointment.
-              </p>
-            </motion.div>
-
-            <div className="row justify-content-center">
-              <div className="col-lg-8">
-                <form
-                  className="p-4 border rounded-3 shadow-sm bg-light"
-                  onSubmit={handleSubmit}
-                >
-                  <div className="row mb-3">
-                    <div className="col-md-6">
-                      <label className="form-label fw-semibold">
-                        Full Name
-                      </label>
-                      <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        className="form-control"
-                        placeholder="Enter your name"
-                        required
-                      />
-                    </div>
-                    <div className="col-md-6">
-                      <label className="form-label fw-semibold">
-                        Email Address
-                      </label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        className="form-control"
-                        placeholder="Enter your email"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="row mb-3">
-                    <div className="col-md-6">
-                      <label className="form-label fw-semibold">
-                        Phone Number
-                      </label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        className="form-control"
-                        placeholder="Enter your phone number"
-                        required
-                      />
-                    </div>
-                    <div className="col-md-6">
-                      <label className="form-label fw-semibold">
-                        Select Department
-                      </label>
-                      <select
-                        name="department"
-                        value={formData.department}
-                        onChange={handleChange}
-                        className="form-select"
-                        required
-                      >
-                        <option value="">Choose...</option>
-                        <option value="Family Medicine">Family Medicine</option>
-                        <option value="Cardiology">Cardiology</option>
-                        <option value="Dermatology">Dermatology</option>
-                        <option value="Pediatrics">Pediatrics</option>
-                        <option value="Optician">Optician</option>
-                        <option value="Female Health">Female Health</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="row mb-3">
-                    <div className="col-md-6">
-                      <label className="form-label fw-semibold">
-                        Preferred Date
-                      </label>
-                      <input
-                        type="date"
-                        name="date"
-                        value={formData.date}
-                        onChange={handleChange}
-                        className="form-control"
-                        required
-                      />
-                    </div>
-                    <div className="col-md-6">
-                      <label className="form-label fw-semibold">
-                        Additional Message
-                      </label>
-                      <input
-                        type="text"
-                        name="message"
-                        value={formData.message}
-                        onChange={handleChange}
-                        className="form-control"
-                        placeholder="Optional"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="text-center">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      type="submit"
-                      className="btn btn-primary px-5 py-2 fw-semibold"
-                      style={{
-                        background: "#2563eb",
-                        border: "none",
-                        borderRadius: "25px",
-                      }}
-                    >
-                      Book Appointment
-                    </motion.button>
-                  </div>
-                </form>
-              </div>
+      <main className="container py-5 mt-5">
+        <h1 className="text-primary mb-4">Book an Appointment</h1>
+        {error && <div className="alert alert-danger">{error}</div>}
+        {success && <div className="alert alert-success">{success}</div>}
+        <form className="card shadow-sm p-4 mb-5" onSubmit={submit}>
+          <div className="row g-3">
+            <div className="col-md-6">
+              <label className="form-label">Department</label>
+              <select className="form-select" name="departmentId" value={form.departmentId} onChange={updateField} required>
+                <option value="">Select department</option>
+                {departments.map((department) => <option key={department._id} value={department._id}>{department.name}</option>)}
+              </select>
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Doctor</label>
+              <select className="form-select" name="doctorId" value={form.doctorId} onChange={updateField} required disabled={!form.departmentId}>
+                <option value="">Select doctor</option>
+                {departmentDoctors.map((doctor) => <option key={doctor._id} value={doctor._id}>{doctor.userId?.name || doctor.userId?.email}</option>)}
+              </select>
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Date</label>
+              <input className="form-control" type="date" name="appointmentDate" min={today} value={form.appointmentDate} onChange={updateField} required disabled={!form.doctorId} />
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Available slot</label>
+              <select className="form-select" name="appointmentTime" value={form.appointmentTime} onChange={updateField} required disabled={!form.appointmentDate || slotsLoading}>
+                <option value="">{slotsLoading ? "Loading slots..." : "Select a slot"}</option>
+                {slots.map((slot) => <option key={slot} value={slot}>{slot}</option>)}
+              </select>
+              {!slotsLoading && form.appointmentDate && form.doctorId && slots.length === 0 && <small className="text-muted">No slots are available for this date.</small>}
+            </div>
+            <div className="col-12">
+              <label className="form-label">Reason for visit</label>
+              <textarea className="form-control" name="reason" rows="3" maxLength="1000" value={form.reason} onChange={updateField} required />
             </div>
           </div>
-        </motion.section>
+          <button className="btn btn-primary mt-4" type="submit" disabled={submitting}>
+            {submitting ? "Submitting..." : "Submit appointment request"}
+          </button>
+        </form>
 
-        {/* Contact Info Section */}
-        <motion.section
-          initial="hidden"
-          whileInView="visible"
-          variants={sectionVariants}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="contact-section py-5"
-          style={{
-            background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
-            padding: "60px 20px",
-            textAlign: "center",
-          }}
-        >
-          <div className="container">
-            <h3 className="fw-bold mb-4" style={{ color: "#2563eb" }}>
-              Need Assistance?
-            </h3>
-            <p className="text-muted mb-3" style={{ fontSize: "1rem" }}>
-              Our team is here to help! Reach out to us through the following
-              contact details:
-            </p>
-            <div className="d-flex justify-content-center flex-wrap gap-4 mt-4">
-              <div>
-                <i
-                  className="fas fa-phone fa-lg me-2"
-                  style={{ color: "#10b981" }}
-                ></i>
-                <span className="fw-semibold text-dark">
-                  <a
-                    href="tel:+918445631880"
-                    className="text-black text-decoration-none"
-                  >
-                    +91 84456 31880
-                  </a>
-                  ,{" "}
-                  <a
-                    href="tel:+919756021146"
-                    className="text-black text-decoration-none"
-                  >
-                    +91 79004 04660
-                  </a>
-                </span>
+        <h2 className="h4 mb-3">My appointments</h2>
+        {appointments.length === 0 ? <div className="alert alert-light border">No appointments found.</div> : (
+          <div className="row g-3">
+            {appointments.map((appointment) => (
+              <div className="col-lg-6" key={appointment._id}>
+                <article className="card h-100 shadow-sm">
+                  <div className="card-body">
+                    <div className="d-flex justify-content-between">
+                      <h3 className="h5">{appointment.departmentId?.name || "Department"}</h3>
+                      <AppointmentStatus status={appointment.status} />
+                    </div>
+                    <p className="mb-1"><strong>Doctor:</strong> {appointment.doctorId?.userId?.name || "Assigned doctor"}</p>
+                    <p className="mb-1"><strong>Date:</strong> {new Date(appointment.appointmentDate).toLocaleDateString()}</p>
+                    <p className="mb-1"><strong>Time:</strong> {appointment.appointmentTime}</p>
+                    <p className="mb-3"><strong>Reason:</strong> {appointment.reason}</p>
+                    {["PENDING", "CONFIRMED"].includes(appointment.status) && (
+                      <button className="btn btn-outline-danger btn-sm" onClick={() => cancel(appointment._id)}>Cancel appointment</button>
+                    )}
+                  </div>
+                </article>
               </div>
-
-              <div>
-                <i
-                  className="fas fa-envelope fa-lg me-2"
-                  style={{ color: "#10b981" }}
-                ></i>
-                <span className="fw-semibold text-dark">
-                  <a
-                    href="https://mail.google.com/mail/?view=cm&fs=1&to=info@swasthalife.org"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: "#000906ff", textDecoration: "none" }}
-                  >
-                    info@swasthalife.org
-                  </a>
-                </span>
-              </div>
-
-              <div>
-                <a
-                  href="https://www.google.com/maps/place/Invertis+University,+Bareilly+-Top+University+In+Uttar+Pradesh+(U.P)/@28.2919024,79.4569444,4992m/data=!3m1!1e3!4m10!1m2!2m1!1sInvertis+Village+Bareilly+UP!3m6!1s0x39a0023f8a1f8cdd:0x5b10af261bf34c99!8m2!3d28.2919024!4d79.4929933!15sChxJbnZlcnRpcyBWaWxsYWdlIEJhcmVpbGx5IFVQkgEKdW5pdmVyc2l0eaoBXwoKL20vMHRrZzNmMRABKgwiCGludmVydGlzKAAyHxABIhu3wKq4PD62dhSgvS-S4QNjomrYoSWdR9TfpuAyIBACIhxpbnZlcnRpcyB2aWxsYWdlIGJhcmVpbGx5IHVw4AEA!16s%2Fm%2F0tkg3f1?entry=ttu&g_ep=EgoyMDI1MTExMC4wIKXMDSoASAFQAw%3D%3D"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    color: "#ffffff",
-                    textDecoration: "none",
-                    fontSize: "1.5rem",
-                  }}
-                >
-                  <i
-                    className="fas fa-map-marker-alt fa-lg me-2"
-                    style={{ color: "#10b981" }}
-                  ></i>
-                </a>
-                <span className="fw-semibold text-dark">
-                  Invertis University Bareilly, Uttar Pradesh, India
-                </span>
-              </div>
-            </div>
+            ))}
           </div>
-        </motion.section>
-      </div>
+        )}
+      </main>
       <Footer />
     </>
   );
-};
-
-export default BookAppointment;
+}

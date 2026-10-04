@@ -1,4 +1,3 @@
-import { useState } from "react";
 import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
@@ -23,6 +22,7 @@ import Documentation from "./components/NavbarComponents/Documentation .jsx";
 import Blog from "./components/Blog.jsx";
 import Contact from "./components/contact.jsx";
 import BookAppointment from "./components/BookAppointment/BookAppointment.jsx";
+import DoctorDashboard from "./components/DoctorDashboard.jsx";
 function App() {
   return (
     <>
@@ -46,6 +46,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/Signup" element={<Signup />} />
           <Route path="/BookAppointment" element={<BookAppointment />} />
+          <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
           <Route path="/dashboard" element={<UserButton />} />
           <Route path="/form" element={<SymptomForm />} />
           <Route path="/chatbot" element={<Chatbot />} />

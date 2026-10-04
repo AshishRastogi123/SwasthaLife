@@ -5,9 +5,10 @@ const User = require("../models/User");
 // Signup Controller
 exports.signup = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, phone } = req.body;
 
-    const userExist = await User.findOne({ email });
+    const normalizedEmail = email.trim().toLowerCase();
+    const userExist = await User.findOne({ email: normalizedEmail });
     if (userExist) {
       return res.status(400).json({ message: "User already exists" });
     }
@@ -16,8 +17,9 @@ exports.signup = async (req, res) => {
 
     await User.create({
       name,
-      email,
+      email: normalizedEmail,
       password: hashedPassword,
+      phone,
     });
 
     res.status(201).json({ message: "Signup successful" });
@@ -31,7 +33,7 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.trim().toLowerCase() });
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -42,7 +44,7 @@ exports.login = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { userId: user._id, email: user.email },
+      { userId: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
@@ -62,6 +64,7 @@ exports.login = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        role: user.role,
       },
     });
   } catch (error) {

@@ -1,5 +1,7 @@
 const http = require('http');
 const Prediction = require("../models/Prediction");
+const Doctor = require("../models/Doctor");
+const Appointment = require("../models/Appointment");
 
 // Helper to call FastAPI ML service
 // Accepts either { symptoms: [...] } or { input_vector: [...] } or just a symptoms array
@@ -77,7 +79,6 @@ const createPrediction = async (req, res) => {
       allergies = [],
       symptoms = [],
       diseaseContext = {},
-      prediction: clientPrediction,
     } = req.body;
 
     // Validate required fields
@@ -93,8 +94,7 @@ const createPrediction = async (req, res) => {
       });
     }
 
-    // Preserve client provided prediction if present
-    let prediction = clientPrediction || null;
+    let prediction = null;
 
     // Normalize symptoms input: accept array or object of booleans
     let normalizedSymptoms = [];
@@ -110,30 +110,18 @@ const createPrediction = async (req, res) => {
       });
     }
 
-    // Call ML service if no prediction provided
-    if (!clientPrediction) {
-      try {
-        console.log("Calling ML service with symptoms:", normalizedSymptoms);
-        const ml = await fetchPredictionFromML(normalizedSymptoms);
-        
-        if (ml && ml.predicted_disease) {
-          prediction = {
-            disease: ml.predicted_disease,
-            probability: ml.confidence || null,
-            modelUsed: 'FastAPI-ML',
-          };
-          console.log("ML prediction received:", prediction);
-        }
-      } catch (err) {
-        console.warn('Could not fetch prediction from ML service:', err.message);
-        // Don't fail - allow saving even if ML service is down
+    try {
+      const ml = await fetchPredictionFromML(normalizedSymptoms);
+      if (ml && ml.predicted_disease) {
         prediction = {
-          disease: diseaseContext.disease || 'Unknown',
-          probability: null,
-          modelUsed: 'Fallback',
-          error: err.message,
+          disease: ml.predicted_disease,
+          probability: ml.confidence || null,
+          modelUsed: "FastAPI-ML",
+          status: "AVAILABLE",
         };
       }
+    } catch (err) {
+      prediction = { modelUsed: "FastAPI-ML", status: "UNAVAILABLE" };
     }
 
     // Create prediction record in database
@@ -168,7 +156,7 @@ const createPrediction = async (req, res) => {
     console.error("Prediction save error:", error);
     return res.status(500).json({
       message: "Server error while saving prediction",
-      error: error.message,
+      error: "Unable to save prediction",
     });
   }
 };
@@ -263,4 +251,46 @@ const getColumns = async (req, res) => {
   }
 };
 
-module.exports = { createPrediction, predictOnly, getColumns };
+const listPatientPredictions = async (req, res) => {
+  const data = await Prediction.find({ userId: req.user.userId }).sort({ createdAt: -1 });
+  res.json({ data });
+};
+
+const getPrediction = async (req, res) => {
+  const prediction = await Prediction.findById(req.params.id);
+  if (!prediction) return res.status(404).json({ message: "Assessment not found" });
+  if (req.user.role === "PATIENT" && prediction.userId.toString() !== req.user.userId) {
+    return res.status(403).json({ message: "You may only access your own assessments" });
+  }
+  if (req.user.role === "DOCTOR") {
+    const doctor = await Doctor.findOne({ userId: req.user.userId });
+    const appointment = await Appointment.findOne({ doctorId: doctor?._id, assessmentId: prediction._id });
+    if (!appointment) return res.status(403).json({ message: "Assessment is not assigned to this doctor" });
+  }
+  res.json({ data: prediction });
+};
+
+const reviewPrediction = async (req, res) => {
+  const prediction = await Prediction.findById(req.params.id);
+  if (!prediction) return res.status(404).json({ message: "Assessment not found" });
+  if (req.user.role === "DOCTOR") {
+    const doctor = await Doctor.findOne({ userId: req.user.userId });
+    const appointment = await Appointment.findOne({ doctorId: doctor?._id, assessmentId: prediction._id });
+    if (!appointment) return res.status(403).json({ message: "Assessment is not assigned to this doctor" });
+  }
+  prediction.reviewStatus = "REVIEWED";
+  prediction.reviewedBy = req.user.userId;
+  prediction.reviewedAt = new Date();
+  prediction.clinicalNotes = req.body.clinicalNotes;
+  await prediction.save();
+  res.json({ data: prediction });
+};
+
+module.exports = {
+  createPrediction,
+  predictOnly,
+  getColumns,
+  listPatientPredictions,
+  getPrediction,
+  reviewPrediction,
+};

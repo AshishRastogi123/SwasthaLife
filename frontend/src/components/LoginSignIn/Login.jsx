@@ -86,7 +86,7 @@ function Login() {
         // Store user data if available
         if (result.user) {
           localStorage.setItem("user", JSON.stringify(result.user));
-          navigate("/");
+          navigate(result.user.role === "DOCTOR" ? "/doctor-dashboard" : "/");
 
 
         }

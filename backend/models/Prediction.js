@@ -61,7 +61,23 @@ const predictionSchema = new mongoose.Schema(
       disease: String,
       probability: Number,
       modelUsed: String,
+      modelVersion: String,
+      status: {
+        type: String,
+        enum: ["AVAILABLE", "UNAVAILABLE"],
+        default: "AVAILABLE",
+      },
     },
+    diseaseContext: mongoose.Schema.Types.Mixed,
+    reviewStatus: {
+      type: String,
+      enum: ["PENDING", "REVIEWED"],
+      default: "PENDING",
+      index: true,
+    },
+    reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    reviewedAt: Date,
+    clinicalNotes: { type: String, trim: true, maxlength: 5000 },
   },
   { timestamps: true }
 );
