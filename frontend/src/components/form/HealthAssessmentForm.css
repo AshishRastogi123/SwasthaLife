@@ -1,0 +1,269 @@
+.health-assessment-page {
+  min-height: calc(100vh - 76px);
+  padding: 42px 0 64px;
+  background:
+    radial-gradient(circle at 8% 2%, rgba(52, 143, 220, 0.11), transparent 27rem),
+    linear-gradient(180deg, #f4f8fc 0%, #f8fafc 100%);
+}
+
+.health-assessment-container {
+  max-width: 1040px;
+}
+
+.health-assessment-card {
+  overflow: visible;
+  border: 1px solid #e5edf5;
+  border-radius: 22px;
+  box-shadow: 0 18px 55px rgba(28, 58, 91, 0.09);
+}
+
+.health-assessment-card > .card-body {
+  padding: clamp(22px, 4vw, 42px);
+}
+
+.assessment-heading {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 26px;
+}
+
+.assessment-heading-icon,
+.assessment-section-icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: #1477a8;
+  background: #e8f6fb;
+}
+
+.assessment-heading-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  font-size: 1.55rem;
+}
+
+.assessment-eyebrow {
+  margin: 0 0 5px;
+  color: #19789b;
+  font-size: 0.7rem;
+  font-weight: 750;
+  letter-spacing: 0.13em;
+}
+
+.assessment-heading h1 {
+  margin: 0;
+  color: #18334b;
+  font-size: clamp(1.55rem, 3vw, 2rem);
+  font-weight: 750;
+  letter-spacing: -0.035em;
+}
+
+.assessment-intro {
+  margin: 5px 0 0;
+  color: #6b7d8e;
+  font-size: 0.95rem;
+}
+
+.assessment-disclaimer {
+  margin-bottom: 30px;
+  border: 1px solid #c9e9f0;
+  border-radius: 12px;
+  color: #315b70;
+  background: #effafd;
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+.health-assessment-form .form-label,
+.health-assessment-card .form-label {
+  margin-bottom: 7px;
+  color: #344b60;
+  font-size: 0.86rem;
+  font-weight: 650;
+}
+
+.health-assessment-card .form-control,
+.health-assessment-card .form-select {
+  min-height: 46px;
+  border-color: #dce5ed;
+  border-radius: 10px;
+  color: #253b50;
+  background-color: #fff;
+  box-shadow: 0 1px 2px rgba(16, 39, 61, 0.025);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.health-assessment-card .form-control::placeholder {
+  color: #9aa9b7;
+}
+
+.health-assessment-card .form-control:focus,
+.health-assessment-card .form-select:focus {
+  border-color: #55a9c6;
+  box-shadow: 0 0 0 4px rgba(48, 151, 187, 0.13);
+}
+
+.assessment-section {
+  margin: 0 0 24px;
+  padding: 22px;
+  border: 1px solid #e9eff4;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.assessment-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.assessment-section-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  font-size: 1.05rem;
+}
+
+.assessment-section-heading h2 {
+  margin: 0;
+  color: #203c54;
+  font-size: 1.04rem;
+  font-weight: 700;
+}
+
+.assessment-section-heading p {
+  margin: 3px 0 0;
+  color: #8291a0;
+  font-size: 0.81rem;
+}
+
+.assessment-subheading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 20px 0 14px;
+  color: #40596e;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.assessment-subheading span {
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: #738494;
+  background: #f1f5f8;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.assessment-symptom-select {
+  font-size: 0.9rem;
+}
+
+.assessment-symptom-select .select__control {
+  min-height: 48px;
+  border-color: #dce5ed;
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.assessment-symptom-select .select__control--is-focused {
+  border-color: #55a9c6;
+  box-shadow: 0 0 0 4px rgba(48, 151, 187, 0.13);
+}
+
+.assessment-symptom-select .select__multi-value {
+  border-radius: 7px;
+  color: #17678a;
+  background: #eaf6fa;
+}
+
+.assessment-symptom-select .select__group-heading {
+  color: #16769c;
+  font-size: 0.75rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.assessment-selected-count {
+  color: #237895;
+  font-weight: 700;
+}
+
+.assessment-symptom-chip {
+  padding: 8px 10px;
+  border: 1px solid #d5eaf1;
+  border-radius: 8px;
+  color: #216b87;
+  background: #eff9fb;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.assessment-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 2px;
+}
+
+.assessment-actions .btn {
+  min-height: 44px;
+  border-radius: 10px;
+  font-weight: 650;
+}
+
+.assessment-actions .btn-primary {
+  border-color: #176e9a;
+  background: linear-gradient(135deg, #197da8, #176594);
+  box-shadow: 0 6px 15px rgba(23, 105, 148, 0.18);
+}
+
+.assessment-actions .btn-primary:hover {
+  border-color: #125b82;
+  background: #125b82;
+}
+
+@media (max-width: 575.98px) {
+  .health-assessment-page {
+    padding: 22px 0 38px;
+  }
+
+  .health-assessment-container {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .health-assessment-card,
+  .assessment-section {
+    border-radius: 14px;
+  }
+
+  .assessment-section {
+    padding: 17px 14px;
+  }
+
+  .assessment-heading {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .assessment-heading-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    font-size: 1.25rem;
+  }
+
+  .assessment-actions {
+    flex-direction: column-reverse;
+  }
+
+  .assessment-actions .btn {
+    width: 100%;
+  }
+}

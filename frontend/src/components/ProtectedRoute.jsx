@@ -15,7 +15,12 @@ export default function ProtectedRoute({ children, roles = [] }) {
   }
 
   if (roles.length > 0 && !roles.includes(user.role)) {
-    return <Navigate to={user.role === "DOCTOR" ? "/doctor-dashboard" : "/dashboard"} replace />;
+    const homeByRole = {
+      PATIENT: "/",
+      DOCTOR: "/doctor-dashboard",
+      ADMIN: "/admin",
+    };
+    return <Navigate to={homeByRole[user.role] || "/"} replace />;
   }
 
   return children;

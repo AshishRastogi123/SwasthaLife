@@ -4,6 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
 import MedicalDisclaimer from "../MedicalDisclaimer";
+import "./HealthAssessmentForm.css";
 
 // Categorized symptoms for better organization
 const SYMPTOM_CATEGORIES = {
@@ -433,25 +434,41 @@ const SymptomForm = () => {
   return (
     <>
       <Navbar />
-      <div style={{ height: "76px" }} />
-
-      <div className="container my-5">
-        <div className="card shadow-sm">
-          <div className="card-body">
-            <h4 className="mb-3">Health Assessment Form</h4>
-            <MedicalDisclaimer />
+      <main className="health-assessment-page">
+        <div className="container health-assessment-container">
+          <div className="card health-assessment-card">
+            <div className="card-body">
+              <header className="assessment-heading">
+                <div className="assessment-heading-icon" aria-hidden="true">
+                  <i className="bi bi-heart-pulse" />
+                </div>
+                <div>
+                  <p className="assessment-eyebrow">PERSONAL HEALTH PROFILE</p>
+                  <h1>Health Assessment</h1>
+                  <p className="assessment-intro">Share a few details and symptoms to help us prepare your health assessment.</p>
+                </div>
+              </header>
+              <MedicalDisclaimer className="assessment-disclaimer" />
             <form onSubmit={handleSubmit} noValidate>
               {/* Name */}
+              <section className="assessment-section">
+                <div className="assessment-section-heading">
+                  <span className="assessment-section-icon"><i className="bi bi-person" /></span>
+                  <div><h2>Personal details</h2><p>Basic information about you</p></div>
+                </div>
               <div className="row g-3 mb-3">
                 <div className="col-md-6">
-                  <label className="form-label">
+                  <label className="form-label" htmlFor="assessment-first-name">
                     First Name <span className="text-danger">*</span>
                   </label>
                   <input
+                    id="assessment-first-name"
                     name="firstName"
                     value={form.firstName}
                     onChange={handleFieldChange}
                     className={`form-control ${errors.firstName ? "is-invalid" : ""}`}
+                    placeholder="Enter your first name"
+                    autoComplete="given-name"
                   />
                   {errors.firstName && (
                     <div className="invalid-feedback">{errors.firstName}</div>
@@ -459,14 +476,17 @@ const SymptomForm = () => {
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">
+                  <label className="form-label" htmlFor="assessment-last-name">
                     Last Name <span className="text-danger">*</span>
                   </label>
                   <input
+                    id="assessment-last-name"
                     name="lastName"
                     value={form.lastName}
                     onChange={handleFieldChange}
                     className={`form-control ${errors.lastName ? "is-invalid" : ""}`}
+                    placeholder="Enter your last name"
+                    autoComplete="family-name"
                   />
                   {errors.lastName && (
                     <div className="invalid-feedback">{errors.lastName}</div>
@@ -477,10 +497,11 @@ const SymptomForm = () => {
               {/* Age / DOB / Gender */}
               <div className="row g-3 mb-3">
                 <div className="col-md-3">
-                  <label className="form-label">
+                  <label className="form-label" htmlFor="assessment-age">
                     Age <span className="text-danger">*</span>
                   </label>
                   <input
+                    id="assessment-age"
                     name="age"
                     type="number"
                     min="0"
@@ -488,6 +509,7 @@ const SymptomForm = () => {
                     value={form.age}
                     onChange={handleFieldChange}
                     className={`form-control ${errors.age ? "is-invalid" : ""}`}
+                    placeholder="e.g. 28"
                   />
                   {errors.age && (
                     <div className="invalid-feedback">{errors.age}</div>
@@ -495,8 +517,9 @@ const SymptomForm = () => {
                 </div>
 
                 <div className="col-md-3">
-                  <label className="form-label">Date of Birth</label>
+                  <label className="form-label" htmlFor="assessment-dob">Date of Birth</label>
                   <input
+                    id="assessment-dob"
                     name="dob"
                     type="date"
                     value={form.dob}
@@ -507,10 +530,11 @@ const SymptomForm = () => {
                 </div>
 
                 <div className="col-md-6">
-                  <label className="form-label">
+                  <label className="form-label" htmlFor="assessment-gender">
                     Gender <span className="text-danger">*</span>
                   </label>
                   <select
+                    id="assessment-gender"
                     name="gender"
                     value={form.gender}
                     onChange={handleFieldChange}
@@ -526,23 +550,32 @@ const SymptomForm = () => {
                   )}
                 </div>
               </div>
+              </section>
 
               {/* Phone / Height / Weight */}
+              <section className="assessment-section">
+                <div className="assessment-section-heading">
+                  <span className="assessment-section-icon"><i className="bi bi-activity" /></span>
+                  <div><h2>Measurements &amp; vitals</h2><p>Optional information, if available</p></div>
+                </div>
               <div className="row g-3 mb-3">
                 <div className="col-md-4">
-                  <label className="form-label">Phone (optional)</label>
+                  <label className="form-label" htmlFor="assessment-phone">Phone (optional)</label>
                   <input
+                    id="assessment-phone"
                     name="phone"
                     type="tel"
                     value={form.phone}
                     onChange={handleFieldChange}
                     className="form-control"
                     placeholder="(000) 000-0000"
+                    autoComplete="tel"
                   />
                 </div>
                 <div className="col-md-4">
-                  <label className="form-label">Height (cm) - optional</label>
+                  <label className="form-label" htmlFor="assessment-height">Height (cm) · optional</label>
                   <input
+                    id="assessment-height"
                     name="height"
                     type="number"
                     min="50"
@@ -554,8 +587,9 @@ const SymptomForm = () => {
                   />
                 </div>
                 <div className="col-md-4">
-                  <label className="form-label">Weight (kg) - optional</label>
+                  <label className="form-label" htmlFor="assessment-weight">Weight (kg) · optional</label>
                   <input
+                    id="assessment-weight"
                     name="weight"
                     type="number"
                     min="20"
@@ -570,21 +604,23 @@ const SymptomForm = () => {
 
               {/* Vitals */}
               <div className="mb-3">
-                <h6>Vitals (optional)</h6>
+                <h3 className="assessment-subheading">Vital signs <span>Optional</span></h3>
                 <div className="row g-3">
                   <div className="col-md-3">
-                    <label className="form-label">BP (e.g. 120/80)</label>
+                    <label className="form-label" htmlFor="assessment-bp">Blood pressure</label>
                     <input
+                      id="assessment-bp"
                       name="bp"
                       value={form.bp}
                       onChange={handleFieldChange}
                       className="form-control"
-                      placeholder="SYS/DIA"
+                      placeholder="e.g. 120/80"
                     />
                   </div>
                   <div className="col-md-3">
-                    <label className="form-label">Pulse (bpm)</label>
+                    <label className="form-label" htmlFor="assessment-pulse">Pulse (bpm)</label>
                     <input
+                      id="assessment-pulse"
                       name="pulse"
                       type="number"
                       min="30"
@@ -596,8 +632,9 @@ const SymptomForm = () => {
                     />
                   </div>
                   <div className="col-md-3">
-                    <label className="form-label">SpO₂ (%)</label>
+                    <label className="form-label" htmlFor="assessment-spo2">SpO₂ (%)</label>
                     <input
+                      id="assessment-spo2"
                       name="spo2"
                       type="number"
                       min="70"
@@ -609,8 +646,9 @@ const SymptomForm = () => {
                     />
                   </div>
                   <div className="col-md-3">
-                    <label className="form-label">Blood sugar (mg/dL)</label>
+                    <label className="form-label" htmlFor="assessment-blood-sugar">Blood sugar (mg/dL)</label>
                     <input
+                      id="assessment-blood-sugar"
                       name="bloodSugar"
                       type="number"
                       min="50"
@@ -623,12 +661,19 @@ const SymptomForm = () => {
                   </div>
                 </div>
               </div>
+              </section>
 
               {/* Lifestyle / Family / Allergies */}
+              <section className="assessment-section">
+                <div className="assessment-section-heading">
+                  <span className="assessment-section-icon"><i className="bi bi-clipboard2-pulse" /></span>
+                  <div><h2>Health background</h2><p>Help us understand your overall health</p></div>
+                </div>
               <div className="row g-3 mb-3">
                 <div className="col-md-4">
-                  <label className="form-label">Lifestyle (optional)</label>
+                  <label className="form-label" htmlFor="assessment-lifestyle">Lifestyle (optional)</label>
                   <select
+                    id="assessment-lifestyle"
                     name="lifestyle"
                     value={form.lifestyle}
                     onChange={handleFieldChange}
@@ -642,8 +687,9 @@ const SymptomForm = () => {
                   </select>
                 </div>
                 <div className="col-md-4">
-                  <label className="form-label">Family History (optional)</label>
+                  <label className="form-label" htmlFor="assessment-family-history">Family History (optional)</label>
                   <input
+                    id="assessment-family-history"
                     name="familyHistory"
                     value={form.familyHistory}
                     onChange={handleFieldChange}
@@ -652,8 +698,9 @@ const SymptomForm = () => {
                   />
                 </div>
                 <div className="col-md-4">
-                  <label className="form-label">Allergies (optional)</label>
+                  <label className="form-label" htmlFor="assessment-allergies">Allergies (optional)</label>
                   <input
+                    id="assessment-allergies"
                     name="allergies"
                     value={form.allergies}
                     onChange={handleFieldChange}
@@ -662,15 +709,14 @@ const SymptomForm = () => {
                   />
                 </div>
               </div>
+              </section>
 
               {/* Symptoms */}
-              <div className="mb-4 symptoms-section">
-                <h6>
-                  Symptoms <span className="text-danger">*</span>
-                  <small className="text-muted ms-2">
-                    (Select one or more symptoms)
-                  </small>
-                </h6>
+              <section className="assessment-section symptoms-section">
+                <div className="assessment-section-heading">
+                  <span className="assessment-section-icon"><i className="bi bi-search-heart" /></span>
+                  <div><h2>Symptoms <span className="text-danger">*</span></h2><p>Select one or more symptoms that you are experiencing</p></div>
+                </div>
                 
                 {errors.symptoms && (
                   <div className="alert alert-danger py-2 mb-3">
@@ -685,7 +731,7 @@ const SymptomForm = () => {
                   options={filteredOptions}
                   value={selectedSymptomObjects}
                   onChange={handleSymptomChange}
-                  className="basic-multi-select"
+                  className="basic-multi-select assessment-symptom-select"
                   classNamePrefix="select"
                   placeholder="Search and select symptoms..."
                   isSearchable={true}
@@ -702,8 +748,8 @@ const SymptomForm = () => {
                 {form.symptoms.length > 0 && (
                   <div className="mt-3">
                     <div className="d-flex justify-content-between align-items-center mb-2">
-                      <small className="text-muted">
-                        Selected: {form.symptoms.length} symptom(s)
+                        <small className="assessment-selected-count">
+                          <i className="bi bi-check2-circle me-1" />{form.symptoms.length} selected
                       </small>
                       <button
                         type="button"
@@ -715,7 +761,7 @@ const SymptomForm = () => {
                     </div>
                     <div className="d-flex flex-wrap gap-2">
                       {selectedSymptomObjects.map(symptom => (
-                        <span key={symptom.value} className="badge bg-primary-subtle text-primary border border-primary-subtle p-2">
+                        <span key={symptom.value} className="badge assessment-symptom-chip">
                           {symptom.label}
                           <button
                             type="button"
@@ -731,10 +777,10 @@ const SymptomForm = () => {
                     </div>
                   </div>
                 )}
-              </div>
+              </section>
 
               {/* Submit */}
-              <div className="d-flex justify-content-end gap-2">
+              <div className="assessment-actions">
                 <button 
                   type="button" 
                   className="btn btn-outline-secondary"
@@ -745,15 +791,17 @@ const SymptomForm = () => {
                     allergies: "", symptoms: []
                   })}
                 >
-                  Reset Form
+                  <i className="bi bi-arrow-counterclockwise me-2" />Reset Form
                 </button>
                 <button type="submit" className="btn btn-primary px-4">
-                  Submit
+                  Review assessment <i className="bi bi-arrow-right ms-2" />
                 </button>
               </div>
             </form>
           </div>
         </div>
+        </div>
+      </main>
 
         {/* Popup Modal */}
         {showModal && (
@@ -941,7 +989,6 @@ const SymptomForm = () => {
             </div>
           </div>
         )}
-      </div>
 
       <Footer />
     </>

@@ -1,5 +1,5 @@
 import { motion as Motion } from "framer-motion";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
 function Signup() {
@@ -11,9 +11,42 @@ function Signup() {
     phone: "",
     password: "",
     conPassword: "",
+    role: "PATIENT",
+    departmentId: "",
+    licenseNumber: "",
   });
 
   const [error, setError] = useState({});
+  const [departments, setDepartments] = useState([]);
+  const [loadingDepartments, setLoadingDepartments] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (data.role !== "DOCTOR") return undefined;
+
+    const controller = new AbortController();
+    const loadDepartments = async () => {
+      setLoadingDepartments(true);
+      try {
+        const response = await fetch("http://localhost:3000/api/departments", {
+          signal: controller.signal,
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || "Unable to load departments");
+        setDepartments(result.data || []);
+        setError((previous) => ({ ...previous, departments: "" }));
+      } catch (loadError) {
+        if (loadError.name !== "AbortError") {
+          setError((previous) => ({ ...previous, departments: loadError.message }));
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoadingDepartments(false);
+      }
+    };
+
+    loadDepartments();
+    return () => controller.abort();
+  }, [data.role]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,13 +66,17 @@ function Signup() {
     }
     if (!values.password) {
       errs.password = "Password is required";
-    } else if (values.password.length < 6) {
-      errs.password = "Password must be at least 6 characters";
+    } else if (values.password.length < 8) {
+      errs.password = "Password must be at least 8 characters";
     }
     if (!values.conPassword) {
       errs.conPassword = "Confirm Password is required";
     } else if (values.password !== values.conPassword) {
       errs.conPassword = "Passwords do not match";
+    }
+    if (values.role === "DOCTOR") {
+      if (!values.departmentId) errs.departmentId = "Select a department";
+      if (!values.licenseNumber.trim()) errs.licenseNumber = "License number is required";
     }
     return errs;
   };
@@ -50,6 +87,7 @@ function Signup() {
     setError(errs);
     if (Object.keys(errs).length === 0) {
       try {
+        setSubmitting(true);
         const response = await fetch("http://localhost:3000/api/auth/signup", {
           method: "POST",
           headers: {
@@ -59,6 +97,13 @@ function Signup() {
             name: data.fullname,
             email: data.email,
             password: data.password,
+            confirmPassword: data.conPassword,
+            phone: data.phone,
+            role: data.role,
+            ...(data.role === "DOCTOR" && {
+              departmentId: data.departmentId,
+              licenseNumber: data.licenseNumber,
+            }),
           }),
         });
 
@@ -71,6 +116,8 @@ function Signup() {
         }
       } catch {
         alert("An error occurred. Please try again.");
+      } finally {
+        setSubmitting(false);
       }
     }
   };
@@ -201,6 +248,57 @@ function Signup() {
                 <p className="text-danger">{error.phone}</p>
               </Motion.div>
 
+              <Motion.div className="mb-3" variants={inputVariants} initial="hidden" animate="visible" transition={{ delay: 1.3 }}>
+                <label className="form-label" htmlFor="signup-role">I am registering as</label>
+                <select
+                  id="signup-role"
+                  name="role"
+                  className="form-select"
+                  value={data.role}
+                  onChange={handleChange}
+                >
+                  <option value="PATIENT">Patient</option>
+                  <option value="DOCTOR">Doctor</option>
+                </select>
+              </Motion.div>
+
+              {data.role === "DOCTOR" && (
+                <>
+                  <div className="mb-3">
+                    <label className="form-label" htmlFor="signup-department">Department</label>
+                    <select
+                      id="signup-department"
+                      name="departmentId"
+                      className="form-select"
+                      value={data.departmentId}
+                      onChange={handleChange}
+                      disabled={loadingDepartments}
+                    >
+                      <option value="">
+                        {loadingDepartments ? "Loading departments..." : "Select a department"}
+                      </option>
+                      {departments.map((department) => (
+                        <option key={department._id} value={department._id}>{department.name}</option>
+                      ))}
+                    </select>
+                    <p className="text-danger">{error.departmentId || error.departments}</p>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label" htmlFor="signup-license">Medical license number</label>
+                    <input
+                      id="signup-license"
+                      type="text"
+                      name="licenseNumber"
+                      placeholder="Medical license number"
+                      className="form-control"
+                      value={data.licenseNumber}
+                      onChange={handleChange}
+                    />
+                    <p className="text-danger">{error.licenseNumber}</p>
+                  </div>
+                </>
+              )}
+
               <Motion.div className="mb-3" variants={inputVariants} initial="hidden" animate="visible" transition={{ delay: 1.4 }}>
                 <input
                   type="password"
@@ -226,8 +324,8 @@ function Signup() {
               </Motion.div>
 
               <Motion.div className="d-grid" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 1.8 }}>
-                <Motion.button className="btn btn-primary fw-semibold" type="submit" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  Sign up
+                <Motion.button className="btn btn-primary fw-semibold" type="submit" disabled={submitting} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  {submitting ? "Creating account..." : "Sign up"}
                 </Motion.button>
               </Motion.div>
               <p className="text-muted small mt-3">

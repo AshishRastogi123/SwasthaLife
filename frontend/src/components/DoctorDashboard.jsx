@@ -18,6 +18,8 @@ export default function DoctorDashboard() {
   const [stats, setStats] = useState(null);
   const [reviewNotes, setReviewNotes] = useState("");
   const [reviewing, setReviewing] = useState(false);
+  const [newSlot, setNewSlot] = useState("");
+  const [savingSlot, setSavingSlot] = useState(false);
 
   const loadAppointments = useCallback(async () => {
     setLoading(true);
@@ -88,6 +90,23 @@ export default function DoctorDashboard() {
     }
   };
 
+  const updateAvailability = async (action, slot) => {
+    setSavingSlot(true);
+    setError("");
+    try {
+      const result = await apiRequest("/api/doctors/me/slots", {
+        method: "PATCH",
+        body: JSON.stringify({ action, slot }),
+      });
+      setStats((current) => current ? { ...current, availableSlots: result.data.availableSlots } : current);
+      if (action === "add") setNewSlot("");
+    } catch (slotError) {
+      setError(slotError.message);
+    } finally {
+      setSavingSlot(false);
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -112,6 +131,52 @@ export default function DoctorDashboard() {
               </div>
             ))}
           </div>
+        )}
+        {stats && (
+          <section className="card shadow-sm mb-4">
+            <div className="card-body">
+              <h2 className="h5">Appointment time slots</h2>
+              <p className="text-muted small">These recurring times are offered for patient bookings. Removing a time is blocked while it has upcoming pending or confirmed appointments.</p>
+              <form
+                className="d-flex flex-wrap align-items-end gap-2 mb-3"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  if (newSlot) updateAvailability("add", newSlot);
+                }}
+              >
+                <div>
+                  <label className="form-label" htmlFor="doctor-new-slot">Add a time</label>
+                  <input
+                    id="doctor-new-slot"
+                    className="form-control"
+                    type="time"
+                    required
+                    value={newSlot}
+                    onChange={(event) => setNewSlot(event.target.value)}
+                  />
+                </div>
+                <button className="btn btn-primary" type="submit" disabled={savingSlot || !newSlot}>
+                  {savingSlot ? "Saving..." : "Add time slot"}
+                </button>
+              </form>
+              {stats.availableSlots?.length ? (
+                <div className="d-flex flex-wrap gap-2">
+                  {stats.availableSlots.map((slot) => (
+                    <span className="badge rounded-pill text-bg-light border d-inline-flex align-items-center gap-2 p-2" key={slot}>
+                      {slot}
+                      <button
+                        className="btn-close"
+                        type="button"
+                        aria-label={`Remove ${slot} time slot`}
+                        disabled={savingSlot}
+                        onClick={() => updateAvailability("remove", slot)}
+                      />
+                    </span>
+                  ))}
+                </div>
+              ) : <p className="text-muted mb-0">No appointment times added yet.</p>}
+            </div>
+          </section>
         )}
         <div className="row g-3 mb-4">
           <div className="col-md-6">

@@ -56,7 +56,7 @@ function App() {
           <Route path="/Signup" element={<Signup />} />
           <Route path="/BookAppointment" element={<ProtectedRoute roles={["PATIENT"]}><HealthConsentGate><BookAppointment /></HealthConsentGate></ProtectedRoute>} />
           <Route path="/doctor-dashboard" element={<ProtectedRoute roles={["DOCTOR"]}><DoctorDashboard /></ProtectedRoute>} />
-          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin" element={<ProtectedRoute roles={["ADMIN"]}><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/audit-logs" element={<ProtectedRoute roles={["ADMIN"]}><AdminAuditLogs /></ProtectedRoute>} />
           <Route path="/health-history" element={<ProtectedRoute roles={["PATIENT"]}><PatientHealthHistory /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute roles={["PATIENT"]}><UserButton /></ProtectedRoute>} />
