@@ -3,6 +3,7 @@ const Doctor = require("../models/Doctor");
 const Department = require("../models/Department");
 const Appointment = require("../models/Appointment");
 const EmergencyRequest = require("../models/EmergencyRequest");
+const bcrypt = require("bcryptjs");
 const mongoose = require("mongoose");
 const { writeAuditLog } = require("../services/auditLogService");
 const AuditLog = require("../models/AuditLog");
@@ -107,15 +108,93 @@ const updateUserStatus = async (req, res) => {
   res.json({ data: user });
 };
 
+const createUser = async (req, res) => {
+  const { name, email, password, phone, role = "PATIENT" } = req.body;
+  if (typeof name !== "string" || !name.trim()) {
+    return res.status(400).json({ message: "A non-empty name is required" });
+  }
+  if (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ message: "A valid email is required" });
+  }
+  if (typeof password !== "string" || password.length < 8) {
+    return res.status(400).json({ message: "Password must be at least 8 characters" });
+  }
+  if (phone !== undefined && typeof phone !== "string") {
+    return res.status(400).json({ message: "Phone must be a string" });
+  }
+  if (!["PATIENT", "DOCTOR"].includes(role)) {
+    return res.status(400).json({ message: "Admin can create PATIENT or DOCTOR accounts only" });
+  }
+
+  let department;
+  if (role === "DOCTOR") {
+    if (!mongoose.Types.ObjectId.isValid(req.body.departmentId)) {
+      return res.status(400).json({ message: "A valid departmentId is required for doctor accounts" });
+    }
+    if (typeof req.body.licenseNumber !== "string" || !req.body.licenseNumber.trim()) {
+      return res.status(400).json({ message: "licenseNumber is required for doctor accounts" });
+    }
+    department = await Department.findOne({ _id: req.body.departmentId, isActive: true });
+    if (!department) return res.status(400).json({ message: "Select an active department" });
+  }
+
+  const user = await User.create({
+    name: name.trim(),
+    email: email.trim().toLowerCase(),
+    password: await bcrypt.hash(password, 10),
+    phone,
+    role,
+  });
+
+  let doctor;
+  if (role === "DOCTOR") {
+    try {
+      doctor = await Doctor.create({
+        userId: user._id,
+        departmentId: department._id,
+        licenseNumber: req.body.licenseNumber.trim(),
+        qualifications: req.body.qualifications,
+        bio: req.body.bio,
+      });
+    } catch (error) {
+      await User.deleteOne({ _id: user._id });
+      throw error;
+    }
+  }
+
+  await writeAuditLog({
+    req,
+    action: "admin.user.created",
+    resourceType: "USER",
+    resourceId: user._id,
+  });
+  res.status(201).json({
+    data: {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+      ...(doctor ? { doctorId: doctor._id } : {}),
+    },
+  });
+};
+
 const auditActions = [
   "auth.login.success",
   "auth.login.failure",
   "auth.logout",
   "admin.user.activated",
   "admin.user.deactivated",
+  "admin.user.created",
   "admin.doctor.created",
   "admin.department.created",
   "admin.department.updated",
+  "admin.department.deleted",
+  "doctor.availability.slot_added",
+  "doctor.availability.slot_removed",
   "appointment.created",
   "appointment.confirmed",
   "appointment.cancelled",
@@ -240,4 +319,4 @@ const listAuditLogs = async (req, res) => {
   });
 };
 
-module.exports = { getAdminDashboard, listUsers, updateUserStatus, listAuditLogs };
+module.exports = { getAdminDashboard, listUsers, createUser, updateUserStatus, listAuditLogs };

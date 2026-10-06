@@ -1,27 +1,57 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const Doctor = require("../models/Doctor");
+const Department = require("../models/Department");
 const { writeAuditLog } = require("../services/auditLogService");
 
 // Signup Controller
 exports.signup = async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
-
+    const role = req.body.role || "PATIENT";
     const normalizedEmail = email.trim().toLowerCase();
+
     const userExist = await User.findOne({ email: normalizedEmail });
     if (userExist) {
       return res.status(400).json({ message: "User already exists" });
     }
 
+    let department;
+    if (role === "DOCTOR") {
+      department = await Department.findOne({ _id: req.body.departmentId, isActive: true });
+      if (!department) {
+        return res.status(400).json({ message: "Select an active department" });
+      }
+      if (await Doctor.exists({ licenseNumber: req.body.licenseNumber.trim() })) {
+        return res.status(400).json({ message: "A doctor with this license number already exists" });
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await User.create({
-      name,
+    const user = await User.create({
+      name: name.trim(),
       email: normalizedEmail,
       password: hashedPassword,
       phone,
+      role,
     });
+
+    if (role === "DOCTOR") {
+      try {
+        await Doctor.create({
+          userId: user._id,
+          departmentId: department._id,
+          licenseNumber: req.body.licenseNumber.trim(),
+          qualifications: req.body.qualifications,
+          bio: req.body.bio,
+        });
+      } catch (error) {
+        await User.deleteOne({ _id: user._id });
+        throw error;
+      }
+    }
 
     res.status(201).json({ message: "Signup successful" });
   } catch (error) {

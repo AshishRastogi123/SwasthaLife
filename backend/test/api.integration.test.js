@@ -178,6 +178,48 @@ const login = async (email, password = "correct horse battery staple") => {
 };
 
 test("backend API integration: auth, patient, doctor, admin, and lifecycles", { timeout: 120_000 }, async (t) => {
+  await t.test("public signup defaults to patient and permits doctor profiles but rejects admin", async () => {
+    const mismatchedPasswords = await request("POST", "/api/auth/signup", null, {
+      name: "Signup Patient",
+      email: "mismatched.password@example.test",
+      password: "correct horse battery staple",
+      confirmPassword: "different password",
+    });
+    assert.equal(mismatchedPasswords.status, 400);
+
+    const patientSignup = await request("POST", "/api/auth/signup", null, {
+      name: "Signup Patient",
+      email: "signup.patient@example.test",
+      password: "correct horse battery staple",
+    });
+    assert.equal(patientSignup.status, 201);
+    const patientUser = await User.findOne({ email: "signup.patient@example.test" });
+    assert.equal(patientUser.role, "PATIENT");
+
+    const adminSignup = await request("POST", "/api/auth/signup", null, {
+      name: "Public Admin",
+      email: "public.admin@example.test",
+      password: "correct horse battery staple",
+      role: "ADMIN",
+    });
+    assert.equal(adminSignup.status, 400);
+    assert.equal(await User.exists({ email: "public.admin@example.test" }), null);
+
+    const doctorSignup = await request("POST", "/api/auth/signup", null, {
+      name: "Signup Doctor",
+      email: "signup.doctor@example.test",
+      password: "correct horse battery staple",
+      role: "DOCTOR",
+      departmentId: fixtures.department.id,
+      licenseNumber: "SIGNUP-LICENSE-001",
+    });
+    assert.equal(doctorSignup.status, 201, JSON.stringify(doctorSignup.body));
+    const doctorUser = await User.findOne({ email: "signup.doctor@example.test" });
+    const doctorProfile = await Doctor.findOne({ userId: doctorUser._id });
+    assert.equal(doctorUser.role, "DOCTOR");
+    assert.equal(doctorProfile.departmentId.toString(), fixtures.department.id);
+  });
+
   await t.test("valid login returns a usable token; invalid login is rejected", async () => {
     const loggedIn = await request("POST", "/api/auth/login", null, {
       email: fixtures.patient.email,
@@ -311,6 +353,41 @@ test("backend API integration: auth, patient, doctor, admin, and lifecycles", { 
     const dashboard = await request("GET", "/api/doctors/me/dashboard", fixtures.doctorToken);
     assert.equal(dashboard.status, 200);
     assert.equal(typeof dashboard.body.data.pendingAppointments, "number");
+    assert.ok(dashboard.body.data.availableSlots.includes("09:00"));
+    const duplicateSlot = await request("PATCH", "/api/doctors/me/slots", fixtures.doctorToken, {
+      action: "add",
+      slot: "09:00",
+    });
+    assert.equal(duplicateSlot.status, 409);
+    const invalidSlot = await request("PATCH", "/api/doctors/me/slots", fixtures.doctorToken, {
+      action: "add",
+      slot: "9:00",
+    });
+    assert.equal(invalidSlot.status, 400);
+    const addSlot = await request("PATCH", "/api/doctors/me/slots", fixtures.doctorToken, {
+      action: "add",
+      slot: "13:30",
+    });
+    assert.equal(addSlot.status, 200);
+    assert.ok(addSlot.body.data.availableSlots.includes("13:30"));
+    const availableSlots = await request(
+      "GET",
+      `/api/appointments/available?doctorId=${fixtures.doctor.id}&date=${futureDate(30)}`,
+      fixtures.patientToken
+    );
+    assert.ok(availableSlots.body.data.includes("13:30"));
+    const bookedSlotRemoval = await request("PATCH", "/api/doctors/me/slots", fixtures.doctorToken, {
+      action: "remove",
+      slot: "09:00",
+    });
+    assert.equal(bookedSlotRemoval.status, 409);
+    const removeSlot = await request("PATCH", "/api/doctors/me/slots", fixtures.doctorToken, {
+      action: "remove",
+      slot: "13:30",
+    });
+    assert.equal(removeSlot.status, 200);
+    assert.ok(!removeSlot.body.data.availableSlots.includes("13:30"));
+
     const assigned = await request("GET", "/api/appointments/assigned", fixtures.doctorToken);
     assert.equal(assigned.status, 200);
     assert.ok(assigned.body.data.some((appointment) => appointment._id === fixtures.appointment.id));
@@ -406,7 +483,9 @@ test("backend API integration: auth, patient, doctor, admin, and lifecycles", { 
     assert.equal(patientDenied.status, 403);
     assert.equal((await request("GET", "/api/admin/audit-logs", fixtures.doctorToken)).status, 403);
     assert.equal((await request("GET", "/api/users", fixtures.patientToken)).status, 403);
+    assert.equal((await request("POST", "/api/users", fixtures.doctorToken, { name: "Forbidden" })).status, 403);
     assert.equal((await request("POST", "/api/departments", fixtures.doctorToken, { name: "Forbidden" })).status, 403);
+    assert.equal((await request("DELETE", `/api/departments/${fixtures.department.id}`, fixtures.doctorToken)).status, 403);
     assert.equal((await request("GET", "/api/appointments", fixtures.patientToken)).status, 403);
     assert.equal((await request("GET", "/api/emergencies", fixtures.patientToken)).status, 403);
   });
@@ -431,6 +510,54 @@ test("backend API integration: auth, patient, doctor, admin, and lifecycles", { 
     });
     assert.equal(updatedDepartment.status, 200);
     assert.equal(updatedDepartment.body.data.description, "Updated by admin");
+
+    const managedDepartments = await request("GET", "/api/departments/manage", fixtures.adminToken);
+    assert.equal(managedDepartments.status, 200);
+    assert.ok(managedDepartments.body.data.some((item) => item._id === department.body.data._id));
+
+    const createdPatient = await request("POST", "/api/users", fixtures.adminToken, {
+      name: "Admin Added Patient",
+      email: "admin.added.patient@example.test",
+      password: "a secure password",
+      role: "PATIENT",
+    });
+    assert.equal(createdPatient.status, 201, JSON.stringify(createdPatient.body));
+    assert.equal(createdPatient.body.data.role, "PATIENT");
+    assert.ok(await bcrypt.compare("a secure password", (await User.findById(createdPatient.body.data._id)).password));
+
+    const adminRoleDenied = await request("POST", "/api/users", fixtures.adminToken, {
+      name: "Admin from UI",
+      email: "admin.from.ui@example.test",
+      password: "a secure password",
+      role: "ADMIN",
+    });
+    assert.equal(adminRoleDenied.status, 400);
+
+    const createdAdminDoctor = await request("POST", "/api/users", fixtures.adminToken, {
+      name: "Admin Added Doctor",
+      email: "admin.added.doctor@example.test",
+      password: "a secure password",
+      role: "DOCTOR",
+      departmentId: fixtures.department.id,
+      licenseNumber: "ADMIN-ADDED-LICENSE",
+      qualifications: ["MD"],
+    });
+    assert.equal(createdAdminDoctor.status, 201, JSON.stringify(createdAdminDoctor.body));
+    assert.equal(createdAdminDoctor.body.data.role, "DOCTOR");
+    assert.ok(await Doctor.findOne({ userId: createdAdminDoctor.body.data._id }));
+
+    const departmentToDeactivate = await request("POST", "/api/departments", fixtures.adminToken, {
+      name: "Department for deactivation",
+    });
+    assert.equal(departmentToDeactivate.status, 201);
+    const deactivatedDepartment = await request("DELETE", `/api/departments/${departmentToDeactivate.body.data._id}`, fixtures.adminToken);
+    assert.equal(deactivatedDepartment.status, 200);
+    assert.equal(deactivatedDepartment.body.data.isActive, false);
+    assert.equal((await Department.findById(departmentToDeactivate.body.data._id)).isActive, false);
+    const departmentsForManagement = await request("GET", "/api/departments/manage", fixtures.adminToken);
+    assert.ok(departmentsForManagement.body.data.some((item) => item._id === departmentToDeactivate.body.data._id && !item.isActive));
+    const publicDepartments = await request("GET", "/api/departments");
+    assert.ok(publicDepartments.body.data.every((item) => item._id !== departmentToDeactivate.body.data._id));
 
     const createdDoctor = await request("POST", "/api/doctors", fixtures.adminToken, {
       userId: fixtures.newDoctorUser.id,

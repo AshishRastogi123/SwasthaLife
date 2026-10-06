@@ -48,7 +48,7 @@ const createDoctor = async (req, res) => {
 };
 
 const getDoctorDashboardStats = async (req, res) => {
-  const doctor = await Doctor.findOne({ userId: req.user.userId }).select("_id");
+  const doctor = await Doctor.findOne({ userId: req.user.userId }).select("_id availableSlots");
   if (!doctor) return res.status(404).json({ message: "Doctor profile not found" });
 
   const startOfToday = new Date();
@@ -84,8 +84,56 @@ const getDoctorDashboardStats = async (req, res) => {
       completedAppointments: completed,
       pendingAssessmentReviews: pendingReviews,
       emergencyRequestsRequiringAttention: emergencyRequests,
+      availableSlots: doctor.availableSlots,
     },
   });
 };
 
-module.exports = { listDoctors, createDoctor, getDoctorDashboardStats };
+const updateDoctorSlot = async (req, res) => {
+  const { slot, action } = req.body;
+  if (typeof slot !== "string" || !/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/.test(slot)) {
+    return res.status(400).json({ message: "slot must use HH:MM format" });
+  }
+  if (!["add", "remove"].includes(action)) {
+    return res.status(400).json({ message: "action must be add or remove" });
+  }
+
+  const doctor = await Doctor.findOne({ userId: req.user.userId }).select("_id availableSlots");
+  if (!doctor) return res.status(404).json({ message: "Doctor profile not found" });
+
+  if (action === "add") {
+    if (doctor.availableSlots.includes(slot)) {
+      return res.status(409).json({ message: "This time slot is already available" });
+    }
+    doctor.availableSlots.push(slot);
+    doctor.availableSlots.sort();
+    await doctor.save();
+  } else {
+    if (!doctor.availableSlots.includes(slot)) {
+      return res.status(404).json({ message: "Time slot not found" });
+    }
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const hasUpcomingAppointment = await Appointment.exists({
+      doctorId: doctor._id,
+      appointmentTime: slot,
+      appointmentDate: { $gte: startOfToday },
+      status: { $in: ["PENDING", "CONFIRMED"] },
+    });
+    if (hasUpcomingAppointment) {
+      return res.status(409).json({ message: "This slot has upcoming appointments and cannot be removed yet" });
+    }
+    doctor.availableSlots = doctor.availableSlots.filter((availableSlot) => availableSlot !== slot);
+    await doctor.save();
+  }
+
+  await writeAuditLog({
+    req,
+    action: action === "add" ? "doctor.availability.slot_added" : "doctor.availability.slot_removed",
+    resourceType: "DOCTOR",
+    resourceId: doctor._id,
+  });
+  res.json({ data: { availableSlots: doctor.availableSlots } });
+};
+
+module.exports = { listDoctors, createDoctor, getDoctorDashboardStats, updateDoctorSlot };
