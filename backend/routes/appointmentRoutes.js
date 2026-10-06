@@ -1,6 +1,7 @@
 const express = require("express");
 const authMiddleware = require("../middleware/authMiddleware");
 const requireRole = require("../middleware/roleMiddleware");
+const requireCurrentHealthConsent = require("../middleware/requireCurrentHealthConsent");
 const { validateAppointment } = require("../middleware/validateDomains");
 const {
   createAppointment,
@@ -13,7 +14,7 @@ const {
 
 const router = express.Router();
 router.use(authMiddleware);
-router.post("/", requireRole("PATIENT"), validateAppointment, createAppointment);
+router.post("/", requireRole("PATIENT"), requireCurrentHealthConsent, validateAppointment, createAppointment);
 router.get("/mine", requireRole("PATIENT"), listPatientAppointments);
 router.get("/assigned", requireRole("DOCTOR"), listDoctorAppointments);
 router.get("/available", requireRole("PATIENT"), listAvailableSlots);

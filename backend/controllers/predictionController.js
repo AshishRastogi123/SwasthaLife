@@ -2,6 +2,8 @@ const http = require('http');
 const Prediction = require("../models/Prediction");
 const Doctor = require("../models/Doctor");
 const Appointment = require("../models/Appointment");
+const { createNotification } = require("../services/notificationService");
+const { writeAuditLog } = require("../services/auditLogService");
 
 // Helper to call FastAPI ML service
 // Accepts either { symptoms: [...] } or { input_vector: [...] } or just a symptoms array
@@ -63,7 +65,6 @@ const fetchPredictionFromML = (payload, debug = false) => {
 const createPrediction = async (req, res) => {
   try {
     const userId = req.user.userId;
-
     const {
       firstName,
       lastName,
@@ -74,8 +75,8 @@ const createPrediction = async (req, res) => {
       heightCm,
       weightKg,
       vitals = {},
-      lifestyle = {},
-      familyHistory = {},
+      lifestyle = "",
+      familyHistory = [],
       allergies = [],
       symptoms = [],
       diseaseContext = {},
@@ -136,8 +137,8 @@ const createPrediction = async (req, res) => {
       heightCm,
       weightKg,
       vitals,
-      lifestyle,
-      familyHistory,
+      lifestyle: typeof lifestyle === "string" ? lifestyle : JSON.stringify(lifestyle),
+      familyHistory: Array.isArray(familyHistory) ? familyHistory : Object.keys(familyHistory || {}).filter((key) => familyHistory[key]),
       allergies,
       symptoms: normalizedSymptoms,
       prediction,
@@ -278,11 +279,45 @@ const reviewPrediction = async (req, res) => {
     const appointment = await Appointment.findOne({ doctorId: doctor?._id, assessmentId: prediction._id });
     if (!appointment) return res.status(403).json({ message: "Assessment is not assigned to this doctor" });
   }
+  if (req.body.clinicalNotes !== undefined && typeof req.body.clinicalNotes !== "string") {
+    return res.status(400).json({ message: "clinicalNotes must be text" });
+  }
+  const wasReviewed = prediction.reviewStatus === "REVIEWED";
+  const previousNotes = prediction.clinicalNotes || "";
+  const updatedNotes = req.body.clinicalNotes?.trim() ?? previousNotes;
+  const notesChanged = updatedNotes !== previousNotes;
   prediction.reviewStatus = "REVIEWED";
   prediction.reviewedBy = req.user.userId;
   prediction.reviewedAt = new Date();
-  prediction.clinicalNotes = req.body.clinicalNotes;
+  prediction.clinicalNotes = updatedNotes;
   await prediction.save();
+  await writeAuditLog({
+    req,
+    action: "doctor.assessment.reviewed",
+    resourceType: "ASSESSMENT",
+    resourceId: prediction._id,
+    changes: { toStatus: "REVIEWED" },
+  });
+  if (notesChanged && updatedNotes) {
+    await writeAuditLog({
+      req,
+      action: "doctor.note.created",
+      resourceType: "ASSESSMENT",
+      resourceId: prediction._id,
+    });
+  }
+  if (!wasReviewed || (notesChanged && updatedNotes)) {
+    await createNotification({
+      recipient: prediction.userId,
+      type: wasReviewed ? "ASSESSMENT_UPDATED" : "ASSESSMENT_REVIEWED",
+      title: wasReviewed ? "Assessment review updated" : "Assessment reviewed",
+      message: wasReviewed
+        ? "Your assessment review has been updated."
+        : "Your assessment has been reviewed.",
+      relatedEntityType: "ASSESSMENT",
+      relatedEntityId: prediction._id,
+    });
+  }
   res.json({ data: prediction });
 };
 

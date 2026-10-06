@@ -1,5 +1,5 @@
+import { motion as Motion } from "framer-motion";
 import React from "react";
-import { motion } from "framer-motion";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
@@ -20,7 +20,7 @@ const SkinHealthDepartment = () => {
         }}
       >
         {/* Hero Section */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -35,7 +35,7 @@ const SkinHealthDepartment = () => {
           }}
         >
           <div className="container">
-            <motion.h1
+            <Motion.h1
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
@@ -43,8 +43,8 @@ const SkinHealthDepartment = () => {
               style={{ color: "#2563eb" }}
             >
               Skin Health & Dermatology
-            </motion.h1>
-            <motion.p
+            </Motion.h1>
+            <Motion.p
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -52,12 +52,12 @@ const SkinHealthDepartment = () => {
               style={{ fontSize: "1.1rem", color: "#374151" }}
             >
               Complete skin care, allergy treatment, and advanced dermatology services for healthier skin.
-            </motion.p>
+            </Motion.p>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* About Section */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -113,7 +113,7 @@ const SkinHealthDepartment = () => {
 
               {/* Right Image */}
               <div className="col-lg-5">
-                <motion.div
+                <Motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.7 }}
@@ -125,14 +125,14 @@ const SkinHealthDepartment = () => {
                     className="img-fluid rounded shadow"
                     style={{ maxWidth: "100%", height: "auto", objectFit: "cover" }}
                   />
-                </motion.div>
+                </Motion.div>
               </div>
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Why Skin Health Matters */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -183,10 +183,10 @@ const SkinHealthDepartment = () => {
               </div>
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Care for All Ages */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -239,10 +239,10 @@ const SkinHealthDepartment = () => {
               ))}
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Common Skin Conditions */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -291,10 +291,10 @@ const SkinHealthDepartment = () => {
               </div>
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* CTA */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -320,7 +320,7 @@ const SkinHealthDepartment = () => {
               Better diagnosis • Faster treatment • Healthy glowing skin — all in one platform.
             </p>
           </div>
-        </motion.section>
+        </Motion.section>
       </div>
 
       <Footer />

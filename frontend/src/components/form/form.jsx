@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import Select from "react-select";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
+import MedicalDisclaimer from "../MedicalDisclaimer";
 
 // Categorized symptoms for better organization
 const SYMPTOM_CATEGORIES = {
@@ -311,7 +312,13 @@ const SymptomForm = () => {
 
       const res = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(localStorage.getItem("token")
+            ? { Authorization: "Bearer " + localStorage.getItem("token") }
+            : {}),
+        },
         body: JSON.stringify({ input_vector }),
       });
 
@@ -321,14 +328,14 @@ const SymptomForm = () => {
       if (ct.includes('application/json')) {
         try {
           data = await res.json();
-        } catch (e) {
+        } catch {
           data = null;
         }
       } else {
         const text = await res.text();
         try {
           data = text ? JSON.parse(text) : null;
-        } catch (e) {
+        } catch {
           data = null;
         }
       }
@@ -399,10 +406,10 @@ const SymptomForm = () => {
       let data = null;
       const ct = res.headers.get('content-type') || '';
       if (ct.includes('application/json')) {
-        try { data = await res.json(); } catch (e) { data = null; }
+        try { data = await res.json(); } catch { data = null; }
       } else {
         const text = await res.text();
-        try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
+        try { data = text ? JSON.parse(text) : null; } catch { data = null; }
       }
 
       setSaving(false);
@@ -431,7 +438,8 @@ const SymptomForm = () => {
       <div className="container my-5">
         <div className="card shadow-sm">
           <div className="card-body">
-            <h4 className="mb-3">Medical / Disease Prediction Form</h4>
+            <h4 className="mb-3">Health Assessment Form</h4>
+            <MedicalDisclaimer />
             <form onSubmit={handleSubmit} noValidate>
               {/* Name */}
               <div className="row g-3 mb-3">
@@ -889,10 +897,10 @@ const SymptomForm = () => {
                   <div className="mt-3">
                     <div className="card border-primary shadow-sm">
                       <div className="card-body">
-                        <h6 className="card-title mb-1">Prediction Result</h6>
-                        <p className="mb-1"><strong>Disease:</strong> {predictionResult.disease}</p>
-                        <p className="mb-0"><strong>Confidence:</strong> {predictionResult.confidence ? (predictionResult.confidence * 100).toFixed(2) + '%' : 'N/A'}</p>
-                        <small className="text-muted d-block mt-2">You can save this prediction to the patient's record.</small>
+                        <h6 className="card-title mb-1">Assessment result</h6>
+                        <p className="mb-1"><strong>Possible condition:</strong> {predictionResult.disease}</p>
+                        <p className="mb-0"><strong>Model score:</strong> {predictionResult.confidence ? (predictionResult.confidence * 100).toFixed(2) + '%' : 'N/A'}</p>
+                        <small className="text-muted d-block mt-2">This model score is not clinical certainty. You can save this assessment to your health history.</small>
                       </div>
                     </div>
                   </div>
@@ -916,7 +924,7 @@ const SymptomForm = () => {
                     {predicting ? (
                       <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                     ) : null}
-                    Predict Disease
+                    Get assessment result
                   </button>
                 ) : (
                   <>

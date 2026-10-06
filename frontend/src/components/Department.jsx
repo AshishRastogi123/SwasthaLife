@@ -1,5 +1,5 @@
+import { motion as Motion } from "framer-motion";
 import React from "react";
-import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "./Navbar";
@@ -351,7 +351,7 @@ const Department = () => {
         }}
       >
         {/* Hero Section */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -366,7 +366,7 @@ const Department = () => {
           }}
         >
           <div className="container">
-            <motion.h1
+            <Motion.h1
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
@@ -374,8 +374,8 @@ const Department = () => {
               style={{ color: "#2563eb" }}
             >
               Our Departments
-            </motion.h1>
-            <motion.p
+            </Motion.h1>
+            <Motion.p
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -384,12 +384,12 @@ const Department = () => {
             >
               Comprehensive healthcare services tailored to meet all your
               medical needs.
-            </motion.p>
+            </Motion.p>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Departments Grid */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -403,7 +403,7 @@ const Department = () => {
           <div className="container">
             <div className="row">
               {departments.map((dept, index) => (
-                <motion.div
+                <Motion.div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -420,11 +420,11 @@ const Department = () => {
                       border: "1px solid #e5e7eb",
                     }}
                   >
-                    <motion.i
+                    <Motion.i
                       whileHover={{ scale: 1.1 }}
                       className={`${dept.icon} fa-3x mb-3`}
                       style={{ color: "#10b981" }}
-                    ></motion.i>
+                    ></Motion.i>
                     <h5
                       className="card-title fw-bold mb-3"
                       style={{ color: "#2563eb" }}
@@ -465,7 +465,7 @@ const Department = () => {
                         ))}
                       </ul>
                     </div>
-                    <motion.button
+                    <Motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       className="btn mt-3"
@@ -494,16 +494,16 @@ const Department = () => {
                       }}
                     >
                       Learn More
-                    </motion.button>
+                    </Motion.button>
                   </div>
-                </motion.div>
+                </Motion.div>
               ))}
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Common Diseases by Specialty */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -515,7 +515,7 @@ const Department = () => {
           }}
         >
           <div className="container">
-            <motion.h2
+            <Motion.h2
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -523,7 +523,7 @@ const Department = () => {
               style={{ color: "#2563eb" }}
             >
               Common Diseases by Specialty
-            </motion.h2>
+            </Motion.h2>
             <p
               className="text-center mb-5"
               style={{ color: "#4b5563", fontSize: "0.95rem" }}
@@ -535,7 +535,7 @@ const Department = () => {
 
             <div className="row">
               {diseaseCategories.map((cat, index) => (
-                <motion.div
+                <Motion.div
                   key={cat.category}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -590,7 +590,7 @@ const Department = () => {
                         </p>
 
                         {/* 🔗 Prediction Form Link Button */}
-                        <motion.button
+                        <Motion.button
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           className="btn btn-sm"
@@ -609,18 +609,18 @@ const Department = () => {
                           }
                         >
                           Check Now
-                        </motion.button>
+                        </Motion.button>
                       </div>
                     ))}
                   </div>
-                </motion.div>
+                </Motion.div>
               ))}
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Why Choose Us Section */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -632,7 +632,7 @@ const Department = () => {
           }}
         >
           <div className="container">
-            <motion.h2
+            <Motion.h2
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -640,7 +640,7 @@ const Department = () => {
               style={{ color: "#2563eb" }}
             >
               Why Choose Our Departments?
-            </motion.h2>
+            </Motion.h2>
             <div className="row">
               {[
                 {
@@ -668,7 +668,7 @@ const Department = () => {
                     "Personalized treatment plans tailored to your unique health needs and preferences.",
                 },
               ].map((feature, index) => (
-                <motion.div
+                <Motion.div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -676,11 +676,11 @@ const Department = () => {
                   className="col-lg-3 col-md-6 mb-4"
                 >
                   <div className="text-center">
-                    <motion.i
+                    <Motion.i
                       whileHover={{ scale: 1.1 }}
                       className={`${feature.icon} fa-3x mb-3`}
                       style={{ color: "#10b981" }}
-                    ></motion.i>
+                    ></Motion.i>
                     <h5 className="fw-bold mb-3" style={{ color: "#2563eb" }}>
                       {feature.title}
                     </h5>
@@ -688,14 +688,14 @@ const Department = () => {
                       {feature.description}
                     </p>
                   </div>
-                </motion.div>
+                </Motion.div>
               ))}
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Call to Action */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -709,15 +709,15 @@ const Department = () => {
           }}
         >
           <div className="container">
-            <motion.h2
+            <Motion.h2
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               className="h1 fw-bold mb-4"
             >
               Ready to Get Started?
-            </motion.h2>
-            <motion.p
+            </Motion.h2>
+            <Motion.p
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.2 }}
@@ -726,8 +726,8 @@ const Department = () => {
             >
               Schedule an appointment with one of our specialized departments
               today.
-            </motion.p>
-            <motion.button
+            </Motion.p>
+            <Motion.button
               initial={{ opacity: 0, scale: 0.8 }}
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.4 }}
@@ -743,8 +743,8 @@ const Department = () => {
             >
               <i className="fas fa-calendar-alt me-2"></i>
               Book Appointment
-            </motion.button>
-            <motion.button
+            </Motion.button>
+            <Motion.button
               initial={{ opacity: 0, scale: 0.8 }}
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.5 }}
@@ -759,9 +759,9 @@ const Department = () => {
             >
               <i className="fas fa-phone me-2"></i>
               Call Now
-            </motion.button>
+            </Motion.button>
           </div>
-        </motion.section>
+        </Motion.section>
       </div>
       <Footer />
     </>

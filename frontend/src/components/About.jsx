@@ -1,3 +1,4 @@
+import { motion as Motion } from "framer-motion";
 // import React from "react";
 // import { motion } from "framer-motion";
 // import "bootstrap/dist/css/bootstrap.min.css";
@@ -369,7 +370,6 @@
 
 
 import React from "react";
-import { motion } from "framer-motion";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
@@ -424,7 +424,7 @@ const About = () => {
         }}
       >
         {/* Hero Section */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -439,7 +439,7 @@ const About = () => {
           }}
         >
           <div className="container">
-            <motion.h1
+            <Motion.h1
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
@@ -447,8 +447,8 @@ const About = () => {
               style={{ color: "#2563eb" }}
             >
               About SwasthaLife
-            </motion.h1>
-            <motion.p
+            </Motion.h1>
+            <Motion.p
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -457,12 +457,12 @@ const About = () => {
             >
               Empowering healthcare through innovation, technology, and
               compassionate care.
-            </motion.p>
+            </Motion.p>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Mission Section */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -476,7 +476,7 @@ const About = () => {
           <div className="container">
             <div className="row align-items-center">
               <div className="col-lg-6">
-                <motion.h2
+                <Motion.h2
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.6 }}
@@ -484,8 +484,8 @@ const About = () => {
                   style={{ color: "#2563eb" }}
                 >
                   Our Mission
-                </motion.h2>
-                <motion.p
+                </Motion.h2>
+                <Motion.p
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
@@ -500,8 +500,8 @@ const About = () => {
                   diseases before they become critical. We believe in making
                   healthcare accessible, affordable, and proactive for everyone,
                   regardless of their location or background.
-                </motion.p>
-                <motion.ul
+                </Motion.p>
+                <Motion.ul
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.6, delay: 0.4 }}
@@ -536,10 +536,10 @@ const About = () => {
                     ></i>
                     Community-driven healthcare approach
                   </li>
-                </motion.ul>
+                </Motion.ul>
               </div>
               <div className="col-lg-6">
-                <motion.img
+                <Motion.img
                   initial={{ opacity: 0, scale: 0.8 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.8 }}
@@ -551,10 +551,10 @@ const About = () => {
               </div>
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Values Section */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -566,7 +566,7 @@ const About = () => {
           }}
         >
           <div className="container">
-            <motion.h2
+            <Motion.h2
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -574,10 +574,10 @@ const About = () => {
               style={{ color: "#2563eb" }}
             >
               Our Core Values
-            </motion.h2>
+            </Motion.h2>
             <div className="row">
               {coreValues.map((value, index) => (
-                <motion.div
+                <Motion.div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -593,11 +593,11 @@ const About = () => {
                       textAlign: "center",
                     }}
                   >
-                    <motion.i
+                    <Motion.i
                       whileHover={{ scale: 1.1 }}
                       className={`${value.icon} fa-3x mb-3`}
                       style={{ color: "#10b981" }}
-                    ></motion.i>
+                    ></Motion.i>
                     <h5
                       className="card-title fw-bold"
                       style={{ color: "#2563eb" }}
@@ -608,14 +608,14 @@ const About = () => {
                       {value.description}
                     </p>
                   </div>
-                </motion.div>
+                </Motion.div>
               ))}
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Story Section */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -630,7 +630,7 @@ const About = () => {
             {/* align-items-stretch to make both columns equal height */}
             <div className="row align-items-stretch">
               <div className="col-lg-6 d-flex flex-column h-100">
-                <motion.h2
+                <Motion.h2
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.6 }}
@@ -638,10 +638,10 @@ const About = () => {
                   style={{ color: "#2563eb" }}
                 >
                   Our Story
-                </motion.h2>
+                </Motion.h2>
 
                 {storyParagraphs.map((para, idx) => (
-                  <motion.p
+                  <Motion.p
                     key={idx}
                     initial={{ opacity: 0, x: -20 }}
                     whileInView={{ opacity: 1, x: 0 }}
@@ -653,10 +653,10 @@ const About = () => {
                     }}
                   >
                     {para}
-                  </motion.p>
+                  </Motion.p>
                 ))}
 
-                <motion.h6
+                <Motion.h6
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.6 }}
@@ -664,8 +664,8 @@ const About = () => {
                   style={{ color: "#ebe525ff" }}
                 >
                   SwasthaLife is not just a platform—it’s a promise :
-                </motion.h6>
-                <motion.p
+                </Motion.h6>
+                <Motion.p
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
@@ -679,11 +679,11 @@ const About = () => {
                   preventive for everyone—where advanced AI, compassionate care,
                   and real-time insights come together to support every step of
                   your health journey.
-                </motion.p>
+                </Motion.p>
               </div>
 
               <div className="col-lg-6 h-200">
-                <motion.div
+                <Motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.8 }}
@@ -700,11 +700,11 @@ const About = () => {
                       objectFit: "cover",
                     }}
                   />
-                </motion.div>
+                </Motion.div>
               </div>
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
       </div>
       <Footer />
     </>

@@ -1,5 +1,5 @@
+import { motion as Motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 function UserButton() {
@@ -27,6 +27,13 @@ function UserButton() {
       color: "#FFF3E0",
       path: "/chatbot",
     },
+    {
+      title: "Health History",
+      desc: "Review your saved assessments, appointments, and care updates.",
+      img: "https://cdn-icons-png.flaticon.com/512/3209/3209265.png",
+      color: "#F3E8FF",
+      path: "/health-history",
+    },
   ];
 
   return (
@@ -45,7 +52,7 @@ function UserButton() {
         <div className="row justify-content-center g-4">
           {cards.map((card, index) => (
             <div key={index} className="col-md-3 d-flex justify-content-center">
-              <motion.div
+              <Motion.div
                 whileHover={{
                   scale: 1.05,
                   boxShadow: "0px 10px 25px rgba(0,0,0,0.15)",
@@ -71,7 +78,7 @@ function UserButton() {
                   <h5 className="card-title fw-bold">{card.title}</h5>
                   <p className="card-text text-muted">{card.desc}</p>
                 </div>
-              </motion.div>
+              </Motion.div>
             </div>
           ))}
         </div>

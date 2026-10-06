@@ -1,5 +1,5 @@
+import { motion as Motion } from "framer-motion";
 import React from "react";
-import { motion } from "framer-motion";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
@@ -77,7 +77,7 @@ const Blog = () => {
         }}
       >
         {/* HERO – About Our Health Prediction System */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -92,7 +92,7 @@ const Blog = () => {
           }}
         >
           <div className="container">
-            <motion.h1
+            <Motion.h1
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
@@ -100,8 +100,8 @@ const Blog = () => {
               style={{ color: "#2563eb" }}
             >
               About Our Health Prediction System
-            </motion.h1>
-            <motion.p
+            </Motion.h1>
+            <Motion.p
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -111,12 +111,12 @@ const Blog = () => {
               Our project uses Machine Learning to analyze health data and
               predict potential diseases early — helping people take preventive
               action and live healthier lives.
-            </motion.p>
+            </Motion.p>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Vision & Mission */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -128,7 +128,7 @@ const Blog = () => {
           }}
         >
           <div className="container text-center">
-            <motion.h2
+            <Motion.h2
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -136,7 +136,7 @@ const Blog = () => {
               style={{ color: "#2563eb" }}
             >
               Our Vision & Mission
-            </motion.h2>
+            </Motion.h2>
             <p className="text-muted mb-4" style={{ fontSize: "1rem" }}>
               We aim to use Machine Learning models to bring technology closer
               to healthcare — making disease prediction accurate, fast, and
@@ -177,10 +177,10 @@ const Blog = () => {
               </div>
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Key Features */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -192,7 +192,7 @@ const Blog = () => {
           }}
         >
           <div className="container text-center">
-            <motion.h2
+            <Motion.h2
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -200,7 +200,7 @@ const Blog = () => {
               style={{ color: "#2563eb" }}
             >
               Key Features
-            </motion.h2>
+            </Motion.h2>
             <div className="row">
               {[
                 {
@@ -234,7 +234,7 @@ const Blog = () => {
                   desc: "Model performance can improve with more data and retraining over time.",
                 },
               ].map((feature, index) => (
-                <motion.div
+                <Motion.div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -253,14 +253,14 @@ const Blog = () => {
                       {feature.desc}
                     </p>
                   </div>
-                </motion.div>
+                </Motion.div>
               ))}
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Future Enhancements */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -272,7 +272,7 @@ const Blog = () => {
           }}
         >
           <div className="container text-center">
-            <motion.h2
+            <Motion.h2
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -280,7 +280,7 @@ const Blog = () => {
               style={{ color: "#2563eb" }}
             >
               Future Enhancements
-            </motion.h2>
+            </Motion.h2>
             <p className="text-muted mb-5" style={{ fontSize: "1rem" }}>
               Our future goal is to integrate this ML-based system with
               real-time health monitoring and cloud-based analytics.
@@ -303,7 +303,7 @@ const Blog = () => {
                   desc: "Apply hyperparameter tuning and auto ML techniques to boost accuracy and efficiency.",
                 },
               ].map((enh, i) => (
-                <motion.div
+                <Motion.div
                   key={i}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -320,14 +320,14 @@ const Blog = () => {
                     </h5>
                     <p className="text-muted">{enh.desc}</p>
                   </div>
-                </motion.div>
+                </Motion.div>
               ))}
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Closing Line (System Theme) */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -341,15 +341,15 @@ const Blog = () => {
           }}
         >
           <div className="container">
-            <motion.h2
+            <Motion.h2
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               className="fw-bold mb-3"
             >
               Empowering Healthcare with Machine Learning
-            </motion.h2>
-            <motion.p
+            </Motion.h2>
+            <Motion.p
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.2 }}
@@ -358,12 +358,12 @@ const Blog = () => {
             >
               Turning health data into actionable insights — because prevention
               is better than cure.
-            </motion.p>
+            </Motion.p>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* BLOG CARDS */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -376,7 +376,7 @@ const Blog = () => {
         >
           <div className="container">
             <div className="text-center mb-5">
-              <motion.h2
+              <Motion.h2
                 initial={{ opacity: 0, y: -20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
@@ -384,7 +384,7 @@ const Blog = () => {
                 style={{ color: "#2563eb" }}
               >
                 Health & AI Blog
-              </motion.h2>
+              </Motion.h2>
               <p className="text-muted" style={{ fontSize: "1rem" }}>
                 Explore the latest insights, innovations, and research in
                 AI-driven healthcare and deep learning.
@@ -392,7 +392,7 @@ const Blog = () => {
             </div>
             <div className="row">
               {blogPosts.map((post, index) => (
-                <motion.div
+                <Motion.div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -435,7 +435,7 @@ const Blog = () => {
                       >
                         {post.description}
                       </p>
-                      <motion.button
+                      <Motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="btn btn-primary mt-2"
@@ -448,17 +448,17 @@ const Blog = () => {
                         }}
                       >
                         Read More
-                      </motion.button>
+                      </Motion.button>
                     </div>
                   </div>
-                </motion.div>
+                </Motion.div>
               ))}
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Inspiration / Quote */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -472,7 +472,7 @@ const Blog = () => {
           }}
         >
           <div className="container">
-            <motion.h2
+            <Motion.h2
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -480,13 +480,13 @@ const Blog = () => {
             >
               “AI is not replacing doctors — it’s empowering them to make
               smarter, faster, and more accurate decisions.”
-            </motion.h2>
+            </Motion.h2>
             <p className="lead mb-0">— SwasthaLife Team</p>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Newsletter */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -499,7 +499,7 @@ const Blog = () => {
           }}
         >
           <div className="container">
-            <motion.h2
+            <Motion.h2
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -507,7 +507,7 @@ const Blog = () => {
               style={{ color: "#2563eb" }}
             >
               Subscribe to Our Health & AI Newsletter
-            </motion.h2>
+            </Motion.h2>
             <p className="text-muted mb-4">
               Stay updated with the latest articles, innovations, and healthcare
               AI trends from SwasthaLife.
@@ -533,7 +533,7 @@ const Blog = () => {
               </button>
             </form>
           </div>
-        </motion.section>
+        </Motion.section>
       </div>
       <Footer />
     </>

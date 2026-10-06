@@ -1,5 +1,6 @@
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -13,7 +14,7 @@ const Footer = () => {
       }}
     >
       <footer className="text-center text-lg-start">
-        <motion.section
+        <Motion.section
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -26,58 +27,58 @@ const Footer = () => {
             </span>
           </div>
           <div className="d-flex">
-            <motion.a
+            <Motion.a
               href="#"
               className="me-4"
               whileHover={{ scale: 1.2 }}
               style={{ color: "#ffffff", textDecoration: "none" }}
             >
               <i className="fab fa-facebook-f fa-lg" />
-            </motion.a>
-            <motion.a
+            </Motion.a>
+            <Motion.a
               href="#"
               className="me-4"
               whileHover={{ scale: 1.2 }}
               style={{ color: "#ffffff", textDecoration: "none" }}
             >
               <i className="fab fa-youtube fa-lg" />
-            </motion.a>
-            <motion.a
+            </Motion.a>
+            <Motion.a
               href="/"
               className="me-4"
               whileHover={{ scale: 1.2 }}
               style={{ color: "#ffffff", textDecoration: "none" }}
             >
               <i className="fab fa-google fa-lg" />
-            </motion.a>
-            <motion.a
+            </Motion.a>
+            <Motion.a
               href="#"
               className="me-4"
               whileHover={{ scale: 1.2 }}
               style={{ color: "#ffffff", textDecoration: "none" }}
             >
               <i className="fab fa-instagram fa-lg" />
-            </motion.a>
-            <motion.a
+            </Motion.a>
+            <Motion.a
               href="https://www.linkedin.com/posts/ashish-rastogi-77153331a_swasthalife-ai-machinelearning-activity-7393677787397701632-avt5?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFG4SeoBit4S_OLiFR_U7JLjNYnSIN8mAKI"
               className="me-4"
               whileHover={{ scale: 1.2 }}
               style={{ color: "#ffffff", textDecoration: "none" }}
             >
               <i className="fab fa-linkedin-in fa-lg" />
-            </motion.a>
-            <motion.a
+            </Motion.a>
+            <Motion.a
               href="#"
               className="me-4"
               whileHover={{ scale: 1.2 }}
               style={{ color: "#ffffff", textDecoration: "none" }}
             >
               <i className="fab fa-github fa-lg" />
-            </motion.a>
+            </Motion.a>
           </div>
-        </motion.section>
+        </Motion.section>
 
-        <motion.section
+        <Motion.section
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
@@ -106,9 +107,7 @@ const Footer = () => {
                     fontSize: "0.95rem",
                   }}
                 >
-                  Empowering lives through innovation, our dedicated team built
-                  a responsive website that predicts diseases—bringing
-                  healthcare one step closer, faster, and smarter.
+                  SwasthaLife offers prototype health-information and assessment features. AI results are not confirmed medical diagnoses; consult a qualified healthcare professional.
                 </p>
               </div>
 
@@ -176,6 +175,8 @@ const Footer = () => {
                     Our Health Experts
                   </a>
                 </p>
+                <p><Link to="/privacy" style={{ color: "#e5e7eb", textDecoration: "none", fontWeight: "500" }}>Privacy Policy</Link></p>
+                <p><Link to="/terms" style={{ color: "#e5e7eb", textDecoration: "none", fontWeight: "500" }}>Terms of Service</Link></p>
                 <p>
                   <a
                     href="#"
@@ -274,9 +275,9 @@ const Footer = () => {
               </div>
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.4 }}
@@ -295,7 +296,7 @@ const Footer = () => {
           >
             swasthalifeindia.in
           </a>
-        </motion.div>
+        </Motion.div>
       </footer>
     </section>
   );

@@ -1,5 +1,5 @@
+import { motion as Motion } from "framer-motion";
 import React from "react";
-import { motion } from "framer-motion";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
@@ -20,7 +20,7 @@ const ChildHealthServices = () => {
         }}
       >
         {/* Hero Section */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -35,7 +35,7 @@ const ChildHealthServices = () => {
           }}
         >
           <div className="container">
-            <motion.h1
+            <Motion.h1
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
@@ -43,8 +43,8 @@ const ChildHealthServices = () => {
               style={{ color: "#2563eb" }}
             >
               Child Health & Pediatrics
-            </motion.h1>
-            <motion.p
+            </Motion.h1>
+            <Motion.p
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -52,12 +52,12 @@ const ChildHealthServices = () => {
               style={{ fontSize: "1.1rem", color: "#374151" }}
             >
               Safe, gentle, and complete healthcare for babies, children, and teenagers.
-            </motion.p>
+            </Motion.p>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* About Section */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -113,7 +113,7 @@ const ChildHealthServices = () => {
 
               {/* Right Image */}
               <div className="col-lg-5">
-                <motion.div
+                <Motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.7 }}
@@ -125,14 +125,14 @@ const ChildHealthServices = () => {
                     className="img-fluid rounded shadow"
                     style={{ maxWidth: "100%", height: "auto", objectFit: "cover" }}
                   />
-                </motion.div>
+                </Motion.div>
               </div>
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Why Child Health Matters */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -193,10 +193,10 @@ const ChildHealthServices = () => {
               </div>
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Child Care by Age Group */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -262,10 +262,10 @@ const ChildHealthServices = () => {
               ))}
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Common Child Conditions */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -325,10 +325,10 @@ const ChildHealthServices = () => {
               </div>
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* CTA */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -360,7 +360,7 @@ const ChildHealthServices = () => {
               Healthy growth • Strong immunity • Happy childhood — all in one connected system.
             </p>
           </div>
-        </motion.section>
+        </Motion.section>
       </div>
 
       <Footer />

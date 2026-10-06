@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 
 import Navbar from "./Navbar";
 import Hero from "./Hero";
@@ -19,54 +19,54 @@ function Home(){
         <>
             <Navbar/>
             <Hero/>
-            <motion.div
+            <Motion.div
                 initial="hidden"
                 whileInView="visible"
                 variants={sectionVariants}
                 transition={{ duration: 0.6, delay: 0.1 }}
             >
                 <Departments/>
-            </motion.div>
-            <motion.div
+            </Motion.div>
+            <Motion.div
                 initial="hidden"
                 whileInView="visible"
                 variants={sectionVariants}
                 transition={{ duration: 0.6, delay: 0.2 }}
             >
                 <VisionMission/>
-            </motion.div>
-            <motion.div
+            </Motion.div>
+            <Motion.div
                 initial="hidden"
                 whileInView="visible"
                 variants={sectionVariants}
                 transition={{ duration: 0.6, delay: 0.3 }}
             >
                 <VideoSection/>
-            </motion.div>
-            <motion.div
+            </Motion.div>
+            <Motion.div
                 initial="hidden"
                 whileInView="visible"
                 variants={sectionVariants}
                 transition={{ duration: 0.6, delay: 0.4 }}
             >
                 <EmergencyForm />
-            </motion.div>
-            <motion.div
+            </Motion.div>
+            <Motion.div
                 initial="hidden"
                 whileInView="visible"
                 variants={sectionVariants}
                 transition={{ duration: 0.6, delay: 0.5 }}
             >
                 <Teams/>
-            </motion.div>
-            <motion.div
+            </Motion.div>
+            <Motion.div
                 initial="hidden"
                 whileInView="visible"
                 variants={sectionVariants}
                 transition={{ duration: 0.6, delay: 0.6 }}
             >
                 <Footer/>
-            </motion.div>
+            </Motion.div>
         </>
     )
 }

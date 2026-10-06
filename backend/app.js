@@ -14,12 +14,13 @@ const doctorRoutes = require("./routes/doctorRoutes");
 const appointmentRoutes = require("./routes/appointmentRoutes");
 const emergencyRoutes = require("./routes/emergencyRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const historyRoutes = require("./routes/historyRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const userRoutes = require("./routes/userRoutes");
+const healthConsentRoutes = require("./routes/healthConsentRoutes");
 
 const app = express();
 const port = process.env.PORT || 3000;
-
-// Connect to database
-connectDB();
 
 // Middlewares
 app.use(morgan("dev"));
@@ -48,6 +49,10 @@ app.use("/api/doctors", doctorRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/emergencies", emergencyRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/history", historyRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/consent", healthConsentRoutes);
 
 app.use((err, req, res, next) => {
   console.error("Unhandled API error:", err);
@@ -61,9 +66,12 @@ app.use((err, req, res, next) => {
   return res.status(500).json({ message: "Internal server error" });
 });
 
-// Start server
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
-});
-
 module.exports = app;
+
+if (require.main === module) {
+  connectDB().then(() => {
+    app.listen(port, () => {
+      console.log(`Server listening on port ${port}`);
+    });
+  });
+}

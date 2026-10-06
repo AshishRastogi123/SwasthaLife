@@ -1,11 +1,12 @@
+import { motion as Motion } from "framer-motion";
 // DiseaseStep2.jsx
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { toast } from "react-toastify";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
+import MedicalDisclaimer from "../MedicalDisclaimer";
 
 const DiseaseStep2 = () => {
   const location = useLocation();
@@ -230,8 +231,6 @@ const DiseaseStep2 = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
-
       if (!token) {
         toast.error("You must be logged in to submit a prediction");
         navigate("/login");
@@ -316,10 +315,11 @@ const DiseaseStep2 = () => {
     <>
       <Navbar />
       <div style={{ fontFamily: "'Poppins', 'Montserrat', 'Segoe UI', Arial, sans-serif" }}>
-        <motion.section initial="hidden" whileInView="visible" variants={sectionVariants} transition={{ duration: 0.6 }} className="py-5" style={{ background: "linear-gradient(135deg, #dbeafe 0%, #dcfce7 100%)", color: "#1e293b", textAlign: "center", padding: "60px 20px", marginTop: "76px" }}>
+        <Motion.section initial="hidden" whileInView="visible" variants={sectionVariants} transition={{ duration: 0.6 }} className="py-5" style={{ background: "linear-gradient(135deg, #dbeafe 0%, #dcfce7 100%)", color: "#1e293b", textAlign: "center", padding: "60px 20px", marginTop: "76px" }}>
           <div className="container">
-            <h1 className="display-5 fw-bold" style={{ color: "#2563eb" }}>{diseaseName} — Detailed Questions</h1>
-            <p style={{ color: "#374151" }} className="mt-2">Here we ask a few more questions specific to <strong>{diseaseName}</strong>. These help the ML model provide better prediction.</p>
+            <h1 className="display-5 fw-bold" style={{ color: "#2563eb" }}>{diseaseName} — Health Assessment</h1>
+            <p style={{ color: "#374151" }} className="mt-2">These questions help prepare an informational assessment related to <strong>{diseaseName}</strong>.</p>
+            <MedicalDisclaimer className="text-start mt-3" />
 
             {/* show small summary of basicData */}
             <div className="mt-4" style={{ maxWidth: 900, margin: "0 auto", textAlign: "left" }}>
@@ -337,9 +337,9 @@ const DiseaseStep2 = () => {
               </div>
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
-        <motion.section initial="hidden" whileInView="visible" variants={sectionVariants} transition={{ duration: 0.6, delay: 0.1 }} className="py-5" style={{ background: "#fff", padding: "40px 20px 80px 20px" }}>
+        <Motion.section initial="hidden" whileInView="visible" variants={sectionVariants} transition={{ duration: 0.6, delay: 0.1 }} className="py-5" style={{ background: "#fff", padding: "40px 20px 80px 20px" }}>
           <div className="container">
             <div className="row justify-content-center">
               <div className="col-lg-9">
@@ -383,7 +383,7 @@ const DiseaseStep2 = () => {
 
                       <div className="d-flex justify-content-between mt-4">
                         <button type="button" className="btn btn-outline-secondary" style={{ borderRadius: 25 }} onClick={() => navigate(-1)} disabled={isLoading}>← Back</button>
-                        <motion.button
+                        <Motion.button
                           whileHover={{ scale: 1.03 }}
                           whileTap={{ scale: 0.97 }}
                           type="submit"
@@ -392,19 +392,19 @@ const DiseaseStep2 = () => {
                           disabled={isLoading}
                         >
                           {isLoading ? "Submitting..." : "Submit & Predict"}
-                        </motion.button>
+                        </Motion.button>
                       </div>
                     </div>
                   </div>
                 </form>
 
                 <p className="text-center mt-3" style={{ color: "#6b7280" }}>
-                  Note: Your data is secure and will be saved with your profile.
+                  The information you submit will be associated with your account.
                 </p>
               </div>
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
       </div>
       <Footer />
     </>

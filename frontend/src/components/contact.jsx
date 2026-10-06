@@ -1,5 +1,5 @@
+import { motion as Motion } from "framer-motion";
 import React from "react";
-import { motion } from "framer-motion";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
@@ -19,7 +19,7 @@ const Contact = () => {
         }}
       >
         {/* Hero Section */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -34,7 +34,7 @@ const Contact = () => {
           }}
         >
           <div className="container">
-            <motion.h1
+            <Motion.h1
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
@@ -42,8 +42,8 @@ const Contact = () => {
               style={{ color: "#2563eb" }}
             >
               Contact Us
-            </motion.h1>
-            <motion.p
+            </Motion.h1>
+            <Motion.p
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -52,12 +52,12 @@ const Contact = () => {
             >
               We’d love to hear from you! Reach out to our team for support,
               collaboration, or feedback.
-            </motion.p>
+            </Motion.p>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Contact Info Section */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -69,7 +69,7 @@ const Contact = () => {
           }}
         >
           <div className="container text-center">
-            <motion.h2
+            <Motion.h2
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -77,7 +77,7 @@ const Contact = () => {
               style={{ color: "#2563eb" }}
             >
               Get In Touch
-            </motion.h2>
+            </Motion.h2>
             <div className="row">
               {[
                 {
@@ -96,7 +96,7 @@ const Contact = () => {
                   desc: "Invertis University, Bareilly, Uttar Pradesh",
                 },
               ].map((info, index) => (
-                <motion.div
+                <Motion.div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -113,14 +113,14 @@ const Contact = () => {
                     </h5>
                     <p className="text-muted">{info.desc}</p>
                   </div>
-                </motion.div>
+                </Motion.div>
               ))}
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Contact Form Section */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -134,7 +134,7 @@ const Contact = () => {
           <div className="container">
             <div className="row align-items-center">
               <div className="col-md-6 mb-4">
-                <motion.h2
+                <Motion.h2
                   initial={{ opacity: 0, y: -20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6 }}
@@ -142,7 +142,7 @@ const Contact = () => {
                   style={{ color: "#2563eb" }}
                 >
                   Send Us a Message
-                </motion.h2>
+                </Motion.h2>
                 <p className="text-muted mb-4" style={{ fontSize: "1rem" }}>
                   Have questions or suggestions? Fill out the form, and our team
                   will get back to you as soon as possible.
@@ -172,7 +172,7 @@ const Contact = () => {
                       required
                     ></textarea>
                   </div>
-                  <motion.button
+                  <Motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     className="btn btn-primary px-4 py-2"
@@ -183,11 +183,11 @@ const Contact = () => {
                     }}
                   >
                     Send Message
-                  </motion.button>
+                  </Motion.button>
                 </form>
               </div>
               <div className="col-md-6">
-                <motion.div
+                <Motion.div
                   initial={{ opacity: 0 }}
                   whileInView={{ opacity: 1 }}
                   transition={{ duration: 0.8, delay: 0.2 }}
@@ -205,14 +205,14 @@ const Contact = () => {
                     allowFullScreen=""
                     loading="lazy"
                   ></iframe>
-                </motion.div>
+                </Motion.div>
               </div>
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Call to Action */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -226,15 +226,15 @@ const Contact = () => {
           }}
         >
           <div className="container">
-            <motion.h2
+            <Motion.h2
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               className="fw-bold mb-4"
             >
               We’re Here to Help
-            </motion.h2>
-            <motion.p
+            </Motion.h2>
+            <Motion.p
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.2 }}
@@ -243,9 +243,9 @@ const Contact = () => {
             >
               Whether you have questions or need assistance, feel free to reach
               out. Your feedback matters to us!
-            </motion.p>
+            </Motion.p>
           </div>
-        </motion.section>
+        </Motion.section>
       </div>
       <Footer />
     </>

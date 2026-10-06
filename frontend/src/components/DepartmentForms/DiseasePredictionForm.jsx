@@ -1,9 +1,10 @@
+import { motion as Motion } from "framer-motion";
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
+import MedicalDisclaimer from "../MedicalDisclaimer";
 
 const DiseasePredictionForm = () => {
   const location = useLocation();
@@ -105,7 +106,7 @@ const DiseasePredictionForm = () => {
 
       <div style={{ fontFamily: "'Poppins', 'Montserrat', 'Segoe UI', Arial, sans-serif" }}>
         {/* Hero / Heading */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -120,16 +121,16 @@ const DiseasePredictionForm = () => {
           }}
         >
           <div className="container">
-            <motion.h1
+            <Motion.h1
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
               className="display-5 fw-bold mb-3"
               style={{ color: "#2563eb" }}
             >
-              Disease Prediction — Basic Details
-            </motion.h1>
-            <motion.p
+              Health Assessment — Basic Details
+            </Motion.h1>
+            <Motion.p
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -137,8 +138,8 @@ const DiseasePredictionForm = () => {
               style={{ fontSize: "1.05rem", color: "#374151" }}
             >
               You are checking for:
-            </motion.p>
-            <motion.p
+            </Motion.p>
+            <Motion.p
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.3 }}
@@ -146,15 +147,15 @@ const DiseasePredictionForm = () => {
               style={{ fontSize: "1.3rem", color: "#111827", marginTop: "5px" }}
             >
               {diseaseName}
-            </motion.p>
+            </Motion.p>
             <p style={{ fontSize: "0.9rem", color: "#4b5563", marginTop: "10px" }}>
-              Fill these basic details honestly. Click Next to continue to disease-specific questions.
+              Fill in the details you choose to share. Click Next to continue to health-assessment questions.
             </p>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Form Section */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -171,8 +172,9 @@ const DiseasePredictionForm = () => {
                       Personal & Basic Health Details
                     </h2>
                     <p className="text-center mb-4" style={{ fontSize: "0.9rem", color: "#6b7280" }}>
-                      These details help the prediction model give more accurate results (sample / demo).
+                      These details are used to prepare an informational health assessment.
                     </p>
+                    <MedicalDisclaimer />
 
                     <form onSubmit={handleNext}>
                       <div className="row">
@@ -451,7 +453,7 @@ const DiseasePredictionForm = () => {
                           ← Back
                         </button>
 
-                        <motion.button
+                        <Motion.button
                           whileHover={{ scale: 1.03 }}
                           whileTap={{ scale: 0.97 }}
                           type="submit"
@@ -465,7 +467,7 @@ const DiseasePredictionForm = () => {
                           }}
                         >
                           Next
-                        </motion.button>
+                        </Motion.button>
                       </div>
                     </form>
                   </div>
@@ -477,7 +479,7 @@ const DiseasePredictionForm = () => {
               </div>
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
       </div>
 
       <Footer />

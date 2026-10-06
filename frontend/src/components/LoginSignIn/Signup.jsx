@@ -1,6 +1,6 @@
+import { motion as Motion } from "framer-motion";
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { motion } from "framer-motion";
 
 function Signup() {
   const navigate = useNavigate();
@@ -69,7 +69,7 @@ function Signup() {
         } else {
           alert(result.message || "Signup failed.");
         }
-      } catch (error) {
+      } catch {
         alert("An error occurred. Please try again.");
       }
     }
@@ -97,7 +97,7 @@ function Signup() {
   };
 
   return (
-    <motion.div
+    <Motion.div
       className="vh-100 d-flex justify-content-center align-items-center"
       style={{ background: "linear-gradient(135deg, #E3F2FD, #FCE4EC)" }}
       initial="hidden"
@@ -106,29 +106,29 @@ function Signup() {
     >
       <div className="container">
         <div className="row justify-content-center">
-          <motion.div
+          <Motion.div
             className="col-md-5 d-flex flex-column align-items-center justify-content-center text-center bg-white shadow rounded-start p-4"
             variants={leftPanelVariants}
             initial="hidden"
             animate="visible"
           >
-            <motion.h4
+            <Motion.h4
               className="fw-bold mb-3"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
               Join SwasthaLife
-            </motion.h4>
-            <motion.h2
+            </Motion.h4>
+            <Motion.h2
               className="fw-bold text-primary mb-4"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.8 }}
             >
               Create your account
-            </motion.h2>
-            <motion.img
+            </Motion.h2>
+            <Motion.img
               src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png"
               alt="health"
               style={{ width: "80%", maxWidth: "250px" }}
@@ -136,7 +136,7 @@ function Signup() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 1 }}
             />
-            <motion.a
+            <Motion.a
               href="/"
               className="mt-3 text-decoration-none fw-semibold"
               initial={{ opacity: 0 }}
@@ -146,26 +146,26 @@ function Signup() {
               whileTap={{ scale: 0.95 }}
             >
               Go Home
-            </motion.a>
-          </motion.div>
+            </Motion.a>
+          </Motion.div>
 
-          <motion.div
+          <Motion.div
             className="col-md-5 bg-light shadow rounded-end p-4"
             variants={rightPanelVariants}
             initial="hidden"
             animate="visible"
           >
-            <motion.h4
+            <Motion.h4
               className="text-center fw-bold mb-4"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
               Create a new account
-            </motion.h4>
+            </Motion.h4>
 
             <form onSubmit={handleSubmit}>
-              <motion.div className="mb-3" variants={inputVariants} initial="hidden" animate="visible" transition={{ delay: 0.8 }}>
+              <Motion.div className="mb-3" variants={inputVariants} initial="hidden" animate="visible" transition={{ delay: 0.8 }}>
                 <input
                   type="text"
                   name="fullname"
@@ -175,9 +175,9 @@ function Signup() {
                   onChange={handleChange}
                 />
                 <p className="text-danger">{error.fullname}</p>
-              </motion.div>
+              </Motion.div>
 
-              <motion.div className="mb-3" variants={inputVariants} initial="hidden" animate="visible" transition={{ delay: 1 }}>
+              <Motion.div className="mb-3" variants={inputVariants} initial="hidden" animate="visible" transition={{ delay: 1 }}>
                 <input
                   type="email"
                   name="email"
@@ -187,9 +187,9 @@ function Signup() {
                   onChange={handleChange}
                 />
                 <p className="text-danger">{error.email}</p>
-              </motion.div>
+              </Motion.div>
 
-              <motion.div className="mb-3" variants={inputVariants} initial="hidden" animate="visible" transition={{ delay: 1.2 }}>
+              <Motion.div className="mb-3" variants={inputVariants} initial="hidden" animate="visible" transition={{ delay: 1.2 }}>
                 <input
                   type="tel"
                   name="phone"
@@ -199,9 +199,9 @@ function Signup() {
                   onChange={handleChange}
                 />
                 <p className="text-danger">{error.phone}</p>
-              </motion.div>
+              </Motion.div>
 
-              <motion.div className="mb-3" variants={inputVariants} initial="hidden" animate="visible" transition={{ delay: 1.4 }}>
+              <Motion.div className="mb-3" variants={inputVariants} initial="hidden" animate="visible" transition={{ delay: 1.4 }}>
                 <input
                   type="password"
                   name="password"
@@ -211,9 +211,9 @@ function Signup() {
                   onChange={handleChange}
                 />
                 <p className="text-danger">{error.password}</p>
-              </motion.div>
+              </Motion.div>
 
-              <motion.div className="mb-3" variants={inputVariants} initial="hidden" animate="visible" transition={{ delay: 1.6 }}>
+              <Motion.div className="mb-3" variants={inputVariants} initial="hidden" animate="visible" transition={{ delay: 1.6 }}>
                 <input
                   type="password"
                   name="conPassword"
@@ -223,46 +223,49 @@ function Signup() {
                   onChange={handleChange}
                 />
                 <p className="text-danger">{error.conPassword}</p>
-              </motion.div>
+              </Motion.div>
 
-              <motion.div className="d-grid" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 1.8 }}>
-                <motion.button className="btn btn-primary fw-semibold" type="submit" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Motion.div className="d-grid" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 1.8 }}>
+                <Motion.button className="btn btn-primary fw-semibold" type="submit" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   Sign up
-                </motion.button>
-              </motion.div>
+                </Motion.button>
+              </Motion.div>
+              <p className="text-muted small mt-3">
+                By signing up, you acknowledge our <Link to="/privacy">Privacy Policy</Link> and agree to our <Link to="/terms">Terms of Service</Link>.
+              </p>
             </form>
 
-            <motion.hr initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 2.0 }} />
+            <Motion.hr initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 2.0 }} />
 
-            <motion.p className="text-center text-muted" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 2.2 }}>
+            <Motion.p className="text-center text-muted" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 2.2 }}>
               Or continue with
-            </motion.p>
+            </Motion.p>
 
-            <motion.div className="d-flex justify-content-center gap-3" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 2.4 }}>
-              <motion.button className="btn btn-outline-primary" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Motion.div className="d-flex justify-content-center gap-3" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 2.4 }}>
+              <Motion.button className="btn btn-outline-primary" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <i className="bi bi-facebook me-2"></i> Facebook
-              </motion.button>
-              <motion.button className="btn btn-outline-info" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              </Motion.button>
+              <Motion.button className="btn btn-outline-info" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <i className="bi bi-twitter me-2"></i> Twitter
-              </motion.button>
-              <motion.button className="btn btn-outline-primary" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              </Motion.button>
+              <Motion.button className="btn btn-outline-primary" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <i className="bi bi-linkedin me-2"></i> LinkedIn
-              </motion.button>
-              <motion.button className="btn btn-outline-danger" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              </Motion.button>
+              <Motion.button className="btn btn-outline-danger" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <i className="bi bi-google me-2"></i> Google
-              </motion.button>
-            </motion.div>
+              </Motion.button>
+            </Motion.div>
 
-            <motion.div className="text-center mt-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 2.6 }}>
+            <Motion.div className="text-center mt-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 2.6 }}>
               <p>
                 Already have an account?
                 <Link to="/login" className="text-decoration-none ms-2">Login</Link>
               </p>
-            </motion.div>
-          </motion.div>
+            </Motion.div>
+          </Motion.div>
         </div>
       </div>
-    </motion.div>
+    </Motion.div>
   );
 }
 

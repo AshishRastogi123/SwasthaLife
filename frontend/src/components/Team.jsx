@@ -1,5 +1,5 @@
+import { motion as Motion } from "framer-motion";
 import React from "react";
-import { motion } from "framer-motion";
 import "bootstrap/dist/css/bootstrap.min.css";
 import ashish from "./Images/Team/Ashish.png";
 import Hardik1 from "./Images/Team/Hardik1.jpg";
@@ -87,7 +87,7 @@ function Teams() {
           <div className="row justify-content-center">
             {teamMembers.map((member, index) => (
               <div key={index} className="col-lg-4 col-md-6 mb-4">
-                <motion.div
+                <Motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="card h-100 border-0 shadow-sm"
@@ -112,7 +112,7 @@ function Teams() {
                       {member.desc}
                     </p>
                   </div>
-                </motion.div>
+                </Motion.div>
               </div>
             ))}
           </div>

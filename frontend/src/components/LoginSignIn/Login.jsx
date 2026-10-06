@@ -1,7 +1,7 @@
+import { motion as Motion } from "framer-motion";
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { useNavigate, Link } from "react-router-dom";
-import { motion } from "framer-motion";
 
 function Login() {
   const navigate = useNavigate();
@@ -138,7 +138,7 @@ function Login() {
   };
 
   return (
-    <motion.div
+    <Motion.div
       className="vh-100 d-flex justify-content-center align-items-center"
       style={{
         background: "linear-gradient(135deg, #E3F2FD, #FCE4EC)",
@@ -150,30 +150,30 @@ function Login() {
     >
       <div className="container">
         <div className="row justify-content-center">
-          <motion.div
+          <Motion.div
             className="col-md-5 d-flex flex-column align-items-center justify-content-center text-center bg-white shadow rounded-start p-4"
             variants={leftPanelVariants}
             initial="hidden"
             animate="visible"
             style={{ minHeight: "500px" }}
           >
-            <motion.h4
+            <Motion.h4
               className="fw-bold mb-3"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
               An easy way to manage
-            </motion.h4>
-            <motion.h2
+            </Motion.h4>
+            <Motion.h2
               className="fw-bold text-primary mb-4"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.8 }}
             >
               Your Health Online
-            </motion.h2>
-            <motion.img
+            </Motion.h2>
+            <Motion.img
               src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png"
               alt="health"
               style={{ width: "80%", maxWidth: "250px" }}
@@ -181,7 +181,7 @@ function Login() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 1 }}
             />
-            <motion.a
+            <Motion.a
               href="/"
               className="mt-4 text-decoration-none fw-semibold"
               initial={{ opacity: 0 }}
@@ -191,28 +191,28 @@ function Login() {
               whileTap={{ scale: 0.95 }}
             >
               ← Go back to Home
-            </motion.a>
-          </motion.div>
+            </Motion.a>
+          </Motion.div>
 
-          <motion.div
+          <Motion.div
             className="col-md-5 bg-light shadow rounded-end p-4"
             variants={rightPanelVariants}
             initial="hidden"
             animate="visible"
             style={{ minHeight: "500px" }}
           >
-            <motion.h4
+            <Motion.h4
               className="text-center fw-bold mb-4"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
               Welcome to SwasthaLife Portal
-            </motion.h4>
+            </Motion.h4>
 
             {/* Form Error Display */}
             {error.form && (
-              <motion.div
+              <Motion.div
                 className="alert alert-danger alert-dismissible fade show mb-3"
                 role="alert"
                 initial={{ opacity: 0, y: -10 }}
@@ -224,11 +224,11 @@ function Login() {
                   className="btn-close"
                   onClick={() => setError({ ...error, form: "" })}
                 ></button>
-              </motion.div>
+              </Motion.div>
             )}
 
             <form onSubmit={handleLogin}>
-              <motion.div
+              <Motion.div
                 className="mb-3"
                 variants={inputVariants}
                 initial="hidden"
@@ -253,9 +253,9 @@ function Login() {
                 {error.email && (
                   <div className="invalid-feedback">{error.email}</div>
                 )}
-              </motion.div>
+              </Motion.div>
 
-              <motion.div
+              <Motion.div
                 className="mb-4"
                 variants={inputVariants}
                 initial="hidden"
@@ -295,15 +295,15 @@ function Login() {
                 {error.password && (
                   <div className="invalid-feedback">{error.password}</div>
                 )}
-              </motion.div>
+              </Motion.div>
 
-              <motion.div
+              <Motion.div
                 className="d-grid mb-3"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 1.4 }}
               >
-                <motion.button
+                <Motion.button
                   type="submit"
                   className="btn btn-primary fw-semibold py-2"
                   disabled={loading}
@@ -318,8 +318,8 @@ function Login() {
                   ) : (
                     "Login"
                   )}
-                </motion.button>
-              </motion.div>
+                </Motion.button>
+              </Motion.div>
 
               <div className="text-end mb-4">
                 <Link to="/forgot-password" className="text-decoration-none">
@@ -328,28 +328,28 @@ function Login() {
               </div>
             </form>
 
-            <motion.hr
+            <Motion.hr
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 1.6 }}
             />
             
-            <motion.p
+            <Motion.p
               className="text-center text-muted my-3"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 1.8 }}
             >
               Or Login with
-            </motion.p>
+            </Motion.p>
 
-            <motion.div
+            <Motion.div
               className="d-flex justify-content-center gap-2 mb-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 2 }}
             >
-              <motion.button
+              <Motion.button
                 type="button"
                 className="btn btn-outline-primary btn-sm"
                 whileHover={{ scale: 1.05 }}
@@ -358,8 +358,8 @@ function Login() {
                 disabled={loading}
               >
                 <i className="bi bi-facebook me-1"></i> Facebook
-              </motion.button>
-              <motion.button
+              </Motion.button>
+              <Motion.button
                 type="button"
                 className="btn btn-outline-info btn-sm"
                 whileHover={{ scale: 1.05 }}
@@ -368,8 +368,8 @@ function Login() {
                 disabled={loading}
               >
                 <i className="bi bi-twitter me-1"></i> Twitter
-              </motion.button>
-              <motion.button
+              </Motion.button>
+              <Motion.button
                 type="button"
                 className="btn btn-outline-primary btn-sm"
                 whileHover={{ scale: 1.05 }}
@@ -378,8 +378,8 @@ function Login() {
                 disabled={loading}
               >
                 <i className="bi bi-linkedin me-1"></i> LinkedIn
-              </motion.button>
-              <motion.button
+              </Motion.button>
+              <Motion.button
                 type="button"
                 className="btn btn-outline-danger btn-sm"
                 whileHover={{ scale: 1.05 }}
@@ -388,10 +388,10 @@ function Login() {
                 disabled={loading}
               >
                 <i className="bi bi-google me-1"></i> Google
-              </motion.button>
-            </motion.div>
+              </Motion.button>
+            </Motion.div>
 
-            <motion.div
+            <Motion.div
               className="text-center mt-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -408,13 +408,13 @@ function Login() {
                 </Link>
               </p>
               <p className="text-muted small mt-2">
-                By logging in, you agree to our Terms & Privacy Policy
+                By logging in, you agree to our <Link to="/terms">Terms of Service</Link> and acknowledge our <Link to="/privacy">Privacy Policy</Link>.
               </p>
-            </motion.div>
-          </motion.div>
+            </Motion.div>
+          </Motion.div>
         </div>
       </div>
-    </motion.div>
+    </Motion.div>
   );
 }
 

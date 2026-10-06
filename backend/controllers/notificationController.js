@@ -1,8 +1,17 @@
 const Notification = require("../models/Notification");
 
 const listNotifications = async (req, res) => {
-  const data = await Notification.find({ recipient: req.user.userId }).sort({ createdAt: -1 });
+  const data = await Notification.find({ recipient: req.user.userId })
+    .sort({ createdAt: -1 });
   res.json({ data });
+};
+
+const getUnreadNotificationCount = async (req, res) => {
+  const count = await Notification.countDocuments({
+    recipient: req.user.userId,
+    read: false,
+  });
+  res.json({ data: { count } });
 };
 
 const markNotificationRead = async (req, res) => {
@@ -20,4 +29,9 @@ const markAllNotificationsRead = async (req, res) => {
   res.status(204).send();
 };
 
-module.exports = { listNotifications, markNotificationRead, markAllNotificationsRead };
+module.exports = {
+  listNotifications,
+  getUnreadNotificationCount,
+  markNotificationRead,
+  markAllNotificationsRead,
+};

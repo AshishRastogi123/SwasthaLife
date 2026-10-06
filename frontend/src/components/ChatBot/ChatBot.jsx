@@ -1,10 +1,11 @@
+import { motion as Motion } from "framer-motion";
 import React, { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { Link, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import "./ChatBot.css";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
+import MedicalDisclaimer from "../MedicalDisclaimer";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 const API_KEY = import.meta.env.VITE_API_KEY_S;
 // Initialize the API with configuration (NOTE: for production keep key on server)
@@ -95,13 +96,13 @@ function Chatbot() {
 
       // prepare a doctor-like prompt
       const prompt = `
-You are Dr. Swastha, an empathetic and professional AI physician assistant.
+You are SwasthaLife's empathetic AI health information assistant. You are not a doctor or a substitute for a qualified healthcare professional.
 
 Be thorough but concise. Show empathy and concern for the patient's well-being.
 
-Always ask follow-up questions to gather more information if the user's description is incomplete (e.g., duration, severity, other symptoms, medical history, age, gender, vital signs).
+Ask only relevant follow-up questions if the description is incomplete. Do not request names, contact details, addresses, or other identifying information.
 
-Provide possible explanations with caveats, emphasizing that this is not a diagnosis.
+Provide general health information and possible explanations with caveats. Never describe a condition as confirmed or present your response as a diagnosis.
 
 Detect the language of the user's message:
 - If the user speaks in Hindi, respond entirely in Hindi.
@@ -233,14 +234,14 @@ User: ${textToSend}
       {/* spacer to avoid navbar overlap — adjust if your navbar is different height */}
       <div style={{ height: "76px" }} />
 
-      <motion.div
+      <Motion.div
         className="sw-chat-container"
         initial="hidden"
         animate="visible"
         variants={containerVariants}
         aria-live="polite"
       >
-        <motion.div
+        <Motion.div
           className="sw-chat-card"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -248,13 +249,13 @@ User: ${textToSend}
           role="region"
           aria-label="SwasthaLife chat"
         >
-          <motion.div
+          <Motion.div
             className="sw-chat-header"
             variants={headerVariants}
             initial="hidden"
             animate="visible"
           >
-            <motion.button
+            <Motion.button
               className="sw-back-btn"
               onClick={() => navigate("/")}
               aria-label="Go to homepage"
@@ -262,29 +263,29 @@ User: ${textToSend}
               whileTap={{ scale: 0.9 }}
             >
               ←
-            </motion.button>
+            </Motion.button>
 
-            <motion.div className="sw-avatar" aria-hidden>
-              Dr. S
-            </motion.div>
+            <Motion.div className="sw-avatar" aria-hidden>
+              AI
+            </Motion.div>
 
             <div style={{ flex: 1 }}>
-              <motion.div
+              <Motion.div
                 className="sw-chat-title"
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.5 }}
               >
-                Dr. Swastha AI
-              </motion.div>
-              <motion.div
+                SwasthaLife AI health assistant
+              </Motion.div>
+              <Motion.div
                 className="sw-chat-subtitle"
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.6 }}
               >
-                AI Physician Assistant — For informational purposes only, not a substitute for professional medical advice
-              </motion.div>
+                General health information, not medical advice
+              </Motion.div>
             </div>
 
             {/* control buttons */}
@@ -311,9 +312,9 @@ User: ${textToSend}
                 Copy reply
               </button>
             </div>
-          </motion.div>
+          </Motion.div>
 
-          <motion.div
+          <Motion.div
             className="sw-quick-prompts px-3"
             style={{ display: "flex", gap: 8, flexWrap: "wrap", paddingTop: 8 }}
           >
@@ -328,9 +329,9 @@ User: ${textToSend}
                 {q.length > 40 ? q.slice(0, 36) + "…" : q}
               </button>
             ))}
-          </motion.div>
+          </Motion.div>
 
-          <motion.div
+          <Motion.div
             className="sw-chat-body"
             ref={bodyRef}
             initial={{ opacity: 0 }}
@@ -338,19 +339,19 @@ User: ${textToSend}
             transition={{ duration: 0.6, delay: 0.7 }}
           >
             {messages.length === 0 && !isLoading && (
-              <motion.div
+              <Motion.div
                 className="sw-msg bot"
                 variants={messageVariants}
                 initial="hidden"
                 animate="visible"
                 transition={{ delay: 0.8 }}
               >
-                Hello, I'm Dr. Swastha, your AI physician assistant. Please describe your symptoms in detail, including how long you've had them, any other relevant medical history, and your age/gender if comfortable sharing. I'll provide preliminary insights, but remember, this is not a diagnosis—please consult a qualified healthcare professional for proper medical advice.
-              </motion.div>
+                Hello, I'm SwasthaLife's AI health information assistant. You can share a health question, but please avoid identifying details. I can offer general information and possible explanations, not a diagnosis. Consult a qualified healthcare professional for advice.
+              </Motion.div>
             )}
 
             {messages.map((message, index) => (
-              <motion.div
+              <Motion.div
                 key={index}
                 className={`sw-msg ${message.sender}`}
                 variants={messageVariants}
@@ -368,11 +369,11 @@ User: ${textToSend}
                 <div style={{ fontSize: 11, color: "#6b7280", marginTop: 6 }}>
                   {new Date(message.ts).toLocaleString()}
                 </div>
-              </motion.div>
+              </Motion.div>
             ))}
 
             {isLoading && (
-              <motion.div
+              <Motion.div
                 className="sw-msg bot"
                 variants={messageVariants}
                 initial="hidden"
@@ -383,17 +384,22 @@ User: ${textToSend}
                   <span>.</span>
                   <span>.</span>
                 </div>
-              </motion.div>
+              </Motion.div>
             )}
-          </motion.div>
+          </Motion.div>
 
-          <motion.div
+          <div className="px-3 pt-2">
+            <MedicalDisclaimer className="mb-2" />
+            <p className="small text-muted">Chat messages are sent to Google Gemini and saved in this browser. Avoid sharing identifying details. See our <Link to="/privacy">Privacy Policy</Link>.</p>
+          </div>
+
+          <Motion.div
             className="sw-chat-footer"
             variants={footerVariants}
             initial="hidden"
             animate="visible"
           >
-            <motion.textarea
+            <Motion.textarea
               className="sw-chat-input"
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -405,7 +411,7 @@ User: ${textToSend}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.9 }}
             />
-            <motion.button
+            <Motion.button
               className="sw-send-btn"
               onClick={() => sendMessage()}
               disabled={isLoading || !input.trim()}
@@ -417,10 +423,10 @@ User: ${textToSend}
               transition={{ duration: 0.4, delay: 1 }}
             >
               Send
-            </motion.button>
-          </motion.div>
-        </motion.div>
-      </motion.div>
+            </Motion.button>
+          </Motion.div>
+        </Motion.div>
+      </Motion.div>
 
       <Footer />
     </>

@@ -1,5 +1,5 @@
+import { motion as Motion } from "framer-motion";
 import React from "react";
-import { motion } from "framer-motion";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
@@ -20,7 +20,7 @@ const FamilyMedicine = () => {
         }}
       >
         {/* Hero Section */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -35,7 +35,7 @@ const FamilyMedicine = () => {
           }}
         >
           <div className="container">
-            <motion.h1
+            <Motion.h1
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
@@ -43,8 +43,8 @@ const FamilyMedicine = () => {
               style={{ color: "#2563eb" }}
             >
               Family Medicine
-            </motion.h1>
-            <motion.p
+            </Motion.h1>
+            <Motion.p
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -53,12 +53,12 @@ const FamilyMedicine = () => {
             >
               Comprehensive healthcare for every member of your family – from
               children to seniors – under one trusted department.
-            </motion.p>
+            </Motion.p>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Main Content Section */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -138,7 +138,7 @@ const FamilyMedicine = () => {
 
               {/* Right image */}
               <div className="col-lg-5">
-                <motion.div
+                <Motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.7 }}
@@ -154,14 +154,14 @@ const FamilyMedicine = () => {
                       objectFit: "cover",
                     }}
                   />
-                </motion.div>
+                </Motion.div>
               </div>
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Why Family Medicine Matters */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -249,10 +249,10 @@ const FamilyMedicine = () => {
               </div>
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Care for Every Age Group */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -318,10 +318,10 @@ const FamilyMedicine = () => {
               ))}
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Common Conditions We Manage */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -384,10 +384,10 @@ const FamilyMedicine = () => {
               </div>
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* CTA / How SwasthaLife Helps */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -427,7 +427,7 @@ const FamilyMedicine = () => {
               one connected platform.
             </p>
           </div>
-        </motion.section>
+        </Motion.section>
       </div>
 
       <Footer />

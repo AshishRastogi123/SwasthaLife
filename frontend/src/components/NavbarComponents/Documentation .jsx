@@ -1,5 +1,5 @@
+import { motion as Motion } from "framer-motion";
 import React from "react";
-import { motion } from "framer-motion";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
@@ -169,7 +169,7 @@ const Documentation = () => {
         }}
       >
         {/* Hero Section */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -184,7 +184,7 @@ const Documentation = () => {
           }}
         >
           <div className="container">
-            <motion.h1
+            <Motion.h1
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
@@ -192,8 +192,8 @@ const Documentation = () => {
               style={{ color: "#2563eb" }}
             >
               Disease Documentation
-            </motion.h1>
-            <motion.p
+            </Motion.h1>
+            <Motion.p
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -203,12 +203,12 @@ const Documentation = () => {
               Simple, clear health information to help you understand each
               disease, its symptoms, treatment options, diet, and how you can
               protect yourself.
-            </motion.p>
+            </Motion.p>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* How to Use This Page */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -265,10 +265,10 @@ const Documentation = () => {
               for proper diagnosis and treatment.
             </p>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Disease Cards */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -288,7 +288,7 @@ const Documentation = () => {
             </h2>
             <div className="row">
               {diseases.map((disease, index) => (
-                <motion.div
+                <Motion.div
                   key={disease.name}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -457,14 +457,14 @@ const Documentation = () => {
                       </ul>
                     </div>
                   </div>
-                </motion.div>
+                </Motion.div>
               ))}
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Soft Disclaimer / Closing */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -495,7 +495,7 @@ const Documentation = () => {
               precious — never ignore warning signs.
             </p>
           </div>
-        </motion.section>
+        </Motion.section>
       </div>
       <Footer />
     </>

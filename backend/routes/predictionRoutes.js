@@ -1,5 +1,7 @@
 const express = require("express");
 const authMiddleware = require("../middleware/authMiddleware");
+const requireRole = require("../middleware/roleMiddleware");
+const requireCurrentHealthConsent = require("../middleware/requireCurrentHealthConsent");
 const validatePrediction = require("../middleware/validatePrediction");
 const { createPrediction } = require("../controllers/predictionController");
 
@@ -9,13 +11,18 @@ const router = express.Router();
 router.post(
   "/prediction",
   authMiddleware,
+  requireRole("PATIENT"),
+  requireCurrentHealthConsent,
   validatePrediction,
   createPrediction
 );
 
-// POST /api/predict (quick prediction - no auth required)
+// POST /api/predict (health assessment - requires patient consent)
 router.post(
   "/predict",
+  authMiddleware,
+  requireRole("PATIENT"),
+  requireCurrentHealthConsent,
   // light input validation (symptoms or input_vector required)
   (req, res, next) => {
     const { symptoms, input_vector } = req.body;

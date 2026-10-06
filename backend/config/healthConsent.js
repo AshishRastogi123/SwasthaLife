@@ -1,0 +1,3 @@
+const HEALTH_CONSENT_VERSION = "2026-10-v1";
+
+module.exports = { HEALTH_CONSENT_VERSION };

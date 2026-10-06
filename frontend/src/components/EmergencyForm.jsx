@@ -95,7 +95,6 @@ const EmergencyForm = () => {
 
     // Simulate API call
     setTimeout(() => {
-      console.log("Emergency Form Data:", formData);
       setIsSubmitting(false);
       setIsSubmitted(true);
       setShowToast(true);
@@ -126,8 +125,9 @@ const EmergencyForm = () => {
     >
       <div className="emergency-container">
         <div className="emergency-header">
-          <h2 id="emergency-heading">🚨 Emergency Appointment</h2>
-          <p>Quick response for urgent medical care — we will contact you immediately.</p>
+          <h2 id="emergency-heading">Urgent care request (demo)</h2>
+          <p>This demo form does not contact emergency services or guarantee a response.</p>
+          <p className="alert alert-info">For an emergency, seek appropriate emergency medical assistance now. Do not wait for a response from this form.</p>
         </div>
 
         <div className="urgency-row" aria-hidden>
@@ -142,8 +142,8 @@ const EmergencyForm = () => {
 
         {isSubmitted && !isSubmitting ? (
           <div className="success-message" role="status" aria-live="polite">
-            <h3>✅ Emergency Request Submitted!</h3>
-            <p>We will contact you right away on {formData.phone || "the provided phone number"}.</p>
+            <h3>Request recorded in this demo</h3>
+            <p>This request was not sent to emergency services. Seek appropriate emergency medical assistance if needed.</p>
           </div>
         ) : (
           <form className="emergency-form" onSubmit={handleSubmit} noValidate>

@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const { writeAuditLog } = require("../services/auditLogService");
 
 // Signup Controller
 exports.signup = async (req, res) => {
@@ -35,11 +36,41 @@ exports.login = async (req, res) => {
 
     const user = await User.findOne({ email: email.trim().toLowerCase() });
     if (!user) {
+      await writeAuditLog({
+        req,
+        action: "auth.login.failure",
+        resourceType: "AUTH",
+        success: false,
+        failureReason: "INVALID_CREDENTIALS",
+      });
       return res.status(401).json({ message: "Invalid credentials" });
+    }
+    if (!user.isActive) {
+      await writeAuditLog({
+        req,
+        actorUserId: user._id,
+        actorRole: user.role,
+        action: "auth.login.failure",
+        resourceType: "AUTH",
+        resourceId: user._id,
+        success: false,
+        failureReason: "ACCOUNT_INACTIVE",
+      });
+      return res.status(403).json({ message: "Account is inactive" });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
+      await writeAuditLog({
+        req,
+        actorUserId: user._id,
+        actorRole: user.role,
+        action: "auth.login.failure",
+        resourceType: "AUTH",
+        resourceId: user._id,
+        success: false,
+        failureReason: "INVALID_CREDENTIALS",
+      });
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
@@ -56,6 +87,14 @@ exports.login = async (req, res) => {
   maxAge: 7 * 24 * 60 * 60 * 1000,
 });
 
+    await writeAuditLog({
+      req,
+      actorUserId: user._id,
+      actorRole: user.role,
+      action: "auth.login.success",
+      resourceType: "AUTH",
+      resourceId: user._id,
+    });
 
     res.status(200).json({
       message: "Login successful",
@@ -70,4 +109,18 @@ exports.login = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
+};
+
+exports.logout = async (req, res) => {
+  await writeAuditLog({
+    req,
+    action: "auth.logout",
+    resourceType: "AUTH",
+  });
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+  });
+  res.status(200).json({ message: "Logout successful" });
 };

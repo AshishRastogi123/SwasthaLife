@@ -1,7 +1,8 @@
 const Appointment = require("../models/Appointment");
 const Doctor = require("../models/Doctor");
 const Department = require("../models/Department");
-const { createNotification } = require("../services/notificationService");
+const { createNotifications } = require("../services/notificationService");
+const { writeAuditLog } = require("../services/auditLogService");
 
 const appointmentQuery = () =>
   Appointment.find()
@@ -44,12 +45,28 @@ const createAppointment = async (req, res) => {
     reason,
     assessmentId,
   });
-  await createNotification({
-    recipient: doctor.userId._id,
-    type: "APPOINTMENT_CREATED",
-    title: "New appointment request",
-    message: "A patient has requested an appointment.",
+  await writeAuditLog({
+    req,
+    action: "appointment.created",
+    resourceType: "APPOINTMENT",
+    resourceId: appointment._id,
   });
+  await Promise.all([
+    createNotifications([doctor.userId._id], {
+      type: "APPOINTMENT_CREATED",
+      title: "New appointment request",
+      message: "A patient has requested an appointment.",
+      relatedEntityType: "APPOINTMENT",
+      relatedEntityId: appointment._id,
+    }),
+    createNotifications([req.user.userId], {
+      type: "APPOINTMENT_CREATED",
+      title: "Appointment request submitted",
+      message: "Your appointment request was submitted.",
+      relatedEntityType: "APPOINTMENT",
+      relatedEntityId: appointment._id,
+    }),
+  ]);
   res.status(201).json({ data: appointment, message: "Appointment request persisted successfully" });
 };
 
@@ -118,6 +135,7 @@ const updateAppointmentStatus = async (req, res) => {
   if (!transitions[appointment.status].includes(status)) {
     return res.status(409).json({ message: `Cannot change ${appointment.status} appointment to ${status}` });
   }
+  const previousStatus = appointment.status;
   if (
     req.user.role === "PATIENT" &&
     !["PENDING", "CONFIRMED"].includes(appointment.status)
@@ -128,12 +146,55 @@ const updateAppointmentStatus = async (req, res) => {
   if (clinicalNotes !== undefined) appointment.clinicalNotes = clinicalNotes;
   if (status === "COMPLETED") appointment.reviewedAt = new Date();
   await appointment.save();
-  await createNotification({
-    recipient: appointment.patientId,
-    type: "APPOINTMENT_UPDATED",
-    title: "Appointment updated",
-    message: `Your appointment status is now ${status}.`,
+  const actionByStatus = {
+    CONFIRMED: "appointment.confirmed",
+    CANCELLED: "appointment.cancelled",
+    COMPLETED: "appointment.completed",
+  };
+  await writeAuditLog({
+    req,
+    action: actionByStatus[status] || "appointment.status_changed",
+    resourceType: "APPOINTMENT",
+    resourceId: appointment._id,
+    changes: { fromStatus: previousStatus, toStatus: status },
   });
+  if (req.user.role === "DOCTOR" && typeof clinicalNotes === "string" && clinicalNotes.trim()) {
+    await writeAuditLog({
+      req,
+      action: "doctor.note.created",
+      resourceType: "APPOINTMENT",
+      resourceId: appointment._id,
+    });
+  }
+  const doctor = await Doctor.findById(appointment.doctorId).select("userId");
+  const statusNotifications = {
+    CONFIRMED: {
+      type: "APPOINTMENT_CONFIRMED",
+      title: "Appointment confirmed",
+      message: "Your appointment request has been confirmed.",
+    },
+    CANCELLED: {
+      type: "APPOINTMENT_CANCELLED",
+      title: "Appointment cancelled",
+      message: "The appointment has been cancelled.",
+    },
+    COMPLETED: {
+      type: "APPOINTMENT_COMPLETED",
+      title: "Appointment completed",
+      message: "The appointment has been completed.",
+    },
+  };
+  const notification = statusNotifications[status];
+  if (notification) {
+    const recipients = [appointment.patientId, doctor?.userId].filter(
+      (recipient) => recipient?.toString() !== req.user.userId
+    );
+    await createNotifications(recipients, {
+      ...notification,
+      relatedEntityType: "APPOINTMENT",
+      relatedEntityId: appointment._id,
+    });
+  }
   res.json({ data: appointment });
 };
 

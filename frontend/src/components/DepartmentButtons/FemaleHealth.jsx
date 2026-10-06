@@ -1,5 +1,5 @@
+import { motion as Motion } from "framer-motion";
 import React from "react";
-import { motion } from "framer-motion";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
@@ -20,7 +20,7 @@ const FemaleHealth = () => {
         }}
       >
         {/* Hero Section */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -35,7 +35,7 @@ const FemaleHealth = () => {
           }}
         >
           <div className="container">
-            <motion.h1
+            <Motion.h1
               initial={{ opacity: 0, y: -20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
@@ -43,8 +43,8 @@ const FemaleHealth = () => {
               style={{ color: "#2563eb" }}
             >
               Female Health
-            </motion.h1>
-            <motion.p
+            </Motion.h1>
+            <Motion.p
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -53,12 +53,12 @@ const FemaleHealth = () => {
             >
               Dedicated care for women&apos;s health needs – from teenage years
               to motherhood and beyond.
-            </motion.p>
+            </Motion.p>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Main Content Section */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -151,7 +151,7 @@ const FemaleHealth = () => {
 
               {/* Right image */}
               <div className="col-lg-5">
-                <motion.div
+                <Motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.7 }}
@@ -167,14 +167,14 @@ const FemaleHealth = () => {
                       objectFit: "cover",
                     }}
                   />
-                </motion.div>
+                </Motion.div>
               </div>
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Why Female Health Matters */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -267,10 +267,10 @@ const FemaleHealth = () => {
               </div>
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Care Across Life Stages */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -339,10 +339,10 @@ const FemaleHealth = () => {
               ))}
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* Common Female Health Conditions */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -413,10 +413,10 @@ const FemaleHealth = () => {
               </div>
             </div>
           </div>
-        </motion.section>
+        </Motion.section>
 
         {/* CTA / How SwasthaLife Helps */}
-        <motion.section
+        <Motion.section
           initial="hidden"
           whileInView="visible"
           variants={sectionVariants}
@@ -456,7 +456,7 @@ const FemaleHealth = () => {
               in one platform.
             </p>
           </div>
-        </motion.section>
+        </Motion.section>
       </div>
 
       <Footer />
