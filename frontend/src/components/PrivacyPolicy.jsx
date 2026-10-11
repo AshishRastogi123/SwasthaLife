@@ -1,20 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiRequest } from "../api";
+import { useAuth } from "../auth/AuthContext";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 
 export default function PrivacyPolicy() {
+  const { user } = useAuth();
   const [consent, setConsent] = useState(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const canManageConsent = (() => {
-    try {
-      return Boolean(localStorage.getItem("token") && JSON.parse(localStorage.getItem("user") || "null")?.role === "PATIENT");
-    } catch {
-      return false;
-    }
-  })();
+  const canManageConsent = user?.role === "PATIENT";
 
   useEffect(() => {
     if (!canManageConsent) return;

@@ -1,9 +1,12 @@
 import { motion as Motion } from "framer-motion";
-import React, { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { toast } from "react-toastify";
+import { apiRequest } from "../../api";
 
 function Signup() {
   const navigate = useNavigate();
+  const submittingRef = useRef(false);
 
   const [data, setData] = useState({
     fullname: "",
@@ -28,15 +31,11 @@ function Signup() {
     const loadDepartments = async () => {
       setLoadingDepartments(true);
       try {
-        const response = await fetch("http://localhost:3000/api/departments", {
-          signal: controller.signal,
-        });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.message || "Unable to load departments");
+        const result = await apiRequest("/api/departments", { signal: controller.signal });
         setDepartments(result.data || []);
         setError((previous) => ({ ...previous, departments: "" }));
       } catch (loadError) {
-        if (loadError.name !== "AbortError") {
+        if (loadError.name !== "AbortError" && !controller.signal.aborted) {
           setError((previous) => ({ ...previous, departments: loadError.message }));
         }
       } finally {
@@ -83,16 +82,15 @@ function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submittingRef.current) return;
     const errs = validate(data);
     setError(errs);
     if (Object.keys(errs).length === 0) {
       try {
+        submittingRef.current = true;
         setSubmitting(true);
-        const response = await fetch("http://localhost:3000/api/auth/signup", {
+        await apiRequest("/api/auth/signup", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
           body: JSON.stringify({
             name: data.fullname,
             email: data.email,
@@ -106,17 +104,12 @@ function Signup() {
             }),
           }),
         });
-
-        const result = await response.json();
-        if (response.ok) {
-          alert(result.message || "Signup successful! Please login.");
-          navigate("/login");
-        } else {
-          alert(result.message || "Signup failed.");
-        }
-      } catch {
-        alert("An error occurred. Please try again.");
+        toast.success("Account created. Please sign in.");
+        navigate("/login", { replace: true });
+      } catch (signupError) {
+        setError((current) => ({ ...current, form: signupError.message || "Unable to create the account. Please try again." }));
       } finally {
+        submittingRef.current = false;
         setSubmitting(false);
       }
     }
@@ -212,6 +205,7 @@ function Signup() {
             </Motion.h4>
 
             <form onSubmit={handleSubmit}>
+              {error.form && <div className="alert alert-danger" role="alert">{error.form}</div>}
               <Motion.div className="mb-3" variants={inputVariants} initial="hidden" animate="visible" transition={{ delay: 0.8 }}>
                 <input
                   type="text"

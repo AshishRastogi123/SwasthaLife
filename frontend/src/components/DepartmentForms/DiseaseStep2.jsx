@@ -1,12 +1,13 @@
 import { motion as Motion } from "framer-motion";
 // DiseaseStep2.jsx
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
 import MedicalDisclaimer from "../MedicalDisclaimer";
+import { apiRequest } from "../../api";
 
 const DiseaseStep2 = () => {
   const location = useLocation();
@@ -17,6 +18,10 @@ const DiseaseStep2 = () => {
   const basicData = location.state?.basicData || {};
 
   const [isLoading, setIsLoading] = useState(false);
+  const submittingRef = useRef(false);
+  const requestController = useRef(null);
+
+  useEffect(() => () => requestController.current?.abort(), []);
 
   // mapping: for each disease provide fields (name,label,type,required,options)
   const diseaseFields = {
@@ -227,17 +232,13 @@ const DiseaseStep2 = () => {
       return;
     }
 
+    if (submittingRef.current) return;
+    submittingRef.current = true;
+    const controller = new AbortController();
+    requestController.current = controller;
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        toast.error("You must be logged in to submit a prediction");
-        navigate("/login");
-        setIsLoading(false);
-        return;
-      }
-
       // Prepare payload matching backend schema
       const payload = {
         firstName: basicData.fullName?.split(" ")[0] || "User",
@@ -272,40 +273,24 @@ const DiseaseStep2 = () => {
         },
       };
 
-      console.log("Sending prediction payload:", payload);
-
-      const response = await fetch("http://localhost:3000/api/prediction", {
+      const result = await apiRequest("/api/prediction", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       });
 
-      const result = await response.json();
-
-      if (response.ok) {
-        toast.success("Prediction submitted successfully!");
-        console.log("Prediction result:", result);
-        
-        // Navigate to results page with the response
-        navigate("/prediction-result", { 
-          state: { 
-            payload,
-            result,
-            disease: diseaseName,
-          } 
-        });
-      } else {
-        toast.error(result.message || "Failed to submit prediction");
-        console.error("Backend error:", result);
-      }
+      toast.success("Assessment submitted successfully.");
+      navigate("/prediction-result", {
+        state: { payload, result, disease: diseaseName },
+      });
     } catch (error) {
-      console.error("Prediction submission error:", error);
-      toast.error("Error submitting prediction: " + error.message);
+      if (error.name !== "AbortError") {
+        if (error.status === 401) navigate("/login", { state: { from: location.pathname } });
+        else toast.error(error.message || "Unable to submit the assessment.");
+      }
     } finally {
-      setIsLoading(false);
+      submittingRef.current = false;
+      if (!controller.signal.aborted) setIsLoading(false);
     }
   };
 

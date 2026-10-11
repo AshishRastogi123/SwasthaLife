@@ -1,10 +1,14 @@
 import { motion as Motion } from "framer-motion";
-import React, { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { useNavigate, Link } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../../auth/AuthContext";
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
+  const submittingRef = useRef(false);
 
   const [data, setData] = useState({
     email: "",
@@ -52,75 +56,38 @@ function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    
+    if (submittingRef.current) return;
     if (!validateForm()) {
       return;
     }
 
     try {
+      submittingRef.current = true;
       setLoading(true);
-      const response = await fetch("http://localhost:3000/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        // Store token if available
-        if (result.token) {
-
-          localStorage.setItem("token", result.token);
-          localStorage.setItem("user", JSON.stringify(result.user));
-          window.dispatchEvent(new Event("authChanged"));
-          toast.success("Login successful ");
-        }
-        
-        // Store user data if available
-        if (result.user) {
-          localStorage.setItem("user", JSON.stringify(result.user));
-          navigate(
-            result.user.role === "DOCTOR"
-              ? "/doctor-dashboard"
-              : result.user.role === "ADMIN"
-                ? "/admin"
-                : "/"
-          );
-
-
-        }
-        
-        // Navigate to home page
-        
-      } else {
-        toast.warning("Warning: Email or Password are wrong.");
-        setError({ ...error, form: result.message || "Login failed. Please check your credentials." });
-      }
-    } catch (err) {
-      console.error("Login error:", err);
-      setError({ ...error, form: "Server error. Please try again later." });
+      const user = await login({ email: data.email, password: data.password });
+      toast.success("Login successful.");
+      const returnTo = location.state?.from;
+      const defaultPath = user.role === "DOCTOR"
+        ? "/doctor-dashboard"
+        : user.role === "ADMIN"
+          ? "/admin"
+          : "/";
+      navigate(
+        typeof returnTo === "string" && returnTo.startsWith("/") && !returnTo.startsWith("//")
+          ? returnTo
+          : defaultPath,
+        { replace: true }
+      );
+    } catch (loginError) {
+      setError((current) => ({ ...current, form: loginError.message || "Unable to sign in. Please try again." }));
     } finally {
+      submittingRef.current = false;
       setLoading(false);
     }
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      handleLogin(e);
-    }
-  };
-
   const handleSocialLogin = (provider) => {
-    alert(`${provider} login would be implemented here`);
-    // For actual implementation:
-    // window.location.href = `http://localhost:3000/api/auth/${provider}`;
+    toast.info(`${provider} sign-in is not available yet.`);
   };
 
   const containerVariants = {
@@ -252,7 +219,6 @@ function Login() {
                   className={`form-control ${error.email ? "is-invalid" : ""}`}
                   value={data.email}
                   onChange={handleChange}
-                  onKeyPress={handleKeyPress}
                   autoComplete="email"
                   disabled={loading}
                 />
@@ -280,7 +246,6 @@ function Login() {
                     className={`form-control ${error.password ? "is-invalid" : ""}`}
                     value={data.password}
                     onChange={handleChange}
-                    onKeyPress={handleKeyPress}
                     autoComplete="current-password"
                     disabled={loading}
                   />

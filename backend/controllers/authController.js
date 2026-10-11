@@ -4,6 +4,20 @@ const User = require("../models/User");
 const Doctor = require("../models/Doctor");
 const Department = require("../models/Department");
 const { writeAuditLog } = require("../services/auditLogService");
+const csrfProtection = require("../middleware/csrfProtection");
+
+const authCookieOptions = () => {
+  const sameSite = (process.env.COOKIE_SAME_SITE || "lax").toLowerCase();
+  if (!["strict", "lax", "none"].includes(sameSite)) {
+    throw new Error("COOKIE_SAME_SITE must be strict, lax, or none");
+  }
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production" || sameSite === "none",
+    sameSite,
+    path: "/",
+  };
+};
 
 // Signup Controller
 exports.signup = async (req, res) => {
@@ -111,11 +125,9 @@ exports.login = async (req, res) => {
     );
 
     res.cookie("token", token, {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-});
+      ...authCookieOptions(),
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
     await writeAuditLog({
       req,
@@ -128,7 +140,6 @@ exports.login = async (req, res) => {
 
     res.status(200).json({
       message: "Login successful",
-      token,
       user: {
         id: user._id,
         name: user.name,
@@ -147,10 +158,7 @@ exports.logout = async (req, res) => {
     action: "auth.logout",
     resourceType: "AUTH",
   });
-  res.clearCookie("token", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
-  });
+  res.clearCookie("token", authCookieOptions());
+  csrfProtection.clearCsrfCookie(res);
   res.status(200).json({ message: "Logout successful" });
 };

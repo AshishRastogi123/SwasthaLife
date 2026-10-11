@@ -30,9 +30,10 @@ import AdminAuditLogs from "./components/AdminAuditLogs.jsx";
 import PrivacyPolicy from "./components/PrivacyPolicy.jsx";
 import TermsOfService from "./components/TermsOfService.jsx";
 import HealthConsentGate from "./components/HealthConsentGate.jsx";
+import { AuthProvider } from "./auth/AuthContext.jsx";
 function App() {
   return (
-    <>
+    <AuthProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -64,7 +65,7 @@ function App() {
           <Route path="/chatbot" element={<ProtectedRoute roles={["PATIENT"]}><HealthConsentGate><Chatbot /></HealthConsentGate></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
-    </>
+    </AuthProvider>
   );
 }
 

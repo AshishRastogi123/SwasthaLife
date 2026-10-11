@@ -1,58 +1,22 @@
 import { motion as Motion } from "framer-motion";
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import "./ChatBot.css";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
 import MedicalDisclaimer from "../MedicalDisclaimer";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-const API_KEY = import.meta.env.VITE_API_KEY_S;
-// Initialize the API with configuration (NOTE: for production keep key on server)
-const genAI = new GoogleGenerativeAI(API_KEY);
-// Configure the model
-const modelConfig = {
-  model: "gemini-2.5-flash-lite",
-  safetySettings: [
-    {
-      category: "HARM_CATEGORY_HARASSMENT",
-      threshold: "BLOCK_MEDIUM_AND_ABOVE",
-    },
-    {
-      category: "HARM_CATEGORY_HATE_SPEECH",
-      threshold: "BLOCK_MEDIUM_AND_ABOVE",
-    },
-    {
-      category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-      threshold: "BLOCK_MEDIUM_AND_ABOVE",
-    },
-    {
-      category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-      threshold: "BLOCK_MEDIUM_AND_ABOVE",
-    },
-  ],
-  generationConfig: {
-    temperature: 0.7,
-    topK: 40,
-    topP: 0.95,
-    maxOutputTokens: 1024,
-  },
-};
+import { apiRequest } from "../../api";
 
 function Chatbot() {
-  const [messages, setMessages] = useState(() => {
-    try {
-      const saved = localStorage.getItem("swastha_chat");
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [messages, setMessages] = useState([]);
   
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const bodyRef = useRef(null);
+  const sendingRef = useRef(false);
+  const requestController = useRef(null);
 
   // Quick prompts for user convenience
   const quickPrompts = [
@@ -63,13 +27,12 @@ function Chatbot() {
   ];
 
   useEffect(() => {
-    // scroll to bottom when messages change
     if (bodyRef.current) {
       bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
     }
-    // persist to localStorage
-    localStorage.setItem("swastha_chat", JSON.stringify(messages));
   }, [messages]);
+
+  useEffect(() => () => requestController.current?.abort(), []);
 
   const addMessage = (sender, text) => {
     const ts = new Date().toISOString();
@@ -79,93 +42,28 @@ function Chatbot() {
   };
 
   const sendMessage = async (fromQuick = null) => {
-    const textToSend = fromQuick !== null ? fromQuick : input.trim();
-    if (!textToSend) return;
+    const textToSend = (fromQuick !== null ? fromQuick : input).trim();
+    if (!textToSend || sendingRef.current) return;
 
-    // Add user message
+    sendingRef.current = true;
+    const controller = new AbortController();
+    requestController.current = controller;
     addMessage("user", textToSend);
+    setInput("");
     setIsLoading(true);
 
     try {
-      // Initialize model with configuration
-      const model = genAI.getGenerativeModel(modelConfig);
-
-      if (!model) {
-        throw new Error("Failed to initialize the AI model");
-      }
-
-      // prepare a doctor-like prompt
-      const prompt = `
-You are SwasthaLife's empathetic AI health information assistant. You are not a doctor or a substitute for a qualified healthcare professional.
-
-Be thorough but concise. Show empathy and concern for the patient's well-being.
-
-Ask only relevant follow-up questions if the description is incomplete. Do not request names, contact details, addresses, or other identifying information.
-
-Provide general health information and possible explanations with caveats. Never describe a condition as confirmed or present your response as a diagnosis.
-
-Detect the language of the user's message:
-- If the user speaks in Hindi, respond entirely in Hindi.
-- If the user speaks in English, respond in English.
-- Keep medical terms in English for clarity, even in Hindi responses.
-
-Structure responses:
-- Greeting/Acknowledgment
-- Assessment based on symptoms
-- Possible conditions (1-2 most likely)
-- Recommendations (including when to seek immediate medical help)
-- Follow-up questions if more info needed
-- Reminder to consult a real doctor
-
-End every response with: "Please remember, I'm an AI assistant and cannot provide medical diagnoses. Consult a healthcare professional for personalized advice." (in the same language as the response)
-
-User: ${textToSend}
-`;
-
-      const chat = await model.startChat({
-        history: [], // start fresh for each message to simplify
-        generationConfig: modelConfig.generationConfig,
+      const response = await apiRequest("/api/chatbot", {
+        method: "POST",
+        body: JSON.stringify({ message: textToSend }),
+        signal: controller.signal,
       });
-
-      const result = await chat.sendMessage(prompt);
-
-      if (!result || !result.response) {
-        throw new Error("No response received from the AI model");
-      }
-
-      const reply = await result.response.text();
-
-      if (!reply) {
-        throw new Error("Empty response received from the AI model");
-      }
-
-      addMessage("bot", reply);
+      addMessage("bot", response.data.reply);
     } catch (error) {
-      console.error("Chatbot error details:", {
-        errorMessage: error.message,
-        errorName: error.name,
-        errorStack: error.stack,
-        errorType: error.constructor?.name,
-      });
-
-      let errorMessage =
-        "I apologize, but I'm having trouble connecting right now. Please try again later.";
-
-      if (error.message && error.message.toLowerCase().includes("api key")) {
-        errorMessage =
-          "There seems to be an issue with the API configuration. Please contact support.";
-      } else if (
-        error.message &&
-        error.message.toLowerCase().includes("quota")
-      ) {
-        errorMessage =
-          "We've reached our usage limit. Please try again in a few minutes.";
-      }
-
-      addMessage("bot", errorMessage);
+      if (error.name !== "AbortError") addMessage("bot", error.message);
     } finally {
-      setIsLoading(false);
-      setInput("");
+      sendingRef.current = false;
+      if (!controller.signal.aborted) setIsLoading(false);
     }
   };
 
@@ -178,7 +76,6 @@ User: ${textToSend}
 
   const clearChat = () => {
     setMessages([]);
-    localStorage.removeItem("swastha_chat");
   };
 
   const downloadTranscript = () => {
@@ -390,7 +287,7 @@ User: ${textToSend}
 
           <div className="px-3 pt-2">
             <MedicalDisclaimer className="mb-2" />
-            <p className="small text-muted">Chat messages are sent to Google Gemini and saved in this browser. Avoid sharing identifying details. See our <Link to="/privacy">Privacy Policy</Link>.</p>
+            <p className="small text-muted">Chat messages are sent to SwasthaLife and Google Gemini for a reply, and are not saved after you leave this page. Avoid sharing identifying details. See our <Link to="/privacy">Privacy Policy</Link>.</p>
           </div>
 
           <Motion.div
@@ -405,6 +302,7 @@ User: ${textToSend}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Describe your symptoms and medical concerns..."
+              maxLength={4000}
               rows={1}
               aria-label="Type your message"
               initial={{ opacity: 0, y: 10 }}

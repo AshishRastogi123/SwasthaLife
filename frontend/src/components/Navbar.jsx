@@ -1,13 +1,15 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import "./Navbar.css";
 import logo from "./Images/LogoFinal.png";
 import newlog from "./swastha.png";
 import { apiRequest } from "../api";
+import { useAuth } from "../auth/AuthContext";
 
 function Navbar() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const { user, logout } = useAuth();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -39,19 +41,6 @@ function Navbar() {
     } finally {
       setNotificationsLoading(false);
     }
-  }, []);
-
-  // 🔹 Load user from localStorage
-  useEffect(() => {
-    const loadUser = () => {
-      const storedUser = localStorage.getItem("user");
-      setUser(storedUser ? JSON.parse(storedUser) : null);
-    };
-
-    loadUser();
-    window.addEventListener("authChanged", loadUser);
-
-    return () => window.removeEventListener("authChanged", loadUser);
   }, []);
 
   useEffect(() => {
@@ -108,15 +97,12 @@ function Navbar() {
   // 🔹 Logout
   const handleLogout = async () => {
     try {
-      await apiRequest("/api/auth/logout", { method: "POST" });
+      await logout();
+      setNotificationsOpen(false);
+      navigate("/login");
     } catch (error) {
-      console.error("Logout request failed:", error);
+      toast.error(error.message || "Unable to sign out. Please try again.");
     }
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setNotificationsOpen(false);
-    window.dispatchEvent(new Event("authChanged"));
-    navigate("/login");
   };
 
   return (

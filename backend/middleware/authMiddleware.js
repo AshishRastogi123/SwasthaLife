@@ -22,7 +22,7 @@ const authMiddleware = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId).select("_id email role isActive");
+    const user = await User.findById(decoded.userId).select("_id name email role isActive");
     if (!user || !user.isActive) {
       await writeAuditLog({
         req,
@@ -37,6 +37,7 @@ const authMiddleware = async (req, res, next) => {
     }
     req.user = {
       userId: user._id.toString(),
+      name: user.name,
       email: user.email,
       role: user.role,
     };

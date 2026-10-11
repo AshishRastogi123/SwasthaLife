@@ -4,6 +4,7 @@ const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const csrfProtection = require("./middleware/csrfProtection");
 
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
@@ -18,22 +19,34 @@ const historyRoutes = require("./routes/historyRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const userRoutes = require("./routes/userRoutes");
 const healthConsentRoutes = require("./routes/healthConsentRoutes");
+const chatbotRoutes = require("./routes/chatbotRoutes");
 
 const app = express();
 const port = process.env.PORT || 3000;
+const allowedOrigins = (process.env.CORS_ORIGINS || "http://localhost:5173,http://localhost:3000")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 // Middlewares
 app.use(morgan("dev"));
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:3000"],
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error("Origin is not allowed by CORS"));
+    },
     credentials: true,
   })
 );
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(csrfProtection({ allowedOrigins }));
 
 // Test route
 app.get("/", (req, res) => {
@@ -53,6 +66,7 @@ app.use("/api/history", historyRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/consent", healthConsentRoutes);
+app.use("/api/chatbot", chatbotRoutes);
 
 app.use((err, req, res, next) => {
   console.error("Unhandled API error:", err);
