@@ -129,7 +129,7 @@ function Chatbot() {
     <>
       <Navbar />
       {/* spacer to avoid navbar overlap — adjust if your navbar is different height */}
-      <div style={{ height: "76px" }} />
+      <div className="sw-chat-navbar-spacer" />
 
       <Motion.div
         className="sw-chat-container"
@@ -166,7 +166,7 @@ function Chatbot() {
               AI
             </Motion.div>
 
-            <div style={{ flex: 1 }}>
+            <div className="sw-chat-heading">
               <Motion.div
                 className="sw-chat-title"
                 initial={{ opacity: 0, x: -10 }}
@@ -186,7 +186,7 @@ function Chatbot() {
             </div>
 
             {/* control buttons */}
-            <div style={{ display: "flex", gap: 8, marginLeft: 12 }}>
+            <div className="sw-chat-controls">
               <button
                 className="btn btn-sm btn-outline-secondary"
                 onClick={clearChat}

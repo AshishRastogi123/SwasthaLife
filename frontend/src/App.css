@@ -1,0 +1,321 @@
+.app-shell {
+  padding-top: 5rem;
+}
+
+main.container {
+  padding-top: 1.5rem;
+  padding-bottom: 3rem;
+}
+
+.card,
+.section-card,
+.dashboard-panel {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--surface) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+.card-body,
+.section-card .card-body,
+.dashboard-panel .card-body {
+  padding: 1.35rem 1.5rem !important;
+}
+
+.container,
+.container-fluid,
+main,
+section,
+article,
+.row > * {
+  min-width: 0;
+}
+
+img,
+video,
+iframe {
+  max-width: 100%;
+}
+
+.table-responsive {
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+.card,
+.alert,
+.form-control,
+.form-select,
+td,
+th {
+  overflow-wrap: anywhere;
+}
+
+.alert {
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  font-weight: 500;
+}
+
+.alert-success {
+  background: #ecfdf5;
+  color: #165c43;
+  border-color: #bde8d2;
+}
+
+.alert-danger {
+  background: #fff1f2;
+  color: #9c2b2b;
+  border-color: #fecaca;
+}
+
+.alert-info {
+  background: #edf6ff;
+  color: #1d4f91;
+  border-color: #bfdaf7;
+}
+
+.btn {
+  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 0.72rem 1.3rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-strong) 100%);
+  border-color: var(--brand-primary);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(13, 71, 161, 0.18);
+}
+
+.btn-primary:hover,
+.btn-primary:focus-visible {
+  background: linear-gradient(135deg, var(--brand-primary-strong) 0%, var(--brand-primary) 100%);
+  border-color: var(--brand-primary-strong);
+  color: #fff;
+}
+
+.btn-outline-primary {
+  color: var(--brand-primary);
+  border-color: rgba(13, 71, 161, 0.35);
+  background: transparent;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus-visible {
+  background: var(--brand-primary-soft);
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, var(--brand-success) 0%, #2d9d76 100%);
+  border-color: var(--brand-success);
+  color: #fff;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, var(--brand-danger) 0%, #ab2d2b 100%);
+  border-color: var(--brand-danger);
+  color: #fff;
+}
+
+.btn-light {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(13, 71, 161, 0.12);
+}
+
+.form-control,
+.form-select,
+.form-check-input,
+textarea {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  min-height: 46px;
+  padding: 0.72rem 0.9rem;
+  box-shadow: none;
+}
+
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus,
+textarea:focus {
+  border-color: rgba(13, 71, 161, 0.45);
+  box-shadow: 0 0 0 0.2rem rgba(13, 71, 161, 0.12);
+}
+
+.form-label {
+  color: var(--text);
+  font-weight: 600;
+  margin-bottom: 0.45rem;
+}
+
+.form-control::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.table {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.table thead th {
+  background: var(--surface-muted);
+  color: var(--text);
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+}
+
+.table tbody td {
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: middle;
+}
+
+.badge {
+  border-radius: 999px;
+  padding: 0.45rem 0.7rem;
+  font-weight: 600;
+}
+
+.badge.bg-primary,
+.badge.text-bg-primary {
+  background: rgba(13, 71, 161, 0.12) !important;
+  color: var(--brand-primary) !important;
+}
+
+.badge.bg-success,
+.badge.text-bg-success {
+  background: rgba(29, 143, 104, 0.12) !important;
+  color: var(--brand-success) !important;
+}
+
+.badge.bg-warning,
+.badge.text-bg-warning {
+  background: rgba(217, 119, 6, 0.12) !important;
+  color: var(--brand-warning) !important;
+}
+
+.badge.bg-danger,
+.badge.text-bg-danger {
+  background: rgba(201, 60, 59, 0.12) !important;
+  color: var(--brand-danger) !important;
+}
+
+.navbar-custom {
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-strong) 100%);
+  box-shadow: 0 12px 24px rgba(13, 71, 161, 0.18);
+}
+
+.nav-link,
+.navbar-brand,
+.nav-item {
+  color: #fff;
+}
+
+.accent-link {
+  color: #fff !important;
+}
+
+.accent-link:hover,
+.accent-link:focus-visible {
+  color: #ffe4c7 !important;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.4rem;
+}
+
+.page-title {
+  margin-bottom: 0;
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+}
+
+.section-subtitle {
+  color: var(--text-muted);
+  margin-bottom: 0;
+}
+
+.health-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  padding: 1.25rem;
+}
+
+.health-stat {
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+}
+
+.health-stat .display-6 {
+  letter-spacing: -0.04em;
+  color: var(--brand-primary);
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.42rem 0.72rem;
+  border-radius: 999px;
+  background: rgba(13, 71, 161, 0.08);
+  border: 1px solid rgba(13, 71, 161, 0.12);
+  color: var(--brand-primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.empty-state {
+  padding: 1.5rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  background: rgba(13, 71, 161, 0.02);
+  color: var(--text-muted);
+}
+
+.Toastify__toast {
+  border-radius: 12px;
+  font-weight: 500;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+}
+
+@media (max-width: 768px) {
+  main.container {
+    padding-top: 0.75rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .card-body,
+  .section-card .card-body,
+  .dashboard-panel .card-body {
+    padding: 1.1rem !important;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .container,
+  .container-fluid {
+    --bs-gutter-x: 1.25rem;
+  }
+
+  .table-responsive {
+    margin-right: -0.25rem;
+    margin-left: -0.25rem;
+  }
+}

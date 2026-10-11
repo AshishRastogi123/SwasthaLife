@@ -1,0 +1,28 @@
+.patient-action-section {
+  margin: 1.5rem clamp(0.75rem, 2vw, 1rem);
+  padding: clamp(1.5rem, 5vw, 3.5rem) 0;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #dbeafe 0%, #dbeafe 70%, #dcfce7 100%);
+}
+
+.patient-action-heading {
+  margin: 0 0 clamp(1.5rem, 4vw, 3rem);
+  color: #2446a3;
+  font-size: clamp(1.75rem, 4.4vw, 2.8rem);
+  font-weight: 900;
+  line-height: 1.2;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.patient-action-card {
+  width: min(100%, 18rem);
+  height: 100%;
+  border-radius: 18px;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.patient-action-card .card-img-top {
+  max-width: 100%;
+}

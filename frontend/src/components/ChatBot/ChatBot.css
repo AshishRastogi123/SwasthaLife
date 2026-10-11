@@ -10,6 +10,10 @@
   padding: 0 12px;
 }
 
+.sw-chat-navbar-spacer {
+  height: 76px;
+}
+
 .sw-chat-card {
   border-radius: 14px;
   overflow: hidden;
@@ -32,6 +36,26 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sw-chat-heading {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+.sw-chat-controls {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-left: 0;
+}
+
+.sw-chat-controls .btn {
+  flex: 0 1 auto;
+  width: auto;
 }
 
 .sw-chat-title {
@@ -101,6 +125,7 @@
   line-height: 1.45;
   font-size: 14.5px;
   word-wrap: break-word;
+  overflow-wrap: anywhere;
 }
 
 .sw-msg.bot {
@@ -225,8 +250,14 @@
 @media (max-width: 480px) {
   .sw-chat-container {
     max-width: 100%;
-    margin: 12px;
-    padding: 0;
+    margin: 12px auto;
+    padding: 0 12px;
+  }
+
+  @media (max-width: 991.98px) {
+    .sw-chat-navbar-spacer {
+      height: 0;
+    }
   }
 
   .sw-chat-body {
@@ -254,5 +285,26 @@
   .sw-chat-footer {
     padding: 10px;
     gap: 8px;
+  }
+
+  .sw-chat-header {
+    gap: 8px;
+  }
+
+  .sw-chat-heading {
+    flex-basis: calc(100% - 110px);
+  }
+
+  .sw-chat-controls {
+    justify-content: flex-start;
+  }
+
+  .sw-chat-controls .btn {
+    padding: 0.45rem 0.65rem;
+    font-size: 0.78rem;
+  }
+
+  .sw-msg {
+    max-width: 90%;
   }
 }

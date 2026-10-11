@@ -1,6 +1,7 @@
 import { motion as Motion } from "framer-motion";
 import React from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "./Team.css";
 import ashish from "./Images/Team/Ashish.png";
 import Hardik1 from "./Images/Team/Hardik1.jpg";
 import Tiwari from "./Images/Team/Tiwari.jpg";
@@ -47,37 +48,11 @@ function Teams() {
 
   return (
     <>
-      <div
-        className="text-center p-5 rounded-4  ml-2"
-        style={{
-          background: "linear-gradient(135deg, #dbeafe 0%, #dbeafe 70%, #dcfce7 100%)",
-          fontFamily: "'Poppins', 'Montserrat', 'Segoe UI', Arial, sans-serif",
-          marginLeft: "25px",
-          marginRight: "25px",
-          
-        
-        }}
-      >
-        <h1
-          className="fw-bold mb-4"
-          style={{
-            color: "#2563eb",
-            fontSize: "2.8rem",
-            fontWeight: "900"
-          }}
-        >
+      <section className="team-section text-center rounded-4">
+        <h1 className="team-section__heading fw-bold mb-4">
           Meet our Team Members
         </h1>
-        <p
-          className="mb-5"
-          style={{
-            fontSize: "1.1rem",
-            color: "#374151",
-            maxWidth: "800px",
-            margin: "0 auto",
-            lineHeight: "1.6"
-          }}
-        >
+        <p className="team-section__intro mb-5">
           At SwasthaLife, our multidisciplinary team of engineers, data
           scientists, and healthcare advisors develop AI-driven tools that help
           users understand symptoms and identify potential health risks.
@@ -90,19 +65,13 @@ function Teams() {
                 <Motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="card h-100 border-0 shadow-sm"
-                  style={{
-                    backgroundColor: "#e0f2fe",
-                    borderRadius: "18px",
-                    transition: "all 0.3s ease-in-out"
-                  }}
+                  className="card team-member-card h-100 border-0 shadow-sm"
                 >
                   <div className="card-body d-flex flex-column align-items-center text-center p-4">
                     <img
                       src={member.img}
                       alt={member.name}
-                      className="img-fluid rounded-circle mb-3"
-                      style={{ height: "150px", width: "150px", objectFit: "cover" }}
+                      className="team-member-image img-fluid rounded-circle mb-3"
                     />
                     <h5 className="card-title fw-bold" style={{ color: "#1e293b" }}>{member.name}</h5>
                     <p className="card-text mb-2" style={{ color: "#10b981", fontWeight: "600" }}>
@@ -117,7 +86,7 @@ function Teams() {
             ))}
           </div>
         </div>
-      </div>
+      </section>
     </>
   );
 }

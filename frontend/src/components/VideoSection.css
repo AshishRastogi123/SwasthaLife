@@ -1,0 +1,30 @@
+.video-section {
+  width: 100%;
+  padding: 0 clamp(0.75rem, 2vw, 1.5rem);
+  margin: 2rem auto;
+}
+
+.video-section__inner {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: clamp(1.25rem, 4vw, 2.5rem);
+  border-radius: 18px;
+  background: linear-gradient(135deg, #dbeafe 0%, #dbeafe 70%, #dcfce7 100%);
+  box-shadow: 0 6px 32px rgba(37, 99, 235, 0.09);
+}
+
+.video-section__heading {
+  margin-bottom: clamp(1rem, 3vw, 2rem);
+  color: #2446a3;
+  font-family: "Poppins", "Montserrat", "Segoe UI", Arial, sans-serif;
+  font-size: clamp(1.5rem, 4vw, 2.4rem);
+  font-weight: 900;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.video-section__frame {
+  width: min(100%, 900px);
+  margin: 0 auto;
+}

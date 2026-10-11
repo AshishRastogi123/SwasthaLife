@@ -93,3 +93,30 @@
     margin-bottom: 24px;
   }
 }
+
+@media (max-width: 575.98px) {
+  .vision-mission-section {
+    margin: 1.25rem 0.75rem;
+    padding: 1.25rem 1rem;
+  }
+
+  .vision-mission-heading {
+    font-size: clamp(1.6rem, 7vw, 2rem);
+    line-height: 1.2;
+  }
+
+  .vision-title,
+  .mission-title {
+    font-size: 1.35rem;
+  }
+
+  .mission-list {
+    padding-left: 1rem;
+  }
+
+  .vision-gif {
+    height: auto;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+  }
+}

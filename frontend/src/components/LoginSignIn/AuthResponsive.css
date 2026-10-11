@@ -1,0 +1,54 @@
+.auth-page {
+  min-height: 100vh;
+  height: auto;
+  padding: clamp(1rem, 4vh, 3rem) 0;
+}
+
+.auth-page > .container {
+  width: 100%;
+  max-width: 1140px;
+}
+
+.auth-intro-panel,
+.auth-form-panel {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.auth-form-panel form {
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (max-width: 1199.98px) {
+  .auth-intro-panel,
+  .auth-form-panel {
+    transform: none !important;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .auth-page {
+    align-items: flex-start !important;
+    padding: 1rem 0;
+  }
+
+  .auth-intro-panel,
+  .auth-form-panel {
+    min-height: 0 !important;
+  }
+
+  .auth-intro-panel {
+    padding-top: 1.5rem !important;
+    padding-bottom: 1.5rem !important;
+  }
+
+  .auth-intro-panel img {
+    max-height: 180px;
+    object-fit: contain;
+  }
+
+  .auth-intro-panel .mt-4 {
+    margin-top: 0.75rem !important;
+  }
+}

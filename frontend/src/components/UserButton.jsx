@@ -1,6 +1,7 @@
 import { motion as Motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "./PatientActions.css";
 
 function UserButton() {
   const navigate = useNavigate();
@@ -37,21 +38,12 @@ function UserButton() {
   ];
 
   return (
-    <div
-      className="d-flex justify-content-center align-items-center vh-100"
-      style={{
-        background: "linear-gradient(135deg, #dbeafe 0%, #dbeafe 70%, #dcfce7 100%)",
-        borderRadius: "18px",
-        marginRight: "16px",
-        marginLeft: "16px",
-        marginBottom: "0px",
-      }}
-    >
+    <section className="patient-action-section">
       <div className="container">
-        <h1 style={{ color: "#2446a3", textAlign: "center", marginBottom: "80px", fontSize: "2.8rem", fontWeight: "900" }}>Check Your Health</h1>
+        <h1 className="patient-action-heading">Check Your Health</h1>
         <div className="row justify-content-center g-4">
           {cards.map((card, index) => (
-            <div key={index} className="col-md-3 d-flex justify-content-center">
+            <div key={index} className="col-12 col-sm-6 col-xl-3 d-flex justify-content-center">
               <Motion.div
                 whileHover={{
                   scale: 1.05,
@@ -59,20 +51,14 @@ function UserButton() {
                 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => navigate(card.path)}
-                className="card text-center shadow-sm border-0"
-                style={{
-                  width: "18rem",
-                  borderRadius: "18px",
-                  cursor: "pointer",
-                  backgroundColor: card.color,
-                  transition: "all 0.3s ease-in-out",
-                }}
+                className="card patient-action-card text-center shadow-sm border-0"
+                style={{ backgroundColor: card.color }}
               >
                 <img
                   src={card.img}
                   className="card-img-top p-4"
                   alt={card.title}
-                  style={{ height: "180px", objectFit: "contain" }}
+                  style={{ height: "clamp(130px, 18vw, 180px)", objectFit: "contain" }}
                 />
                 <div className="card-body">
                   <h5 className="card-title fw-bold">{card.title}</h5>
@@ -83,7 +69,7 @@ function UserButton() {
           ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 

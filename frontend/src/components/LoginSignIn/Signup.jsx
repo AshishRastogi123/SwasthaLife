@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { apiRequest } from "../../api";
+import "./AuthResponsive.css";
 
 function Signup() {
   const navigate = useNavigate();
@@ -138,7 +139,7 @@ function Signup() {
 
   return (
     <Motion.div
-      className="vh-100 d-flex justify-content-center align-items-center"
+      className="auth-page d-flex justify-content-center align-items-center"
       style={{ background: "linear-gradient(135deg, #E3F2FD, #FCE4EC)" }}
       initial="hidden"
       animate="visible"
@@ -147,7 +148,7 @@ function Signup() {
       <div className="container">
         <div className="row justify-content-center">
           <Motion.div
-            className="col-md-5 d-flex flex-column align-items-center justify-content-center text-center bg-white shadow rounded-start p-4"
+            className="auth-intro-panel col-12 col-lg-5 d-flex flex-column align-items-center justify-content-center text-center bg-white shadow rounded-start p-4"
             variants={leftPanelVariants}
             initial="hidden"
             animate="visible"
@@ -190,7 +191,7 @@ function Signup() {
           </Motion.div>
 
           <Motion.div
-            className="col-md-5 bg-light shadow rounded-end p-4"
+            className="auth-form-panel col-12 col-lg-5 bg-light shadow rounded-end p-4"
             variants={rightPanelVariants}
             initial="hidden"
             animate="visible"

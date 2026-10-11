@@ -1,22 +1,17 @@
 import TypeWriter from "./TypeWriter";
-import "./TypeWriter.css";
-import EmergencyForm from "./EmergencyForm";
+import "./Hero.css";
 
 function Hero() {
   return (
-    <div className="main">
-      <div className="container text-start content">
+    <section className="home-hero">
+      <div className="container home-hero__content">
         <div className="row">
-          <div className="col-md-8">
-            <h4>
-              Medical And Health <br />
-              <span>
-                A professional <br />
-                and Friendly care <br />
-                provider.
-              </span>
-            </h4>
-            <div className="par">
+          <div className="col-12 col-lg-8">
+            <p className="home-hero__eyebrow">Medical and health</p>
+            <h1 className="home-hero__title">
+              Professional, friendly care <span>for a healthier life.</span>
+            </h1>
+            <div className="home-hero__lead">
               <TypeWriter
                 texts={[
                   "Empowering with AI-driven",
@@ -28,32 +23,30 @@ function Hero() {
                 pauseDuration={2000}
               />
             </div>
-            <div className="button-group" style={{ display: 'flex', gap: '20px', marginTop: '20px' }}>
+            <div className="home-hero__actions">
               <a href="/BookAppointment" className="cn">
                 <i className="fas fa-calendar-alt me-2"></i>
                 Book Appointment
               </a>
-              <button
+              <a
                 className="emergency-btn"
-                onClick={() => {
-                  const element = document.getElementById('emergency-section');
+                href="#emergency-section"
+                onClick={(event) => {
+                  const element = document.getElementById("emergency-section");
                   if (element) {
-                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    // Additional offset for fixed header
-                    setTimeout(() => {
-                      window.scrollBy(0, -80); // Adjust scroll position to account for fixed header
-                    }, 100);
+                    event.preventDefault();
+                    element.scrollIntoView({ behavior: "smooth", block: "start" });
                   }
                 }}
               >
                 <i className="fas fa-ambulance me-2"></i>
                 Emergency
-              </button>
+              </a>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 

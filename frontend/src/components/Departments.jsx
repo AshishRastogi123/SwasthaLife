@@ -6,10 +6,10 @@ import Button from "./UserButton";
 function Departments() {
   return (
     <>
-      <div className="bg-white text-center p-3 rounded">
-        <p className="h1 text-primary fw-bold">
+      <section className="bg-white text-center p-3 rounded">
+        <h2 className="h1 text-primary fw-bold">
           Welcome to the Health Diagnosis & Prediction System
-        </p>
+        </h2>
         <p>
           
         </p>
@@ -28,7 +28,7 @@ function Departments() {
                 >
                   Cardiology
                 </a>
-              </div>
+              </section>
             </div>
 
             <div className="col-md-3 mb-4">
@@ -122,7 +122,7 @@ function Departments() {
           </div>
         </div> */}
         <Button />
-      </div>
+      </section>
     </>
   );
 }

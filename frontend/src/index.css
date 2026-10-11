@@ -1,0 +1,94 @@
+:root {
+  --brand-primary: #0d47a1;
+  --brand-primary-strong: #08367f;
+  --brand-primary-soft: #eaf2ff;
+  --brand-secondary: #14a9a5;
+  --brand-accent: #ff7a1a;
+  --brand-accent-soft: #fff4eb;
+  --brand-success: #1d8f68;
+  --brand-warning: #d97706;
+  --brand-danger: #c93c3b;
+  --surface: #ffffff;
+  --surface-alt: #f4f8fc;
+  --surface-muted: #edf5ff;
+  --border: #dfe9f5;
+  --text: #17324d;
+  --text-muted: #5f7187;
+  --shadow-soft: 0 12px 30px rgba(15, 23, 42, 0.08);
+  --shadow-card: 0 8px 22px rgba(16, 24, 40, 0.08);
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  background: linear-gradient(180deg, #f4f9ff 0%, #eef5fa 100%);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--text);
+  letter-spacing: -0.02em;
+  margin-bottom: 0.75rem;
+}
+
+p {
+  margin-top: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a,
+.form-control,
+.form-select {
+  transition: all 0.2s ease;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(13, 71, 161, 0.18);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: rgba(13, 71, 161, 0.12);
+}

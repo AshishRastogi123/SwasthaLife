@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import Select from "react-select";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
 import MedicalDisclaimer from "../MedicalDisclaimer";
+import { apiRequest } from "../../api";
 import "./HealthAssessmentForm.css";
 
 // Categorized symptoms for better organization
@@ -205,6 +206,7 @@ const SymptomForm = () => {
 
   const [errors, setErrors] = useState({});
   const [showModal, setShowModal] = useState(false);
+  const requestControllerRef = useRef(null);
   // Prediction & save states
   const [predicting, setPredicting] = useState(false);
   const [predictionResult, setPredictionResult] = useState(null);
@@ -290,80 +292,39 @@ const SymptomForm = () => {
       setPredictionResult(null);
       setSaveStatus(null);
 
-      const payload = buildPayload();
-      // Use VITE_API_URL when available (dev) otherwise default to localhost backend
-      const base = import.meta.env.VITE_API_URL !== undefined ? import.meta.env.VITE_API_URL : 'http://localhost:3000';
-
-      const colsUrl = base ? `${String(base).replace(/\/$/, '')}/api/predict/columns` : '/api/predict/columns';
-      const colsRes = await fetch(colsUrl);
-      if (!colsRes.ok) {
-        const text = await colsRes.text();
-        setPredicting(false);
-        setSaveStatus({ ok: false, message: `Could not fetch symptom columns: ${text || colsRes.statusText}` });
-        return;
+      if (requestControllerRef.current) {
+        requestControllerRef.current.abort();
       }
-      const colsJson = await colsRes.json();
-      const columns = colsJson.columns || [];
+      const controller = new AbortController();
+      requestControllerRef.current = controller;
 
-      // Build full binary input vector (1 = selected, 0 = not selected)
+      const payload = buildPayload();
+      const columnsResponse = await apiRequest("/api/predict/columns", { signal: controller.signal });
+      const columns = columnsResponse?.columns || [];
+
       const selectedSet = new Set(payload.symptoms || []);
-      const input_vector = columns.map((c) => selectedSet.has(c) ? 1 : 0);
+      const input_vector = columns.map((column) => (selectedSet.has(column) ? 1 : 0));
 
-      const url = base ? `${String(base).replace(/\/$/, '')}/api/predict?debug=1` : '/api/predict?debug=1';
-
-      const res = await fetch(url, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(localStorage.getItem("token")
-            ? { Authorization: "Bearer " + localStorage.getItem("token") }
-            : {}),
-        },
+      const data = await apiRequest("/api/predict?debug=1", {
+        method: "POST",
+        signal: controller.signal,
         body: JSON.stringify({ input_vector }),
       });
 
-      // Parse response safely (handle empty/non-JSON bodies)
-      let data = null;
-      const ct = res.headers.get('content-type') || '';
-      if (ct.includes('application/json')) {
-        try {
-          data = await res.json();
-        } catch {
-          data = null;
-        }
-      } else {
-        const text = await res.text();
-        try {
-          data = text ? JSON.parse(text) : null;
-        } catch {
-          data = null;
-        }
-      }
-
       setPredicting(false);
-
-      if (!res.ok) {
-        const message = (data && (data.detail || data.message)) || res.statusText || `Request failed with status ${res.status}`;
-        setPredictionResult(null);
-        setSaveStatus({ ok: false, message });
-        return;
-      }
 
       if (!data) {
         setPredictionResult(null);
-        setSaveStatus({ ok: false, message: 'Invalid response from prediction service' });
+        setSaveStatus({ ok: false, message: "Invalid response from prediction service" });
         return;
       }
 
-      // Optionally show input_vector for verification (returned from ML when debug enabled)
       if (data.input_vector) {
-        console.debug('ML returned input_vector (debug):', data.input_vector);
+        console.debug("ML returned input_vector (debug):", data.input_vector);
       }
 
-      // Show prediction in modal instead of alert
       setPredictionResult({ disease: data.predicted_disease, confidence: data.confidence });
-      setSaveStatus({ ok: true, message: 'Prediction ready — save to patient records if needed.' });
+      setSaveStatus({ ok: true, message: "Prediction ready — save to patient records if needed." });
 
     } catch (err) {
       console.error(err);
@@ -376,13 +337,6 @@ const SymptomForm = () => {
     try {
       setSaving(true);
       setSaveStatus(null);
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setSaveStatus({ ok: false, message: 'Login required to save patient record' });
-        setSaving(false);
-        return;
-      }
-
       const body = { ...buildPayload() };
       if (predictionResult) {
         body.prediction = {
@@ -392,34 +346,13 @@ const SymptomForm = () => {
         };
       }
 
-      const base = import.meta.env.VITE_API_URL !== undefined ? import.meta.env.VITE_API_URL : 'http://localhost:3000';
-      const res = await fetch(`${String(base).replace(/\/$/, '')}/api/prediction`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        credentials: 'include',
+      const data = await apiRequest("/api/prediction", {
+        method: "POST",
         body: JSON.stringify(body),
       });
 
-      // Safely parse response (handle empty/non-JSON)
-      let data = null;
-      const ct = res.headers.get('content-type') || '';
-      if (ct.includes('application/json')) {
-        try { data = await res.json(); } catch { data = null; }
-      } else {
-        const text = await res.text();
-        try { data = text ? JSON.parse(text) : null; } catch { data = null; }
-      }
-
       setSaving(false);
-      if (!res.ok) {
-        setSaveStatus({ ok: false, message: (data && data.message) || 'Failed to save record' });
-        return;
-      }
-
-      setSaveStatus({ ok: true, message: 'Patient record saved successfully' });
+      setSaveStatus({ ok: true, message: data?.message || "Patient record saved successfully" });
     } catch (err) {
       console.error(err);
       setSaving(false);
