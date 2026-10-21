@@ -622,4 +622,83 @@ test("backend API integration: auth, patient, doctor, admin, and lifecycles", { 
     assert.equal((await request("GET", "/api/doctors/me/dashboard", fixtures.patientToken)).status, 403);
     assert.equal((await request("GET", "/api/emergencies", fixtures.doctorToken)).status, 200);
   });
+
+  await t.test("medical chatbot proxy enforces auth and conversation ownership", async () => {
+    const previousFetch = global.fetch;
+    const previousServiceUrl = process.env.MEDICAL_CHATBOT_URL;
+    const previousServiceToken = process.env.MEDICAL_CHATBOT_TOKEN;
+    const flaskConversationId = "10c8fe5d-09c7-4a1b-9bb2-0adee88406b9";
+    const forwardedRequests = [];
+    process.env.MEDICAL_CHATBOT_URL = "http://127.0.0.1:8080";
+    process.env.MEDICAL_CHATBOT_TOKEN = "integration-test-service-token";
+    global.fetch = async (url, options) => {
+      if (String(url).startsWith("http://127.0.0.1:8080/")) {
+        forwardedRequests.push({ url: String(url), options });
+        if (String(url).endsWith("/health")) {
+          return new Response(JSON.stringify({ status: "ok" }), { status: 200 });
+        }
+        return new Response(JSON.stringify({
+          answer: "General medical information.",
+          conversation_id: flaskConversationId,
+          sources: [{ source: "data/Medical_book.pdf" }],
+        }), { status: 200 });
+      }
+      return previousFetch(url, options);
+    };
+
+    try {
+      const unauthorized = await request("POST", "/api/chatbot/chat", null, { question: "What is acne?" });
+      assert.equal(unauthorized.status, 401);
+
+      const first = await request("POST", "/api/chatbot/chat", fixtures.patientToken, { question: "What is acne?" });
+      assert.equal(first.status, 200, JSON.stringify(first.body));
+      assert.equal(first.body.data.answer, "General medical information.");
+      assert.notEqual(first.body.data.conversationId, flaskConversationId);
+      assert.equal(JSON.stringify(first.body).includes(flaskConversationId), false);
+      assert.equal(JSON.stringify(first.body).includes(process.env.MEDICAL_CHATBOT_TOKEN), false);
+      assert.deepEqual(first.body.data.sources, [{ source: "data/Medical_book.pdf" }]);
+      assert.equal(forwardedRequests[0].options.headers.Authorization, "Bearer integration-test-service-token");
+      assert.deepEqual(JSON.parse(forwardedRequests[0].options.body), { question: "What is acne?" });
+
+      const followUp = await request("POST", "/api/chatbot/chat", fixtures.patientToken, {
+        question: "Can it be treated?",
+        conversationId: first.body.data.conversationId,
+      });
+      assert.equal(followUp.status, 200);
+      assert.deepEqual(JSON.parse(forwardedRequests[1].options.body), {
+        question: "Can it be treated?",
+        conversation_id: flaskConversationId,
+      });
+
+      const otherPatient = await User.create({
+        name: "Chatbot Cross-User Patient",
+        email: "chatbot.cross-user@example.test",
+        password: await bcrypt.hash("correct horse battery staple", 4),
+        role: "PATIENT",
+      });
+      await HealthConsent.create({
+        userId: otherPatient._id,
+        consentStatus: true,
+        consentTimestamp: new Date(),
+        consentVersion: HEALTH_CONSENT_VERSION,
+      });
+      const otherPatientToken = await login(otherPatient.email);
+      const crossUser = await request("POST", "/api/chatbot/chat", otherPatientToken, {
+        question: "Continue that chat",
+        conversationId: first.body.data.conversationId,
+      });
+      assert.equal(crossUser.status, 404);
+      assert.equal(forwardedRequests.length, 2);
+
+      const health = await request("GET", "/api/chatbot/health");
+      assert.equal(health.status, 200);
+      assert.deepEqual(health.body, { status: "ok" });
+    } finally {
+      global.fetch = previousFetch;
+      if (previousServiceUrl === undefined) delete process.env.MEDICAL_CHATBOT_URL;
+      else process.env.MEDICAL_CHATBOT_URL = previousServiceUrl;
+      if (previousServiceToken === undefined) delete process.env.MEDICAL_CHATBOT_TOKEN;
+      else process.env.MEDICAL_CHATBOT_TOKEN = previousServiceToken;
+    }
+  });
 });

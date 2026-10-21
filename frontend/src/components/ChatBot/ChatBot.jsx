@@ -1,5 +1,4 @@
-import { motion as Motion } from "framer-motion";
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import "./ChatBot.css";
@@ -8,324 +7,327 @@ import Footer from "../Footer";
 import MedicalDisclaimer from "../MedicalDisclaimer";
 import { apiRequest } from "../../api";
 
+const suggestedQuestions = [
+  "What are common causes of headaches?",
+  "What is diabetes?",
+  "Explain the symptoms of anemia.",
+  "How can I maintain a healthy lifestyle?",
+];
+
+const formatSourceName = (source) => {
+  const name = source.split(/[\\/]/).filter(Boolean).pop();
+  return name || source;
+};
+
 function Chatbot() {
   const [messages, setMessages] = useState([]);
-  
   const [input, setInput] = useState("");
+  const [conversationId, setConversationId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [copiedMessageId, setCopiedMessageId] = useState(null);
   const navigate = useNavigate();
   const bodyRef = useRef(null);
+  const inputRef = useRef(null);
   const sendingRef = useRef(false);
   const requestController = useRef(null);
-
-  // Quick prompts for user convenience
-  const quickPrompts = [
-    "I've been having chest pain for the past hour. What should I do?",
-    "My blood pressure is 180/110. Is this an emergency?",
-    "I have a persistent cough and fever over 101°F for 3 days.",
-    "Severe headache with nausea and sensitivity to light.",
-  ];
+  const shouldFollowLatest = useRef(true);
 
   useEffect(() => {
-    if (bodyRef.current) {
-      bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
-    }
-  }, [messages]);
+    const body = bodyRef.current;
+    if (body && shouldFollowLatest.current) body.scrollTop = body.scrollHeight;
+  }, [messages, isLoading]);
 
   useEffect(() => () => requestController.current?.abort(), []);
 
-  const addMessage = (sender, text) => {
-    const ts = new Date().toISOString();
-    const newMsg = { sender, text, ts };
-    setMessages((m) => [...m, newMsg]);
-    return newMsg;
-  };
-
-  const sendMessage = async (fromQuick = null) => {
-    const textToSend = (fromQuick !== null ? fromQuick : input).trim();
-    if (!textToSend || sendingRef.current) return;
+  const sendMessage = async (submittedText = input, retryMessageId = null) => {
+    const question = submittedText.trim();
+    if (!question || question.length > 4000 || sendingRef.current) return;
 
     sendingRef.current = true;
+    shouldFollowLatest.current = true;
     const controller = new AbortController();
     requestController.current = controller;
-    addMessage("user", textToSend);
+    setError("");
     setInput("");
+    if (inputRef.current) inputRef.current.style.height = "auto";
     setIsLoading(true);
 
+    if (retryMessageId) {
+      setMessages((current) => current.filter((message) => message.id !== retryMessageId));
+    } else {
+      setMessages((current) => [
+        ...current,
+        { id: crypto.randomUUID(), sender: "user", text: question, timestamp: new Date() },
+      ]);
+    }
+
     try {
-      const response = await apiRequest("/api/chatbot", {
+      const result = await apiRequest("/api/chatbot/chat", {
         method: "POST",
-        body: JSON.stringify({ message: textToSend }),
+        body: JSON.stringify({ question, ...(conversationId ? { conversationId } : {}) }),
         signal: controller.signal,
       });
-      addMessage("bot", response.data.reply);
-    } catch (error) {
-      if (error.name !== "AbortError") addMessage("bot", error.message);
+      if (typeof result?.data?.answer !== "string" || !Array.isArray(result.data.sources)) {
+        throw new Error("The health assistant returned an invalid response. Please try again.");
+      }
+      setConversationId(result.data.conversationId);
+      setMessages((current) => [
+        ...current,
+        {
+          id: crypto.randomUUID(),
+          sender: "assistant",
+          text: result.data.answer,
+          sources: result.data.sources,
+          timestamp: new Date(),
+        },
+      ]);
+    } catch (requestError) {
+      if (requestError.name !== "AbortError") {
+        const message = requestError.message || "The assistant could not respond. Please try again.";
+        setError(message);
+        setMessages((current) => [
+          ...current,
+          {
+            id: crypto.randomUUID(),
+            sender: "error",
+            text: message,
+            retryText: question,
+            timestamp: new Date(),
+          },
+        ]);
+      }
     } finally {
       sendingRef.current = false;
       if (!controller.signal.aborted) setIsLoading(false);
     }
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
       sendMessage();
     }
   };
 
+  const handleInputChange = (event) => {
+    setInput(event.target.value);
+    event.target.style.height = "auto";
+    event.target.style.height = `${Math.min(event.target.scrollHeight, 160)}px`;
+  };
+
   const clearChat = () => {
+    if (isLoading) return;
+    if (messages.length && !window.confirm("Start a new chat? Your current conversation will no longer be available here.")) {
+      return;
+    }
     setMessages([]);
+    setConversationId(null);
+    setError("");
+    setInput("");
+    shouldFollowLatest.current = true;
+    inputRef.current?.focus();
   };
 
   const downloadTranscript = () => {
-    const lines = messages.map(
-      (m) =>
-        `[${new Date(m.ts).toLocaleString()}] ${m.sender.toUpperCase()}: ${
-          m.text
-        }`
-    );
+    const lines = messages
+      .filter((message) => message.sender !== "error")
+      .map((message) => `[${new Date(message.timestamp).toLocaleString()}] ${message.sender.toUpperCase()}: ${message.text}`);
+    if (!lines.length) return;
     const blob = new Blob([lines.join("\n\n")], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `swastha_chat_${Date.now()}.txt`;
-    a.click();
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `swastha_chat_${Date.now()}.txt`;
+    anchor.click();
     URL.revokeObjectURL(url);
   };
 
-  const copyLastBotReply = async () => {
-    const lastBot = [...messages].reverse().find((m) => m.sender === "bot");
-    if (!lastBot) return alert("No bot reply to copy.");
+  const copyAnswer = async (message) => {
     try {
-      await navigator.clipboard.writeText(lastBot.text);
-      alert("Last bot reply copied to clipboard.");
+      await navigator.clipboard.writeText(message.text);
+      setCopiedMessageId(message.id);
     } catch {
-      alert("Unable to copy. Your browser may not allow clipboard operations.");
+      setError("Unable to copy the answer. Your browser may not allow clipboard access.");
     }
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0, scale: 0.9 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } },
-  };
-
-  const headerVariants = {
-    hidden: { y: -20, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { duration: 0.6, delay: 0.2 } },
-  };
-
-  const messageVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-  };
-
-  const footerVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { duration: 0.6, delay: 0.3 } },
   };
 
   return (
     <>
       <Navbar />
-      {/* spacer to avoid navbar overlap — adjust if your navbar is different height */}
-      <div className="sw-chat-navbar-spacer" />
+      <main className="sl-chat-page">
+        <div className="sl-chat-shell">
+          <header className="sl-chat-topbar">
+            <button className="sl-icon-button" type="button" onClick={() => navigate("/")} aria-label="Go to homepage">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6M9 12h11" /></svg>
+            </button>
+            <div className="sl-topbar-brand">
+              <div className="sl-brand-icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32"><path d="M16 27s-10-5.8-10-13a5.6 5.6 0 0 1 10-3.4A5.6 5.6 0 0 1 26 14c0 7.2-10 13-10 13Z" /><path d="M16 12v9m-4.5-4.5h9" /></svg>
+              </div>
+              <div>
+                <strong>SwasthaLife</strong>
+                <span>AI health assistant</span>
+              </div>
+            </div>
+            <div className="sl-topbar-actions">
+              <span className="sl-secure-label"><span aria-hidden="true">●</span> Session active</span>
+              <button className="sl-new-chat-button" type="button" onClick={clearChat} disabled={isLoading}>
+                <span aria-hidden="true">＋</span> New chat
+              </button>
+            </div>
+          </header>
 
-      <Motion.div
-        className="sw-chat-container"
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-        aria-live="polite"
-      >
-        <Motion.div
-          className="sw-chat-card"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          role="region"
-          aria-label="SwasthaLife chat"
-        >
-          <Motion.div
-            className="sw-chat-header"
-            variants={headerVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            <Motion.button
-              className="sw-back-btn"
-              onClick={() => navigate("/")}
-              aria-label="Go to homepage"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+          <section className="sl-chat-intro" aria-label="Medical information notice">
+            <span className="sl-ai-badge"><span aria-hidden="true">✦</span> AI-GENERATED MEDICAL INFORMATION</span>
+            <p>For general information only. Not a diagnosis or a substitute for professional medical advice.</p>
+          </section>
+
+          <section className={`sl-chat-panel ${messages.length ? "sl-chat-panel-active" : ""}`} aria-label="Health assistant conversation">
+            <div
+              className="sl-chat-messages"
+              ref={bodyRef}
+              onScroll={(event) => {
+                const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
+                shouldFollowLatest.current = scrollHeight - scrollTop - clientHeight < 120;
+              }}
+              aria-live="polite"
+              aria-relevant="additions text"
             >
-              ←
-            </Motion.button>
-
-            <Motion.div className="sw-avatar" aria-hidden>
-              AI
-            </Motion.div>
-
-            <div className="sw-chat-heading">
-              <Motion.div
-                className="sw-chat-title"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.5 }}
-              >
-                SwasthaLife AI health assistant
-              </Motion.div>
-              <Motion.div
-                className="sw-chat-subtitle"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.6 }}
-              >
-                General health information, not medical advice
-              </Motion.div>
-            </div>
-
-            {/* control buttons */}
-            <div className="sw-chat-controls">
-              <button
-                className="btn btn-sm btn-outline-secondary"
-                onClick={clearChat}
-                aria-label="Clear chat"
-              >
-                Clear
-              </button>
-              <button
-                className="btn btn-sm btn-outline-secondary"
-                onClick={downloadTranscript}
-                aria-label="Download transcript"
-              >
-                Download
-              </button>
-              <button
-                className="btn btn-sm btn-outline-secondary"
-                onClick={copyLastBotReply}
-                aria-label="Copy last reply"
-              >
-                Copy reply
-              </button>
-            </div>
-          </Motion.div>
-
-          <Motion.div
-            className="sw-quick-prompts px-3"
-            style={{ display: "flex", gap: 8, flexWrap: "wrap", paddingTop: 8 }}
-          >
-            {quickPrompts.map((q, i) => (
-              <button
-                key={i}
-                className="btn btn-sm btn-outline-primary"
-                onClick={() => sendMessage(q)}
-                aria-label={`Quick prompt: ${q}`}
-                title={q}
-              >
-                {q.length > 40 ? q.slice(0, 36) + "…" : q}
-              </button>
-            ))}
-          </Motion.div>
-
-          <Motion.div
-            className="sw-chat-body"
-            ref={bodyRef}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.7 }}
-          >
-            {messages.length === 0 && !isLoading && (
-              <Motion.div
-                className="sw-msg bot"
-                variants={messageVariants}
-                initial="hidden"
-                animate="visible"
-                transition={{ delay: 0.8 }}
-              >
-                Hello, I'm SwasthaLife's AI health information assistant. You can share a health question, but please avoid identifying details. I can offer general information and possible explanations, not a diagnosis. Consult a qualified healthcare professional for advice.
-              </Motion.div>
-            )}
-
-            {messages.map((message, index) => (
-              <Motion.div
-                key={index}
-                className={`sw-msg ${message.sender}`}
-                variants={messageVariants}
-                initial="hidden"
-                animate="visible"
-                transition={{ delay: index * 0.05 }}
-              >
-                <div className="sw-markdown-response">
-                  {message.sender === "bot" ? (
-                    <ReactMarkdown>{message.text}</ReactMarkdown>
-                  ) : (
-                    <div style={{ whiteSpace: "pre-wrap" }}>{message.text}</div>
+              {messages.length === 0 ? (
+                <div className="sl-welcome">
+                  <div className="sl-welcome-icon" aria-hidden="true">
+                    <svg viewBox="0 0 48 48"><path d="M24 41S7 31.2 7 19a9.5 9.5 0 0 1 17-5.8A9.5 9.5 0 0 1 41 19c0 12.2-17 22-17 22Z" /><path d="M24 17v14m-7-7h14" /></svg>
+                  </div>
+                  <p className="sl-eyebrow">HERE FOR YOUR HEALTH QUESTIONS</p>
+                  <h1>Your AI health assistant</h1>
+                  <p className="sl-welcome-copy">Ask a health question and explore clear general information grounded in relevant medical documents. Your assistant is here to help you understand—not diagnose.</p>
+                  <div className="sl-suggestions-heading">A few things you can ask</div>
+                  <div className="sl-suggestion-grid">
+                    {suggestedQuestions.map((question) => (
+                      <button key={question} type="button" className="sl-suggestion-card" onClick={() => sendMessage(question)} disabled={isLoading}>
+                        <span>{question}</span><span className="sl-suggestion-arrow" aria-hidden="true">↗</span>
+                      </button>
+                    ))}
+                  </div>
+                  <button className="sl-start-link" type="button" onClick={() => inputRef.current?.focus()}>
+                    Or type your own question below <span aria-hidden="true">↓</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="sl-message-list">
+                  {messages.map((message) => (
+                    <article className={`sl-message sl-message-${message.sender}`} key={message.id}>
+                      <div className="sl-message-avatar" aria-hidden="true">
+                        {message.sender === "user" ? "You" : "✦"}
+                      </div>
+                      <div className="sl-message-content">
+                        <div className="sl-message-meta">
+                          <strong>{message.sender === "user" ? "You" : message.sender === "error" ? "Assistant" : "SwasthaLife AI"}</strong>
+                          <time dateTime={new Date(message.timestamp).toISOString()}>{new Date(message.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time>
+                        </div>
+                        <div className="sl-message-bubble">
+                          {message.sender === "user" ? (
+                            <p>{message.text}</p>
+                          ) : (
+                            <div className="sl-markdown">
+                              <ReactMarkdown components={{
+                                a: ({ href, children, ...props }) => (
+                                  <a href={href} target="_blank" rel="noreferrer noopener" {...props}>{children}</a>
+                                ),
+                              }}>{message.text}</ReactMarkdown>
+                            </div>
+                          )}
+                          {message.sender === "error" && (
+                            <button
+                              className="sl-retry-button"
+                              type="button"
+                              onClick={() => sendMessage(message.retryText, message.id)}
+                              disabled={isLoading}
+                            >
+                              Try again
+                            </button>
+                          )}
+                        </div>
+                        {message.sender === "assistant" && message.sources?.length > 0 && (
+                          <details className="sl-sources">
+                            <summary>Sources <span>{message.sources.length}</span></summary>
+                            <ul>
+                              {message.sources.map((source, index) => (
+                                <li key={`${source.source}-${index}`}>{formatSourceName(source.source)}</li>
+                              ))}
+                            </ul>
+                          </details>
+                        )}
+                        {message.sender === "assistant" && (
+                          <div className="sl-answer-actions">
+                            <button type="button" onClick={() => copyAnswer(message)} aria-label="Copy this answer">
+                              <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="7" y="7" width="10" height="11" rx="2" /><path d="M13 7V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" /></svg>
+                              {copiedMessageId === message.id ? "Copied" : "Copy answer"}
+                            </button>
+                            {copiedMessageId === message.id && <span role="status">Answer copied to clipboard.</span>}
+                          </div>
+                        )}
+                      </div>
+                    </article>
+                  ))}
+                  {isLoading && (
+                    <div className="sl-pending" role="status" aria-live="polite">
+                      <span className="sl-message-avatar" aria-hidden="true">✦</span>
+                      <span className="sl-pending-dots"><i /><i /><i /></span>
+                      <span>Finding helpful information…</span>
+                    </div>
                   )}
                 </div>
-                <div style={{ fontSize: 11, color: "#6b7280", marginTop: 6 }}>
-                  {new Date(message.ts).toLocaleString()}
+              )}
+            </div>
+
+            <div className="sl-chat-composer">
+              {error && <p className="sl-chat-error" role="alert">{error}</p>}
+              <div className="sl-composer-wrap">
+                <textarea
+                  ref={inputRef}
+                  value={input}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Ask a health question…"
+                  maxLength={4000}
+                  rows={1}
+                  aria-label="Your health question"
+                  disabled={isLoading}
+                />
+                <button
+                  className="sl-send-button"
+                  type="button"
+                  onClick={() => sendMessage()}
+                  disabled={isLoading || !input.trim() || input.length > 4000}
+                  aria-label={isLoading ? "Waiting for an answer" : "Send question"}
+                >
+                  {isLoading ? (
+                    <span className="sl-send-spinner" aria-hidden="true" />
+                  ) : (
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 4 17 8-17 8 3-8-3-8Z" /><path d="M7 12h14" /></svg>
+                  )}
+                </button>
+              </div>
+              <div className="sl-composer-hint">
+                <span>{input.length}/4000</span>
+                <span>Enter to send · Shift + Enter for a new line</span>
+              </div>
+              {messages.length > 0 && (
+                <div className="sl-conversation-actions">
+                  <button type="button" onClick={downloadTranscript}>Download transcript</button>
                 </div>
-              </Motion.div>
-            ))}
+              )}
+            </div>
+          </section>
 
-            {isLoading && (
-              <Motion.div
-                className="sw-msg bot"
-                variants={messageVariants}
-                initial="hidden"
-                animate="visible"
-              >
-                <div className="sw-typing-indicator">
-                  Typing<span>.</span>
-                  <span>.</span>
-                  <span>.</span>
-                </div>
-              </Motion.div>
-            )}
-          </Motion.div>
-
-          <div className="px-3 pt-2">
-            <MedicalDisclaimer className="mb-2" />
-            <p className="small text-muted">Chat messages are sent to SwasthaLife and Google Gemini for a reply, and are not saved after you leave this page. Avoid sharing identifying details. See our <Link to="/privacy">Privacy Policy</Link>.</p>
-          </div>
-
-          <Motion.div
-            className="sw-chat-footer"
-            variants={footerVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            <Motion.textarea
-              className="sw-chat-input"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Describe your symptoms and medical concerns..."
-              maxLength={4000}
-              rows={1}
-              aria-label="Type your message"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.9 }}
-            />
-            <Motion.button
-              className="sw-send-btn"
-              onClick={() => sendMessage()}
-              disabled={isLoading || !input.trim()}
-              aria-label="Send message"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4, delay: 1 }}
-            >
-              Send
-            </Motion.button>
-          </Motion.div>
-        </Motion.div>
-      </Motion.div>
-
+          <footer className="sl-chat-disclaimer">
+            <MedicalDisclaimer className="sl-medical-disclaimer" />
+            <p>Your messages are processed by the medical chatbot service to generate replies. SwasthaLife stores no chat text; the service may retain conversation turns for its configured time limit to support follow-up questions. Avoid sharing identifying details. Read our <Link to="/privacy">Privacy Policy</Link>.</p>
+          </footer>
+        </div>
+      </main>
       <Footer />
     </>
   );

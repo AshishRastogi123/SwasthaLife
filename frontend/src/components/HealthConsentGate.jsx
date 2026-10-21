@@ -58,7 +58,7 @@ export default function HealthConsentGate({ children }) {
           SwasthaLife uses information you enter, such as symptoms and health details, to provide assessment and appointment features and may save submitted assessments to your account for your health history and related care workflows.
         </p>
         <p>
-          If you use the chatbot, your messages are sent to Google Gemini to generate a response and chat history is kept in this browser. Avoid including names, contact details, or other information that identifies you in chatbot messages.
+          If you use the chatbot, your messages are processed by SwasthaLife's medical chatbot service, which may retain conversation turns for its configured time limit to provide follow-up answers. SwasthaLife stores a conversation reference for your account but does not store chat text. Avoid including names, contact details, or other information that identifies you in chatbot messages.
         </p>
         <p>You can withdraw this acknowledgement from the Privacy Policy page. Withdrawing it prevents new health assessments until you acknowledge again.</p>
         <MedicalDisclaimer />

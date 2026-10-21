@@ -44,6 +44,7 @@ app.use(
   })
 );
 
+app.use("/api/chatbot", express.json({ limit: "16kb" }));
 app.use(express.json());
 app.use(cookieParser());
 app.use(csrfProtection({ allowedOrigins }));
@@ -71,6 +72,12 @@ app.use("/api/chatbot", chatbotRoutes);
 app.use((err, req, res, next) => {
   console.error("Unhandled API error:", err);
   if (res.headersSent) return next(err);
+  if (err.type === "entity.too.large") {
+    return res.status(413).json({ message: "The request is too large." });
+  }
+  if (err.type === "entity.parse.failed") {
+    return res.status(400).json({ message: "The request body must contain valid JSON." });
+  }
   if (err.name === "ValidationError") {
     return res.status(400).json({ message: "Validation failed", details: err.errors });
   }

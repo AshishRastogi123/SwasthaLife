@@ -22,7 +22,7 @@ export default function TermsOfService() {
         <p>Provide information you are comfortable sharing and use features only for their intended informational purpose. Keep your account sign-in information private. Do not use the prototype as the sole basis for medical decisions or to provide emergency response.</p>
 
         <h2 className="h4 mt-4">AI and third-party services</h2>
-        <p>Some features rely on AI-generated responses or assessments. Those outputs can be wrong. Chatbot messages are sent to Google's Gemini service to generate responses; see the <Link to="/privacy">Privacy Policy</Link> for more information about information handling.</p>
+        <p>Some features rely on AI-generated responses or assessments. Those outputs can be wrong. Chatbot messages are sent to SwasthaLife's medical RAG chatbot service, which uses retrieved medical documents and Google Gemini to generate responses. See the <Link to="/privacy">Privacy Policy</Link> for more information about information handling.</p>
 
         <h2 className="h4 mt-4">Availability and changes</h2>
         <p>The prototype is provided for evaluation and informational use. No guarantee is made that a feature will always be available, accurate, or suitable for a particular purpose. These terms may be updated as the application changes.</p>

@@ -51,7 +51,7 @@ SwasthaLife is currently in the launch stage, with a vision to scale across Indi
 - **Frontend**: React 19.1.1, Vite 7.1.7
 - **Styling**: Bootstrap 5.3.8, Framer Motion 12.23.24
 - **Routing**: React Router DOM 7.9.4
-- **AI Integration**: Google Generative AI 0.24.1
+- **AI Integration**: Medical RAG chatbot service (Pinecone retrieval and Google Gemini)
 - **Icons**: Bootstrap Icons 1.13.1
 - **Build Tools**: ESLint 9.36.0, Vite Plugins
 - **Backend**: Node.js, Express 5.2.1, MongoDB (Mongoose 9.0.2)
@@ -66,19 +66,28 @@ SwasthaLife is currently in the launch stage, with a vision to scale across Indi
    cd swasthalife
    ```
 
-2. **Install dependencies**:
+2. **Install frontend and backend dependencies**:
    ```bash
+   cd frontend
+   npm install
+   cd ../backend
    npm install
    ```
 
-3. **Set up environment variables**:
-   Create a `.env` file in the root directory and add your Google AI API key:
+3. **Set up backend environment variables**:
+   Create `backend/.env` from `.env.example` while in the `backend` directory. Configure the backend secrets and the medical chatbot service URL and service token there. Keep provider credentials on the server; do not put them in `VITE_` variables or frontend code.
    ```
-   VITE_GOOGLE_AI_API_KEY=your_api_key_here
+   MEDICAL_CHATBOT_URL=http://127.0.0.1:8080
+   MEDICAL_CHATBOT_TOKEN=your_api_service_token
    ```
 
-4. **Start the development server**:
+4. **Start the backend and frontend in separate terminals**:
    ```bash
+   cd backend
+   node app.js
+   ```
+   ```bash
+   cd frontend
    npm run dev
    ```
 
