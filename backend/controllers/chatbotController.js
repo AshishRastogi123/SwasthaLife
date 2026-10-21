@@ -2,7 +2,7 @@ const ChatConversation = require("../models/ChatConversation");
 
 const MAX_QUESTION_LENGTH = 4000;
 const DEFAULT_CONVERSATION_TTL_SECONDS = 1800;
-const CHAT_TIMEOUT_MS = 15000;
+const CHAT_TIMEOUT_MS = 30000;
 const HEALTH_TIMEOUT_MS = 3000;
 
 const serviceConfiguration = () => {
