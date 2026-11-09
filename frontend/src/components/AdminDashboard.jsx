@@ -206,6 +206,7 @@ function AdminDashboardContent() {
         <div className="d-flex flex-wrap gap-2 mb-3">
           <button className="btn btn-primary" onClick={() => navigate("/admin")}>Dashboard</button>
           <button className="btn btn-outline-primary" onClick={() => navigate("/admin/audit-logs")}>Audit logs</button>
+          <button className="btn btn-outline-primary" onClick={() => navigate("/admin/doctor-verifications")}>Doctor verification</button>
           <button className="btn btn-outline-primary" onClick={() => document.getElementById("admin-users")?.scrollIntoView({ behavior: "smooth" })}>Users</button>
           <button className="btn btn-outline-primary" onClick={() => { setFilters({ ...filters, role: "DOCTOR" }); document.getElementById("admin-users")?.scrollIntoView({ behavior: "smooth" }); }}>Doctors</button>
           <button className="btn btn-outline-primary" onClick={() => document.getElementById("admin-departments")?.scrollIntoView({ behavior: "smooth" })}>Departments</button>

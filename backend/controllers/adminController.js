@@ -144,6 +144,7 @@ const createUser = async (req, res) => {
     password: await bcrypt.hash(password, 10),
     phone,
     role,
+    ...(role === "DOCTOR" ? { doctorVerification: { status: "NOT_SUBMITTED" } } : {}),
   });
 
   let doctor;
@@ -155,6 +156,7 @@ const createUser = async (req, res) => {
         licenseNumber: req.body.licenseNumber.trim(),
         qualifications: req.body.qualifications,
         bio: req.body.bio,
+        isAvailable: false,
       });
     } catch (error) {
       await User.deleteOne({ _id: user._id });

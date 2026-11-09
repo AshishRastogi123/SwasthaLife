@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+import DoctorVerificationPending from "./DoctorVerificationPending";
 
 export default function ProtectedRoute({ children, roles = [] }) {
   const location = useLocation();
@@ -31,6 +32,10 @@ export default function ProtectedRoute({ children, roles = [] }) {
       ADMIN: "/admin",
     };
     return <Navigate to={homeByRole[user.role] || "/"} replace />;
+  }
+
+  if (roles.includes("DOCTOR") && user.role === "DOCTOR" && user.doctorVerificationStatus !== "APPROVED") {
+    return <DoctorVerificationPending />;
   }
 
   return children;

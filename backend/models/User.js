@@ -11,7 +11,7 @@ const profileSchema = new mongoose.Schema(
     },
     gender: {
       type: String,
-      enum: ["Male", "Female", "Other"],
+      enum: ["Prefer not to say", "Male", "Female", "Other"],
     },
   },
   { _id: false }
@@ -46,6 +46,40 @@ const medicalHistorySchema = new mongoose.Schema(
     currentMedications: { type: [{ type: String, trim: true, maxlength: 200 }], default: [] },
     previousSurgeries: { type: [{ type: String, trim: true, maxlength: 200 }], default: [] },
     familyMedicalHistory: { type: [{ type: String, trim: true, maxlength: 200 }], default: [] },
+  },
+  { _id: false }
+);
+
+const doctorProfessionalProfileSchema = new mongoose.Schema(
+  {
+    registrationAuthority: { type: String, trim: true, maxlength: 160 },
+    specialization: { type: String, trim: true, maxlength: 160 },
+    qualification: { type: String, trim: true, maxlength: 300 },
+    yearsOfExperience: { type: Number, min: 0, max: 80 },
+    facilityName: { type: String, trim: true, maxlength: 200 },
+    summary: { type: String, trim: true, maxlength: 2000 },
+  },
+  { _id: false }
+);
+
+const doctorVerificationSchema = new mongoose.Schema(
+  {
+    status: {
+      type: String,
+      enum: ["NOT_SUBMITTED", "PENDING", "APPROVED", "REJECTED"],
+      default: "NOT_SUBMITTED",
+      index: true,
+    },
+    document: {
+      storagePath: { type: String, select: false },
+      originalName: { type: String, maxlength: 255 },
+      mimeType: { type: String, enum: ["application/pdf", "image/jpeg", "image/png"] },
+      sizeBytes: { type: Number, min: 1, max: 5 * 1024 * 1024 },
+      uploadedAt: Date,
+    },
+    reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    reviewedAt: Date,
+    reviewNote: { type: String, trim: true, maxlength: 1000 },
   },
   { _id: false }
 );
@@ -96,6 +130,8 @@ const userSchema = new mongoose.Schema(
     profile: { type: profileSchema, default: () => ({}) },
     healthProfile: { type: healthProfileSchema, default: () => ({}) },
     medicalHistory: { type: medicalHistorySchema, default: () => ({}) },
+    professionalProfile: { type: doctorProfessionalProfileSchema, default: undefined },
+    doctorVerification: { type: doctorVerificationSchema, default: () => ({}) },
     isActive: {
       type: Boolean,
       default: true,

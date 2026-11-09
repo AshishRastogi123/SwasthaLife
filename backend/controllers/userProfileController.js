@@ -66,6 +66,13 @@ const serializeProfile = (user) => {
     email: user.email,
     phone: user.phone || "",
     role: user.role,
+    ...(user.role === "DOCTOR" ? {
+      doctorVerification: {
+        status: user.doctorVerification?.status || "NOT_SUBMITTED",
+        reviewNote: user.doctorVerification?.reviewNote || "",
+      },
+      professionalProfile: user.professionalProfile || {},
+    } : {}),
     profile: {
       dateOfBirth: profile.dateOfBirth ? new Date(profile.dateOfBirth).toISOString().slice(0, 10) : "",
       age: calculateAge(profile.dateOfBirth),
@@ -139,7 +146,7 @@ const updateProfile = async (req, res, next) => {
 
     if (Object.hasOwn(req.body, "gender")) {
       const value = req.body.gender;
-      if (!isEmpty(value) && !["Male", "Female", "Other"].includes(value)) {
+      if (!isEmpty(value) && !["Prefer not to say", "Male", "Female", "Other"].includes(value)) {
         return invalid(res, "Gender must be Male, Female, or Other");
       }
       user.profile.gender = isEmpty(value) ? null : value;

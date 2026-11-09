@@ -7,7 +7,11 @@ const EmergencyRequest = require("../models/EmergencyRequest");
 const { writeAuditLog } = require("../services/auditLogService");
 
 const listDoctors = async (req, res) => {
-  const doctors = await Doctor.find({ isAvailable: true })
+  const verifiedDoctors = await User.find({
+    role: "DOCTOR",
+    "doctorVerification.status": "APPROVED",
+  }).select("_id");
+  const doctors = await Doctor.find({ isAvailable: true, userId: { $in: verifiedDoctors.map((user) => user._id) } })
     .populate("userId", "name email phone")
     .populate("departmentId", "name")
     .sort({ createdAt: -1 });
@@ -29,6 +33,7 @@ const createDoctor = async (req, res) => {
     return res.status(400).json({ message: "An admin account cannot be assigned as a doctor" });
   }
   user.role = "DOCTOR";
+  user.doctorVerification = { status: "NOT_SUBMITTED" };
   await user.save();
   const doctor = await Doctor.create({
     userId,
@@ -37,6 +42,7 @@ const createDoctor = async (req, res) => {
     qualifications,
     bio,
     availableSlots,
+    isAvailable: false,
   });
   await writeAuditLog({
     req,

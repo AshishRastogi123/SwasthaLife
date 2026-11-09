@@ -257,6 +257,7 @@ export default function ProfilePage() {
                 <label className="form-label" htmlFor="profile-gender">Gender (optional)</label>
                 <select id="profile-gender" className="form-select" name="gender" value={values.gender} onChange={handleChange}>
                   <option value="">Not provided</option>
+                  <option value="Prefer not to say">Prefer not to say</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>

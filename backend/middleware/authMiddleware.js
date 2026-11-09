@@ -22,7 +22,7 @@ const authMiddleware = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId).select("_id name email role isActive");
+    const user = await User.findById(decoded.userId).select("_id name email role isActive doctorVerification.status");
     if (!user || !user.isActive) {
       await writeAuditLog({
         req,
@@ -40,6 +40,7 @@ const authMiddleware = async (req, res, next) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      doctorVerificationStatus: user.doctorVerification?.status || "NOT_SUBMITTED",
     };
     next();
   } catch (error) {

@@ -1,9 +1,14 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 const User = require("../models/User");
 const Doctor = require("../models/Doctor");
 const Department = require("../models/Department");
 const { writeAuditLog } = require("../services/auditLogService");
+const {
+  uploadDoctorDocument,
+  deleteDoctorDocument,
+} = require("../services/doctorVerificationStorage");
 const csrfProtection = require("../middleware/csrfProtection");
 
 const authCookieOptions = () => {
@@ -21,6 +26,8 @@ const authCookieOptions = () => {
 
 // Signup Controller
 exports.signup = async (req, res, next) => {
+  let uploadedDocument;
+  let createdUser;
   try {
     const { name, email, password, phone } = req.body;
     const role = req.body.role || "PATIENT";
@@ -42,9 +49,15 @@ exports.signup = async (req, res, next) => {
       }
     }
 
+    const userId = new mongoose.Types.ObjectId();
+    if (role === "DOCTOR") {
+      uploadedDocument = await uploadDoctorDocument(userId.toString(), req.file);
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
+      _id: userId,
       name: name.trim(),
       email: normalizedEmail,
       password: hashedPassword,
@@ -59,7 +72,16 @@ exports.signup = async (req, res, next) => {
         )
         : undefined,
       medicalHistory: role === "PATIENT" ? req.body.medicalHistory : undefined,
+      professionalProfile: role === "DOCTOR"
+        ? Object.fromEntries(
+          Object.entries(req.body.professionalProfile || {}).filter(([, value]) => value !== "" && value !== null && value !== undefined)
+        )
+        : undefined,
+      doctorVerification: role === "DOCTOR"
+        ? { status: "PENDING", document: uploadedDocument }
+        : undefined,
     });
+    createdUser = user;
 
     if (role === "DOCTOR") {
       try {
@@ -67,17 +89,37 @@ exports.signup = async (req, res, next) => {
           userId: user._id,
           departmentId: department._id,
           licenseNumber: req.body.licenseNumber.trim(),
-          qualifications: req.body.qualifications,
-          bio: req.body.bio,
+          qualifications: req.body.professionalProfile?.qualification
+            ? req.body.professionalProfile.qualification.split(",").map((value) => value.trim()).filter(Boolean)
+            : [],
+          bio: req.body.professionalProfile?.summary,
+          isAvailable: false,
         });
       } catch (error) {
         await User.deleteOne({ _id: user._id });
+        createdUser = null;
         throw error;
       }
     }
 
-    res.status(201).json({ message: "Signup successful" });
+    res.status(201).json({
+      message: role === "DOCTOR" ? "Signup successful. Your doctor account is pending verification." : "Signup successful",
+      data: {
+        id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        ...(role === "DOCTOR" ? { verificationStatus: "PENDING" } : {}),
+      },
+    });
   } catch (error) {
+    if (uploadedDocument && !createdUser) {
+      try {
+        await deleteDoctorDocument(uploadedDocument.storagePath);
+      } catch (cleanupError) {
+        console.error("Failed to clean up an unclaimed doctor document:", cleanupError.message);
+      }
+    }
     next(error);
   }
 };
@@ -155,6 +197,7 @@ exports.login = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        doctorVerificationStatus: user.doctorVerification?.status || "NOT_SUBMITTED",
       },
     });
   } catch (error) {

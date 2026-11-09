@@ -13,6 +13,7 @@ exports.validateSignup = (req, res, next) => {
     phone,
     departmentId,
     licenseNumber,
+    professionalProfile,
     profile,
     healthProfile,
     medicalHistory,
@@ -44,6 +45,56 @@ exports.validateSignup = (req, res, next) => {
   if (role === "DOCTOR" && (!isObjectId(departmentId) || typeof licenseNumber !== "string" || !licenseNumber.trim())) {
     return res.status(400).json({ message: "departmentId and licenseNumber are required for doctor registration" });
   }
+  if (role === "DOCTOR" && licenseNumber.trim().length > 100) {
+    return res.status(400).json({ message: "Medical license number must be 100 characters or fewer" });
+  }
+  if (role === "DOCTOR" && (!req.file || !req.file.buffer)) {
+    return res.status(400).json({ message: "A license or registration certificate document is required for doctor registration" });
+  }
+  if (role !== "DOCTOR" && (req.file || licenseNumber !== undefined || departmentId !== undefined || professionalProfile !== undefined)) {
+    return res.status(400).json({ message: "Professional registration details are only valid for doctor accounts" });
+  }
+
+  if (professionalProfile !== undefined) {
+    if (
+      role !== "DOCTOR" ||
+      !isPlainObject(professionalProfile) ||
+      hasUnsupportedKeys(professionalProfile, [
+        "registrationAuthority",
+        "specialization",
+        "qualification",
+        "yearsOfExperience",
+        "facilityName",
+        "summary",
+      ])
+    ) {
+      return res.status(400).json({ message: "Professional profile contains unsupported information" });
+    }
+    if (
+      professionalProfile.yearsOfExperience !== undefined &&
+      professionalProfile.yearsOfExperience !== "" &&
+      professionalProfile.yearsOfExperience !== null &&
+      (typeof professionalProfile.yearsOfExperience !== "number" ||
+        !Number.isInteger(professionalProfile.yearsOfExperience) ||
+        professionalProfile.yearsOfExperience < 0 ||
+        professionalProfile.yearsOfExperience > 80)
+    ) {
+      return res.status(400).json({ message: "Years of experience must be a whole number between 0 and 80" });
+    }
+    for (const [field, maximum] of Object.entries({
+      registrationAuthority: 160,
+      specialization: 160,
+      qualification: 300,
+      facilityName: 200,
+      summary: 2000,
+    })) {
+      const value = professionalProfile[field];
+      if (value !== undefined && value !== null && value !== "" &&
+        (typeof value !== "string" || value.trim().length > maximum)) {
+        return res.status(400).json({ message: `${field} must be a string of at most ${maximum} characters` });
+      }
+    }
+  }
 
   if (profile !== undefined) {
     if (!isPlainObject(profile) || hasUnsupportedKeys(profile, ["dateOfBirth", "gender"])) {
@@ -58,8 +109,8 @@ exports.validateSignup = (req, res, next) => {
         return res.status(400).json({ message: "Date of birth must be a valid date that is not in the future" });
       }
     }
-    if (profile.gender !== undefined && profile.gender !== "" && profile.gender !== null && !["Male", "Female", "Other"].includes(profile.gender)) {
-      return res.status(400).json({ message: "Gender must be Male, Female, or Other" });
+    if (profile.gender !== undefined && profile.gender !== "" && profile.gender !== null && !["Prefer not to say", "Male", "Female", "Other"].includes(profile.gender)) {
+      return res.status(400).json({ message: "Gender must be Prefer not to say, Male, Female, or Other" });
     }
   }
 

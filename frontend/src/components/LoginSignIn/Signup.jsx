@@ -1,442 +1,444 @@
-import { motion as Motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { AnimatePresence, motion as Motion } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { apiRequest } from "../../api";
 import "./AuthResponsive.css";
+import "./SignupWizard.css";
+
+const STEPS = [
+  "Personal Information",
+  "Physical / Professional Information",
+  "Medical History",
+  "Account Security",
+];
+const MEDICAL_FIELDS = [
+  ["existingDiseases", "Existing diseases", "e.g. asthma, hypertension"],
+  ["allergies", "Allergies", "e.g. pollen, penicillin"],
+  ["currentMedications", "Current medications", "e.g. medicine name and dosage"],
+  ["previousSurgeries", "Previous surgeries", "e.g. procedure and approximate year"],
+  ["familyMedicalHistory", "Family medical history", "e.g. diabetes (parent), heart disease (sibling)"],
+];
+const MAX_DOCUMENT_SIZE = 5 * 1024 * 1024;
+const ACCEPTED_DOCUMENT_TYPES = ["application/pdf", "image/jpeg", "image/png"];
 
 const calculateAge = (value) => {
   if (!value) return "";
-  const birthDate = new Date(`${value}T00:00:00`);
+  const [year, month, day] = value.split("-").map(Number);
   const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  if (
-    today.getMonth() < birthDate.getMonth() ||
-    (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate())
-  ) age -= 1;
+  let age = today.getFullYear() - year;
+  if (today.getMonth() + 1 < month || (today.getMonth() + 1 === month && today.getDate() < day)) age -= 1;
   return age >= 0 ? age : "";
 };
 
-function Signup() {
+const createInitialData = () => ({
+  name: "",
+  email: "",
+  dateOfBirth: "",
+  gender: "",
+  role: "",
+  departmentId: "",
+  heightCm: "",
+  weightKg: "",
+  bloodGroup: "",
+  smokingStatus: "",
+  alcoholConsumption: "",
+  physicalActivityLevel: "",
+  medicalHistory: Object.fromEntries(MEDICAL_FIELDS.map(([field]) => [field, []])),
+  medicalDrafts: Object.fromEntries(MEDICAL_FIELDS.map(([field]) => [field, ""])),
+  professionalSummary: "",
+  licenseNumber: "",
+  registrationAuthority: "",
+  specialization: "",
+  qualification: "",
+  yearsOfExperience: "",
+  facilityName: "",
+  verificationDocument: null,
+  password: "",
+  confirmPassword: "",
+});
+
+const passwordStrength = (password) => {
+  if (!password) return { score: 0, label: "Not entered" };
+  const checks = [
+    password.length >= 8,
+    /[a-z]/.test(password) && /[A-Z]/.test(password),
+    /\d/.test(password),
+    /[^A-Za-z0-9]/.test(password),
+  ];
+  const score = checks.filter(Boolean).length;
+  return {
+    score,
+    label: ["Very weak", "Weak", "Fair", "Good", "Strong"][score],
+  };
+};
+
+function FieldError({ children }) {
+  return children ? <div className="invalid-feedback d-block">{children}</div> : null;
+}
+
+function RegistrationProgress({ step, onStepClick }) {
+  return (
+    <ol className="signup-progress">
+      {STEPS.map((title, index) => {
+        const number = index + 1;
+        const complete = number < step;
+        return (
+          <li className={`signup-progress-step${number === step ? " is-current" : ""}${complete ? " is-complete" : ""}`} key={title}>
+            <button type="button" onClick={() => number < step && onStepClick(number)} disabled={number >= step} aria-current={number === step ? "step" : undefined}>
+              <span className="signup-progress-marker" aria-hidden="true">{complete ? "✓" : number}</span>
+              <span className="signup-progress-title">{title}</span>
+            </button>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+function MedicalHistoryTags({ field, label, placeholder, values, draft, error, onDraftChange, onAdd, onRemove }) {
+  const addEntries = () => onAdd(field);
+  return (
+    <div className="col-md-6">
+      <label className="form-label fw-semibold" htmlFor={`medical-${field}`}>{label} <span className="text-muted fw-normal">(optional)</span></label>
+      <div className="d-flex gap-2">
+        <input
+          id={`medical-${field}`}
+          className={`form-control${error ? " is-invalid" : ""}`}
+          value={draft}
+          placeholder={placeholder}
+          onChange={(event) => onDraftChange(field, event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === ",") {
+              event.preventDefault();
+              addEntries();
+            }
+          }}
+          onBlur={addEntries}
+          aria-describedby={`medical-help-${field}`}
+        />
+        <button type="button" className="btn btn-outline-primary" onClick={addEntries}>Add</button>
+      </div>
+      <small id={`medical-help-${field}`} className="form-text text-muted">Type an entry and press Enter, comma, or Add.</small>
+      <FieldError>{error}</FieldError>
+      {values.length > 0 && (
+        <ul className="signup-tags" aria-label={`${label} entries`}>
+          {values.map((entry, index) => (
+            <li key={`${entry}-${index}`}>
+              <span>{entry}</span>
+              <button type="button" aria-label={`Remove ${entry}`} onClick={() => onRemove(field, index)}>×</button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+export default function Signup() {
   const navigate = useNavigate();
   const submittingRef = useRef(false);
-
-  const [data, setData] = useState({
-    fullname: "",
-    email: "",
-    phone: "",
-    dob: "",
-    gender: "",
-    heightCm: "",
-    weightKg: "",
-    bloodGroup: "",
-    bloodPressure: "",
-    heartRate: "",
-    bodyTemperature: "",
-    smokingStatus: "",
-    alcoholConsumption: "",
-    physicalActivityLevel: "",
-    existingDiseases: "",
-    allergies: "",
-    currentMedications: "",
-    previousSurgeries: "",
-    familyMedicalHistory: "",
-    password: "",
-    conPassword: "",
-    role: "PATIENT",
-    departmentId: "",
-    licenseNumber: "",
-  });
-
-  const [error, setError] = useState({});
+  const [data, setData] = useState(createInitialData);
+  const [step, setStep] = useState(1);
+  const [errors, setErrors] = useState({});
   const [departments, setDepartments] = useState([]);
   const [loadingDepartments, setLoadingDepartments] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const age = calculateAge(data.dob);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const age = useMemo(() => calculateAge(data.dateOfBirth), [data.dateOfBirth]);
+  const previewUrl = useMemo(
+    () => data.verificationDocument ? URL.createObjectURL(data.verificationDocument) : "",
+    [data.verificationDocument]
+  );
+  const strength = passwordStrength(data.password);
 
   useEffect(() => {
     if (data.role !== "DOCTOR") return undefined;
-
     const controller = new AbortController();
     const loadDepartments = async () => {
       setLoadingDepartments(true);
       try {
         const result = await apiRequest("/api/departments", { signal: controller.signal });
         setDepartments(result.data || []);
-        setError((previous) => ({ ...previous, departments: "" }));
-      } catch (loadError) {
-        if (loadError.name !== "AbortError" && !controller.signal.aborted) {
-          setError((previous) => ({ ...previous, departments: loadError.message }));
+        setErrors((previous) => ({ ...previous, departments: "" }));
+      } catch (error) {
+        if (error.name !== "AbortError" && !controller.signal.aborted) {
+          setErrors((previous) => ({ ...previous, departments: error.message }));
         }
       } finally {
         if (!controller.signal.aborted) setLoadingDepartments(false);
       }
     };
-
     loadDepartments();
     return () => controller.abort();
   }, [data.role]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setData((prev) => ({ ...prev, [name]: value }));
+  useEffect(() => {
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [previewUrl]);
+
+  const update = (name, value) => {
+    setData((current) => ({ ...current, [name]: value }));
+    setErrors((current) => ({ ...current, [name]: "" }));
   };
 
-  const validate = (values) => {
-    const errs = {};
-    if (!values.fullname.trim()) errs.fullname = "Full name is required";
-    if (!values.email) {
-      errs.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
-      errs.email = "Enter a valid email";
-    }
-    if (values.phone && !/^[0-9]{10}$/.test(values.phone)) {
-      errs.phone = "Enter a valid 10-digit phone number";
-    }
-    if (values.dob) {
-      const date = new Date(`${values.dob}T00:00:00`);
-      if (Number.isNaN(date.getTime()) || date > new Date()) errs.dob = "Enter a valid date of birth.";
-    }
-    const numericRanges = {
-      heightCm: [30, 300],
-      weightKg: [1, 500],
-      heartRate: [20, 300],
-      bodyTemperature: [30, 45],
-    };
-    Object.entries(numericRanges).forEach(([field, [minimum, maximum]]) => {
-      if (values[field] !== "" && (!Number.isFinite(Number(values[field])) || Number(values[field]) < minimum || Number(values[field]) > maximum)) {
-        errs[field] = `Enter a value between ${minimum} and ${maximum}.`;
+  const addMedicalEntries = (field) => {
+    const entries = data.medicalDrafts[field].split(",").map((entry) => entry.trim()).filter(Boolean);
+    if (!entries.length) return;
+    setData((current) => ({
+      ...current,
+      medicalHistory: {
+        ...current.medicalHistory,
+        [field]: [...new Set([...current.medicalHistory[field], ...entries])],
+      },
+      medicalDrafts: { ...current.medicalDrafts, [field]: "" },
+    }));
+    setErrors((current) => ({ ...current, [field]: "" }));
+  };
+
+  const removeMedicalEntry = (field, index) => {
+    setData((current) => ({
+      ...current,
+      medicalHistory: {
+        ...current.medicalHistory,
+        [field]: current.medicalHistory[field].filter((_, itemIndex) => itemIndex !== index),
+      },
+    }));
+  };
+
+  const validateStep = (currentStep) => {
+    const nextErrors = {};
+    if (currentStep === 1) {
+      if (!data.name.trim()) nextErrors.name = "Full name is required.";
+      else if (data.name.trim().length > 120) nextErrors.name = "Full name must be 120 characters or fewer.";
+      if (!data.email.trim()) nextErrors.email = "Email address is required.";
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) nextErrors.email = "Enter a valid email address.";
+      if (data.dateOfBirth) {
+        const date = new Date(`${data.dateOfBirth}T00:00:00`);
+        if (Number.isNaN(date.getTime()) || date > new Date()) nextErrors.dateOfBirth = "Date of birth cannot be in the future.";
       }
-    });
-    if (values.bloodPressure && !/^\d{2,3}\s*\/\s*\d{2,3}$/.test(values.bloodPressure.trim())) {
-      errs.bloodPressure = "Use systolic/diastolic format, for example 120/80.";
+      if (!["PATIENT", "DOCTOR"].includes(data.role)) nextErrors.role = "Select whether you are registering as a patient or doctor.";
     }
-    if (!values.password) {
-      errs.password = "Password is required";
-    } else if (values.password.length < 8) {
-      errs.password = "Password must be at least 8 characters";
-    }
-    if (!values.conPassword) {
-      errs.conPassword = "Confirm Password is required";
-    } else if (values.password !== values.conPassword) {
-      errs.conPassword = "Passwords do not match";
-    }
-    if (values.role === "DOCTOR") {
-      if (!values.departmentId) errs.departmentId = "Select a department";
-      if (!values.licenseNumber.trim()) errs.licenseNumber = "License number is required";
-    }
-    return errs;
-  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (submittingRef.current) return;
-    const errs = validate(data);
-    setError(errs);
-    if (Object.keys(errs).length === 0) {
-      try {
-        submittingRef.current = true;
-        setSubmitting(true);
-        await apiRequest("/api/auth/signup", {
-          method: "POST",
-          body: JSON.stringify({
-            name: data.fullname,
-            email: data.email,
-            password: data.password,
-            confirmPassword: data.conPassword,
-            phone: data.phone,
-            role: data.role,
-            profile: {
-              dateOfBirth: data.dob,
-              gender: data.gender,
-            },
-            ...(data.role === "PATIENT" && {
-              healthProfile: {
-                heightCm: data.heightCm === "" ? null : Number(data.heightCm),
-                weightKg: data.weightKg === "" ? null : Number(data.weightKg),
-                bloodGroup: data.bloodGroup,
-                bloodPressure: data.bloodPressure,
-                heartRate: data.heartRate === "" ? null : Number(data.heartRate),
-                bodyTemperature: data.bodyTemperature === "" ? null : Number(data.bodyTemperature),
-                smokingStatus: data.smokingStatus,
-                alcoholConsumption: data.alcoholConsumption,
-                physicalActivityLevel: data.physicalActivityLevel,
-              },
-              medicalHistory: {
-                existingDiseases: data.existingDiseases.split(",").map((value) => value.trim()).filter(Boolean),
-                allergies: data.allergies.split(",").map((value) => value.trim()).filter(Boolean),
-                currentMedications: data.currentMedications.split(",").map((value) => value.trim()).filter(Boolean),
-                previousSurgeries: data.previousSurgeries.split(",").map((value) => value.trim()).filter(Boolean),
-                familyMedicalHistory: data.familyMedicalHistory.split(",").map((value) => value.trim()).filter(Boolean),
-              },
-            }),
-            ...(data.role === "DOCTOR" && {
-              departmentId: data.departmentId,
-              licenseNumber: data.licenseNumber,
-            }),
-          }),
+    if (currentStep === 2) {
+      if (data.role === "DOCTOR") {
+        if (!data.departmentId) nextErrors.departmentId = "Select a medical department.";
+        if (!data.licenseNumber.trim()) nextErrors.licenseNumber = "Medical license or registration number is required.";
+        else if (data.licenseNumber.trim().length > 100) nextErrors.licenseNumber = "License number must be 100 characters or fewer.";
+        if (!data.verificationDocument) nextErrors.verificationDocument = "Upload your license or registration certificate.";
+        else if (!ACCEPTED_DOCUMENT_TYPES.includes(data.verificationDocument.type)) {
+          nextErrors.verificationDocument = "Choose a PDF, JPG, JPEG, or PNG file.";
+        } else if (data.verificationDocument.size > MAX_DOCUMENT_SIZE) {
+          nextErrors.verificationDocument = "Document must be 5 MB or smaller.";
+        }
+        if (data.yearsOfExperience !== "" && (!Number.isInteger(Number(data.yearsOfExperience)) || Number(data.yearsOfExperience) < 0 || Number(data.yearsOfExperience) > 80)) {
+          nextErrors.yearsOfExperience = "Enter a whole number from 0 to 80.";
+        }
+      } else {
+        const ranges = { heightCm: [30, 300], weightKg: [1, 500] };
+        Object.entries(ranges).forEach(([field, [minimum, maximum]]) => {
+          if (data[field] !== "" && (!Number.isFinite(Number(data[field])) || Number(data[field]) < minimum || Number(data[field]) > maximum)) {
+            nextErrors[field] = `Enter a value between ${minimum} and ${maximum}.`;
+          }
         });
-        toast.success("Account created. Please sign in.");
-        navigate("/login", { replace: true });
-      } catch (signupError) {
-        setError((current) => ({ ...current, form: signupError.message || "Unable to create the account. Please try again." }));
-      } finally {
-        submittingRef.current = false;
-        setSubmitting(false);
       }
+    }
+
+    if (currentStep === 3 && data.role === "PATIENT") {
+      for (const [field, value] of Object.entries(data.medicalDrafts)) {
+        if (value.split(",").some((entry) => entry.trim().length > 200)) {
+          nextErrors[field] = "Each entry must be 200 characters or fewer.";
+        }
+      }
+    }
+
+    if (currentStep === 4) {
+      if (!data.password) nextErrors.password = "Password is required.";
+      else if (data.password.length < 8) nextErrors.password = "Password must be at least 8 characters.";
+      if (!data.confirmPassword) nextErrors.confirmPassword = "Confirm your password.";
+      else if (data.password !== data.confirmPassword) nextErrors.confirmPassword = "Passwords do not match.";
+    }
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const continueStep = (event) => {
+    event.preventDefault();
+    if (!validateStep(step)) return;
+    if (step < 4) setStep((current) => current + 1);
+  };
+
+  const handleDocumentChange = (event) => {
+    const file = event.target.files?.[0] || null;
+    event.target.value = "";
+    update("verificationDocument", file);
+    if (file && !ACCEPTED_DOCUMENT_TYPES.includes(file.type)) {
+      setErrors((current) => ({ ...current, verificationDocument: "Choose a PDF, JPG, JPEG, or PNG file." }));
+    } else if (file && file.size > MAX_DOCUMENT_SIZE) {
+      setErrors((current) => ({ ...current, verificationDocument: "Document must be 5 MB or smaller." }));
     }
   };
 
-  // Reuse the animation variants from your Login page
-  const containerVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.6 } }
-  };
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (step !== 4 || submittingRef.current || !validateStep(4)) return;
+    submittingRef.current = true;
+    setSubmitting(true);
 
-  const leftPanelVariants = {
-    hidden: { x: -100, opacity: 0 },
-    visible: { x: 0, opacity: 1, transition: { duration: 0.8, delay: 0.2 } }
-  };
+    const registrationData = {
+      name: data.name.trim(),
+      email: data.email.trim(),
+      role: data.role,
+      profile: {
+        dateOfBirth: data.dateOfBirth,
+        gender: data.gender,
+      },
+      password: data.password,
+      confirmPassword: data.confirmPassword,
+      ...(data.role === "PATIENT" && {
+        healthProfile: {
+          heightCm: data.heightCm === "" ? null : Number(data.heightCm),
+          weightKg: data.weightKg === "" ? null : Number(data.weightKg),
+          bloodGroup: data.bloodGroup,
+          smokingStatus: data.smokingStatus,
+          alcoholConsumption: data.alcoholConsumption,
+          physicalActivityLevel: data.physicalActivityLevel,
+        },
+        medicalHistory: data.medicalHistory,
+      }),
+      ...(data.role === "DOCTOR" && {
+        departmentId: data.departmentId,
+        licenseNumber: data.licenseNumber.trim(),
+        professionalProfile: {
+          registrationAuthority: data.registrationAuthority.trim(),
+          specialization: data.specialization.trim(),
+          qualification: data.qualification.trim(),
+          yearsOfExperience: data.yearsOfExperience === "" ? null : Number(data.yearsOfExperience),
+          facilityName: data.facilityName.trim(),
+          summary: data.professionalSummary.trim(),
+        },
+      }),
+    };
 
-  const rightPanelVariants = {
-    hidden: { x: 100, opacity: 0 },
-    visible: { x: 0, opacity: 1, transition: { duration: 0.8, delay: 0.4 } }
-  };
+    const body = new FormData();
+    body.append("registrationData", JSON.stringify(registrationData));
+    if (data.role === "DOCTOR") body.append("verificationDocument", data.verificationDocument);
 
-  const inputVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+    try {
+      const result = await apiRequest("/api/auth/signup", { method: "POST", body });
+      setData(createInitialData());
+      toast.success(data.role === "DOCTOR"
+        ? "Account created. Your doctor application is pending verification."
+        : "Account created. Please sign in.");
+      navigate("/login", { replace: true, state: { registrationMessage: result.message } });
+    } catch (signupError) {
+      setErrors((current) => ({
+        ...current,
+        form: signupError.message || "Unable to create the account. Please try again.",
+      }));
+    } finally {
+      submittingRef.current = false;
+      setSubmitting(false);
+    }
   };
 
   return (
-    <Motion.div
-      className="auth-page d-flex justify-content-center align-items-center"
-      style={{ background: "linear-gradient(135deg, #E3F2FD, #FCE4EC)" }}
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
-      <div className="container">
-        <div className="row justify-content-center">
-          <Motion.div
-            className="auth-intro-panel col-12 col-lg-5 d-flex flex-column align-items-center justify-content-center text-center bg-white shadow rounded-start p-4"
-            variants={leftPanelVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            <Motion.h4
-              className="fw-bold mb-3"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-            >
-              Join SwasthaLife
-            </Motion.h4>
-            <Motion.h2
-              className="fw-bold text-primary mb-4"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.8 }}
-            >
-              Create your account
-            </Motion.h2>
-            <Motion.img
-              src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png"
-              alt="health"
-              style={{ width: "80%", maxWidth: "250px" }}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 1 }}
-            />
-            <Motion.a
-              href="/"
-              className="mt-3 text-decoration-none fw-semibold"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 1.2 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Go Home
-            </Motion.a>
-          </Motion.div>
+    <main className="signup-wizard-page">
+      <div className="signup-wizard-shell">
+        <header className="signup-wizard-heading">
+          <Link to="/" className="signup-brand">Swastha<span>Life</span></Link>
+          <p className="signup-eyebrow">YOUR HEALTH JOURNEY STARTS HERE</p>
+          <h1>Create your account</h1>
+          <p>Set up your SwasthaLife account in a few simple steps.</p>
+        </header>
 
-          <Motion.div
-            className="auth-form-panel col-12 col-lg-5 bg-light shadow rounded-end p-4"
-            variants={rightPanelVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            <Motion.h4
-              className="text-center fw-bold mb-4"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-            >
-              Create a new account
-            </Motion.h4>
+        <section className="signup-wizard-card" aria-label="Registration">
+          <RegistrationProgress step={step} onStepClick={(target) => setStep(target)} />
 
-            <form onSubmit={handleSubmit}>
-              {error.form && <div className="alert alert-danger" role="alert">{error.form}</div>}
-              <Motion.div className="mb-3" variants={inputVariants} initial="hidden" animate="visible" transition={{ delay: 0.8 }}>
-                <input
-                  type="text"
-                  name="fullname"
-                  placeholder="Full name"
-                  className="form-control"
-                  value={data.fullname}
-                  onChange={handleChange}
-                />
-                <p className="text-danger">{error.fullname}</p>
-              </Motion.div>
+          <form onSubmit={step === 4 ? handleSubmit : continueStep} noValidate>
+            {errors.form && <div className="alert alert-danger" role="alert">{errors.form}</div>}
+            <AnimatePresence mode="wait" initial={false}>
+              <Motion.section
+                key={step}
+                className="signup-step-content"
+                initial={{ opacity: 0, x: 18 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -18 }}
+                transition={{ duration: 0.18 }}
+                aria-labelledby="signup-step-title"
+              >
+                <p className="signup-step-count">STEP {step} OF 4</p>
+                <h2 id="signup-step-title">{STEPS[step - 1]}</h2>
 
-              <Motion.div className="mb-3" variants={inputVariants} initial="hidden" animate="visible" transition={{ delay: 1 }}>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email address"
-                  className="form-control"
-                  value={data.email}
-                  onChange={handleChange}
-                />
-                <p className="text-danger">{error.email}</p>
-              </Motion.div>
-
-              <Motion.div className="mb-3" variants={inputVariants} initial="hidden" animate="visible" transition={{ delay: 1.2 }}>
-                <input
-                  type="tel"
-                  name="phone"
-                  placeholder="Phone (optional)"
-                  className="form-control"
-                  value={data.phone}
-                  onChange={handleChange}
-                />
-                <p className="text-danger">{error.phone}</p>
-              </Motion.div>
-
-              <section className="border rounded-3 bg-white p-3 mb-3">
-                <h5 className="fw-bold text-primary">Personal Information</h5>
-                <div className="row g-3">
-                  <div className="col-md-6">
-                    <label className="form-label" htmlFor="signup-dob">Date of birth (optional)</label>
-                    <input
-                      id="signup-dob"
-                      type="date"
-                      name="dob"
-                      max={new Date().toISOString().slice(0, 10)}
-                      className={`form-control ${error.dob ? "is-invalid" : ""}`}
-                      value={data.dob}
-                      onChange={handleChange}
-                    />
-                    {error.dob && <div className="invalid-feedback">{error.dob}</div>}
-                  </div>
-                  <div className="col-md-3">
-                    <label className="form-label" htmlFor="signup-age">Age</label>
-                    <input id="signup-age" className="form-control" value={age} placeholder="Calculated from DOB" readOnly />
-                  </div>
-                  <div className="col-md-3">
-                    <label className="form-label" htmlFor="signup-gender">Gender (optional)</label>
-                    <select id="signup-gender" name="gender" className="form-select" value={data.gender} onChange={handleChange}>
-                      <option value="">Prefer not to say</option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                </div>
-              </section>
-
-              <Motion.div className="mb-3" variants={inputVariants} initial="hidden" animate="visible" transition={{ delay: 1.3 }}>
-                <label className="form-label" htmlFor="signup-role">I am registering as</label>
-                <select
-                  id="signup-role"
-                  name="role"
-                  className="form-select"
-                  value={data.role}
-                  onChange={handleChange}
-                >
-                  <option value="PATIENT">Patient</option>
-                  <option value="DOCTOR">Doctor</option>
-                </select>
-              </Motion.div>
-
-              {data.role === "DOCTOR" && (
-                <>
-                  <div className="mb-3">
-                    <label className="form-label" htmlFor="signup-department">Department</label>
-                    <select
-                      id="signup-department"
-                      name="departmentId"
-                      className="form-select"
-                      value={data.departmentId}
-                      onChange={handleChange}
-                      disabled={loadingDepartments}
-                    >
-                      <option value="">
-                        {loadingDepartments ? "Loading departments..." : "Select a department"}
-                      </option>
-                      {departments.map((department) => (
-                        <option key={department._id} value={department._id}>{department.name}</option>
-                      ))}
-                    </select>
-                    <p className="text-danger">{error.departmentId || error.departments}</p>
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label" htmlFor="signup-license">Medical license number</label>
-                    <input
-                      id="signup-license"
-                      type="text"
-                      name="licenseNumber"
-                      placeholder="Medical license number"
-                      className="form-control"
-                      value={data.licenseNumber}
-                      onChange={handleChange}
-                    />
-                    <p className="text-danger">{error.licenseNumber}</p>
-                  </div>
-                </>
-              )}
-
-              {data.role === "PATIENT" && (
-                <>
-                  <section className="border rounded-3 bg-white p-3 mb-3">
-                    <h5 className="fw-bold text-primary">Physical Information <small className="text-muted fw-normal">(optional)</small></h5>
+                {step === 1 && (
+                  <>
                     <div className="row g-3">
-                      <div className="col-md-3">
-                        <label className="form-label" htmlFor="signup-height">Height (cm)</label>
-                        <input id="signup-height" type="number" min="30" max="300" step="0.1" name="heightCm" value={data.heightCm} onChange={handleChange} className={`form-control ${error.heightCm ? "is-invalid" : ""}`} />
-                        {error.heightCm && <div className="invalid-feedback">{error.heightCm}</div>}
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold" htmlFor="signup-name">Full name <span className="text-danger">*</span></label>
+                        <input id="signup-name" name="name" autoComplete="name" maxLength="120" className={`form-control${errors.name ? " is-invalid" : ""}`} value={data.name} onChange={(event) => update("name", event.target.value)} />
+                        <FieldError>{errors.name}</FieldError>
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold" htmlFor="signup-email">Email address <span className="text-danger">*</span></label>
+                        <input id="signup-email" name="email" type="email" autoComplete="email" className={`form-control${errors.email ? " is-invalid" : ""}`} value={data.email} onChange={(event) => update("email", event.target.value)} />
+                        <FieldError>{errors.email}</FieldError>
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold" htmlFor="signup-dob">Date of birth</label>
+                        <input id="signup-dob" name="dateOfBirth" type="date" max={new Date().toISOString().slice(0, 10)} className={`form-control${errors.dateOfBirth ? " is-invalid" : ""}`} value={data.dateOfBirth} onChange={(event) => update("dateOfBirth", event.target.value)} />
+                        <FieldError>{errors.dateOfBirth}</FieldError>
                       </div>
                       <div className="col-md-3">
-                        <label className="form-label" htmlFor="signup-weight">Weight (kg)</label>
-                        <input id="signup-weight" type="number" min="1" max="500" step="0.1" name="weightKg" value={data.weightKg} onChange={handleChange} className={`form-control ${error.weightKg ? "is-invalid" : ""}`} />
-                        {error.weightKg && <div className="invalid-feedback">{error.weightKg}</div>}
+                        <label className="form-label fw-semibold" htmlFor="signup-age">Age</label>
+                        <input id="signup-age" className="form-control" value={age} placeholder="Calculated from DOB" readOnly aria-readonly="true" />
                       </div>
                       <div className="col-md-3">
-                        <label className="form-label" htmlFor="signup-blood-group">Blood group</label>
-                        <select id="signup-blood-group" name="bloodGroup" value={data.bloodGroup} onChange={handleChange} className="form-select">
+                        <label className="form-label fw-semibold" htmlFor="signup-gender">Gender</label>
+                        <select id="signup-gender" name="gender" className="form-select" value={data.gender} onChange={(event) => update("gender", event.target.value)}>
+                          <option value="Prefer not to say">Prefer not to say</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                      <div className="col-12">
+                        <label className="form-label fw-semibold" htmlFor="signup-role">I am registering as <span className="text-danger">*</span></label>
+                        <select id="signup-role" name="role" className={`form-select${errors.role ? " is-invalid" : ""}`} value={data.role} onChange={(event) => update("role", event.target.value)}>
+                          <option value="">Choose account type</option>
+                          <option value="PATIENT">Patient</option>
+                          <option value="DOCTOR">Doctor</option>
+                        </select>
+                        <FieldError>{errors.role}</FieldError>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {step === 2 && data.role === "PATIENT" && (
+                  <>
+                    <p className="text-secondary">These details are optional and can be changed later from My Health Profile.</p>
+                    <div className="row g-3">
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold" htmlFor="signup-height">Height (cm)</label>
+                        <input id="signup-height" type="number" min="30" max="300" step="0.1" className={`form-control${errors.heightCm ? " is-invalid" : ""}`} value={data.heightCm} onChange={(event) => update("heightCm", event.target.value)} />
+                        <FieldError>{errors.heightCm}</FieldError>
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold" htmlFor="signup-weight">Weight (kg)</label>
+                        <input id="signup-weight" type="number" min="1" max="500" step="0.1" className={`form-control${errors.weightKg ? " is-invalid" : ""}`} value={data.weightKg} onChange={(event) => update("weightKg", event.target.value)} />
+                        <FieldError>{errors.weightKg}</FieldError>
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold" htmlFor="signup-blood-group">Blood group</label>
+                        <select id="signup-blood-group" className="form-select" value={data.bloodGroup} onChange={(event) => update("bloodGroup", event.target.value)}>
                           <option value="">Not provided</option>
                           {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((group) => <option key={group} value={group}>{group}</option>)}
                         </select>
                       </div>
-                      <div className="col-md-3">
-                        <label className="form-label" htmlFor="signup-bp">Blood pressure</label>
-                        <input id="signup-bp" name="bloodPressure" value={data.bloodPressure} onChange={handleChange} className={`form-control ${error.bloodPressure ? "is-invalid" : ""}`} placeholder="120/80" />
-                        {error.bloodPressure && <div className="invalid-feedback">{error.bloodPressure}</div>}
-                      </div>
-                      <div className="col-md-4">
-                        <label className="form-label" htmlFor="signup-heart-rate">Heart rate (bpm)</label>
-                        <input id="signup-heart-rate" type="number" min="20" max="300" name="heartRate" value={data.heartRate} onChange={handleChange} className={`form-control ${error.heartRate ? "is-invalid" : ""}`} />
-                        {error.heartRate && <div className="invalid-feedback">{error.heartRate}</div>}
-                      </div>
-                      <div className="col-md-4">
-                        <label className="form-label" htmlFor="signup-temperature">Body temperature (°C)</label>
-                        <input id="signup-temperature" type="number" min="30" max="45" step="0.1" name="bodyTemperature" value={data.bodyTemperature} onChange={handleChange} className={`form-control ${error.bodyTemperature ? "is-invalid" : ""}`} />
-                        {error.bodyTemperature && <div className="invalid-feedback">{error.bodyTemperature}</div>}
-                      </div>
-                      <div className="col-md-4">
-                        <label className="form-label" htmlFor="signup-smoking">Smoking status</label>
-                        <select id="signup-smoking" name="smokingStatus" value={data.smokingStatus} onChange={handleChange} className="form-select">
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold" htmlFor="signup-smoking">Smoking status</label>
+                        <select id="signup-smoking" className="form-select" value={data.smokingStatus} onChange={(event) => update("smokingStatus", event.target.value)}>
                           <option value="">Not provided</option>
                           <option value="NEVER">Never</option>
                           <option value="FORMER">Former</option>
@@ -444,8 +446,8 @@ function Signup() {
                         </select>
                       </div>
                       <div className="col-md-6">
-                        <label className="form-label" htmlFor="signup-alcohol">Alcohol consumption</label>
-                        <select id="signup-alcohol" name="alcoholConsumption" value={data.alcoholConsumption} onChange={handleChange} className="form-select">
+                        <label className="form-label fw-semibold" htmlFor="signup-alcohol">Alcohol consumption</label>
+                        <select id="signup-alcohol" className="form-select" value={data.alcoholConsumption} onChange={(event) => update("alcoholConsumption", event.target.value)}>
                           <option value="">Not provided</option>
                           <option value="NONE">None</option>
                           <option value="OCCASIONAL">Occasional</option>
@@ -453,8 +455,8 @@ function Signup() {
                         </select>
                       </div>
                       <div className="col-md-6">
-                        <label className="form-label" htmlFor="signup-activity">Physical activity level</label>
-                        <select id="signup-activity" name="physicalActivityLevel" value={data.physicalActivityLevel} onChange={handleChange} className="form-select">
+                        <label className="form-label fw-semibold" htmlFor="signup-activity">Physical activity level</label>
+                        <select id="signup-activity" className="form-select" value={data.physicalActivityLevel} onChange={(event) => update("physicalActivityLevel", event.target.value)}>
                           <option value="">Not provided</option>
                           <option value="SEDENTARY">Sedentary</option>
                           <option value="LOW">Low</option>
@@ -463,95 +465,144 @@ function Signup() {
                         </select>
                       </div>
                     </div>
-                  </section>
+                  </>
+                )}
 
-                  <section className="border rounded-3 bg-white p-3 mb-3">
-                    <h5 className="fw-bold text-primary">Medical History <small className="text-muted fw-normal">(optional)</small></h5>
-                    <p className="small text-muted">Separate multiple entries with commas. You can edit or remove these details later.</p>
+                {step === 2 && data.role === "DOCTOR" && (
+                  <>
+                    <p className="text-secondary">Doctor accounts remain pending until an administrator reviews the registration certificate.</p>
                     <div className="row g-3">
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold" htmlFor="signup-license">Medical license / registration number <span className="text-danger">*</span></label>
+                        <input id="signup-license" maxLength="100" className={`form-control${errors.licenseNumber ? " is-invalid" : ""}`} value={data.licenseNumber} onChange={(event) => update("licenseNumber", event.target.value)} />
+                        <FieldError>{errors.licenseNumber}</FieldError>
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold" htmlFor="signup-department">Medical department <span className="text-danger">*</span></label>
+                        <select id="signup-department" className={`form-select${errors.departmentId ? " is-invalid" : ""}`} value={data.departmentId} onChange={(event) => update("departmentId", event.target.value)} disabled={loadingDepartments}>
+                          <option value="">{loadingDepartments ? "Loading departments..." : "Select a department"}</option>
+                          {departments.map((department) => <option key={department._id} value={department._id}>{department.name}</option>)}
+                        </select>
+                        <FieldError>{errors.departmentId || errors.departments}</FieldError>
+                      </div>
                       {[
-                        ["existingDiseases", "Existing diseases"],
-                        ["allergies", "Allergies"],
-                        ["currentMedications", "Current medications"],
-                        ["previousSurgeries", "Previous surgeries"],
-                        ["familyMedicalHistory", "Family medical history"],
+                        ["registrationAuthority", "Medical council / registration authority"],
+                        ["specialization", "Medical specialization"],
+                        ["qualification", "Qualification"],
+                        ["facilityName", "Clinic / hospital name"],
                       ].map(([field, label]) => (
                         <div className="col-md-6" key={field}>
-                          <label className="form-label" htmlFor={`signup-${field}`}>{label}</label>
-                          <textarea id={`signup-${field}`} name={field} value={data[field]} onChange={handleChange} className="form-control" rows="2" maxLength="1000" />
+                          <label className="form-label fw-semibold" htmlFor={`signup-${field}`}>{label} <span className="text-muted fw-normal">(optional)</span></label>
+                          <input id={`signup-${field}`} className="form-control" value={data[field]} onChange={(event) => update(field, event.target.value)} />
                         </div>
                       ))}
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold" htmlFor="signup-experience">Years of experience <span className="text-muted fw-normal">(optional)</span></label>
+                        <input id="signup-experience" type="number" min="0" max="80" step="1" className={`form-control${errors.yearsOfExperience ? " is-invalid" : ""}`} value={data.yearsOfExperience} onChange={(event) => update("yearsOfExperience", event.target.value)} />
+                        <FieldError>{errors.yearsOfExperience}</FieldError>
+                      </div>
+                      <div className="col-12">
+                        <label className="form-label fw-semibold" htmlFor="signup-document">License / registration certificate <span className="text-danger">*</span></label>
+                        <input id="signup-document" type="file" className={`form-control${errors.verificationDocument ? " is-invalid" : ""}`} accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" onChange={handleDocumentChange} />
+                        <div className="form-text">PDF, JPG, JPEG, or PNG; maximum 5 MB. The document is stored privately for administrator verification.</div>
+                        <FieldError>{errors.verificationDocument}</FieldError>
+                        {data.verificationDocument && (
+                          <div className="signup-document-preview mt-3">
+                            <div className="d-flex align-items-center justify-content-between gap-3 mb-2">
+                              <span className="text-break"><i className="bi bi-file-earmark-medical me-2" aria-hidden="true" />{data.verificationDocument.name}</span>
+                              <button type="button" className="btn btn-sm btn-outline-secondary flex-shrink-0" onClick={() => update("verificationDocument", null)}>Remove</button>
+                            </div>
+                            {data.verificationDocument.type.startsWith("image/") && <img src={previewUrl} alt="Selected registration certificate preview" />}
+                            {data.verificationDocument.type === "application/pdf" && <iframe title="Registration certificate preview" src={previewUrl} />}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </section>
-                </>
-              )}
+                  </>
+                )}
 
-              <Motion.div className="mb-3" variants={inputVariants} initial="hidden" animate="visible" transition={{ delay: 1.4 }}>
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Create a password"
-                  className="form-control"
-                  value={data.password}
-                  onChange={handleChange}
-                />
-                <p className="text-danger">{error.password}</p>
-              </Motion.div>
+                {step === 3 && data.role === "PATIENT" && (
+                  <>
+                    <p className="text-secondary">Share any information you would like to include. You can edit this later from My Health Profile.</p>
+                    <div className="row g-4">
+                      {MEDICAL_FIELDS.map(([field, label, placeholder]) => (
+                        <MedicalHistoryTags
+                          key={field}
+                          field={field}
+                          label={label}
+                          placeholder={placeholder}
+                          values={data.medicalHistory[field]}
+                          draft={data.medicalDrafts[field]}
+                          error={errors[field]}
+                          onDraftChange={(name, value) => setData((current) => ({
+                            ...current,
+                            medicalDrafts: { ...current.medicalDrafts, [name]: value },
+                          }))}
+                          onAdd={addMedicalEntries}
+                          onRemove={removeMedicalEntry}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
 
-              <Motion.div className="mb-3" variants={inputVariants} initial="hidden" animate="visible" transition={{ delay: 1.6 }}>
-                <input
-                  type="password"
-                  name="conPassword"
-                  placeholder="Confirm password"
-                  className="form-control"
-                  value={data.conPassword}
-                  onChange={handleChange}
-                />
-                <p className="text-danger">{error.conPassword}</p>
-              </Motion.div>
+                {step === 3 && data.role === "DOCTOR" && (
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold" htmlFor="signup-professional-summary">Professional profile summary <span className="text-muted fw-normal">(optional)</span></label>
+                    <textarea id="signup-professional-summary" rows="5" maxLength="2000" className="form-control" placeholder="Briefly describe your clinical experience or areas of focus." value={data.professionalSummary} onChange={(event) => update("professionalSummary", event.target.value)} />
+                    <p className="form-text">You can also continue without adding a summary.</p>
+                  </div>
+                )}
 
-              <Motion.div className="d-grid" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 1.8 }}>
-                <Motion.button className="btn btn-primary fw-semibold" type="submit" disabled={submitting} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  {submitting ? "Creating account..." : "Sign up"}
-                </Motion.button>
-              </Motion.div>
-              <p className="text-muted small mt-3">
-                By signing up, you acknowledge our <Link to="/privacy">Privacy Policy</Link> and agree to our <Link to="/terms">Terms of Service</Link>.
-              </p>
-            </form>
+                {step === 4 && (
+                  <>
+                    <p className="text-secondary">Choose a strong password to protect your account.</p>
+                    <div className="mb-3">
+                      <label className="form-label fw-semibold" htmlFor="signup-password">Password <span className="text-danger">*</span></label>
+                      <div className="input-group">
+                        <input id="signup-password" type={showPassword ? "text" : "password"} autoComplete="new-password" className={`form-control${errors.password ? " is-invalid" : ""}`} value={data.password} onChange={(event) => update("password", event.target.value)} />
+                        <button type="button" className="btn btn-outline-secondary" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? "Hide" : "Show"}</button>
+                        <FieldError>{errors.password}</FieldError>
+                      </div>
+                      <div className="signup-strength mt-2" aria-label={`Password strength: ${strength.label}`}>
+                        <div className="progress"><div className={`progress-bar strength-${strength.score}`} style={{ width: `${strength.score * 25}%` }} /></div>
+                        <small className="text-muted">Password strength: {strength.label}</small>
+                      </div>
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label fw-semibold" htmlFor="signup-confirm-password">Confirm password <span className="text-danger">*</span></label>
+                      <div className="input-group">
+                        <input id="signup-confirm-password" type={showConfirmPassword ? "text" : "password"} autoComplete="new-password" className={`form-control${errors.confirmPassword ? " is-invalid" : ""}`} value={data.confirmPassword} onChange={(event) => update("confirmPassword", event.target.value)} />
+                        <button type="button" className="btn btn-outline-secondary" onClick={() => setShowConfirmPassword((value) => !value)} aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}>{showConfirmPassword ? "Hide" : "Show"}</button>
+                        <FieldError>{errors.confirmPassword}</FieldError>
+                      </div>
+                    </div>
+                    <ul className="signup-password-requirements">
+                      <li className={data.password.length >= 8 ? "is-met" : ""}>At least 8 characters</li>
+                      <li className={data.password === data.confirmPassword && data.password ? "is-met" : ""}>Passwords match</li>
+                    </ul>
+                    <p className="small text-muted">
+                      By creating an account, you agree to the <Link to="/terms">Terms of Service</Link> and acknowledge the <Link to="/privacy">Privacy Policy</Link>. Health-information consent is requested separately before using health assessment features.
+                    </p>
+                    {data.role === "DOCTOR" && <div className="alert alert-info">Your account will be created with pending verification. Doctor features remain unavailable until an administrator approves your submitted document.</div>}
+                  </>
+                )}
+              </Motion.section>
+            </AnimatePresence>
 
-            <Motion.hr initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 2.0 }} />
+            <div className="signup-wizard-actions">
+              {step > 1
+                ? <button type="button" className="btn btn-outline-secondary" onClick={() => { setErrors({}); setStep((current) => current - 1); }} disabled={submitting}>Back</button>
+                : <Link to="/login" className="btn btn-link">Already have an account? Sign in</Link>}
+              {step < 4
+                ? <button type="submit" className="btn btn-primary px-4">Continue</button>
+                : <button type="submit" className="btn btn-primary px-4" disabled={submitting}>{submitting ? "Creating account..." : "Create account"}</button>}
+            </div>
+          </form>
+        </section>
 
-            <Motion.p className="text-center text-muted" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 2.2 }}>
-              Or continue with
-            </Motion.p>
-
-            <Motion.div className="d-flex justify-content-center gap-3" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 2.4 }}>
-              <Motion.button className="btn btn-outline-primary" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <i className="bi bi-facebook me-2"></i> Facebook
-              </Motion.button>
-              <Motion.button className="btn btn-outline-info" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <i className="bi bi-twitter me-2"></i> Twitter
-              </Motion.button>
-              <Motion.button className="btn btn-outline-primary" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <i className="bi bi-linkedin me-2"></i> LinkedIn
-              </Motion.button>
-              <Motion.button className="btn btn-outline-danger" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <i className="bi bi-google me-2"></i> Google
-              </Motion.button>
-            </Motion.div>
-
-            <Motion.div className="text-center mt-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 2.6 }}>
-              <p>
-                Already have an account?
-                <Link to="/login" className="text-decoration-none ms-2">Login</Link>
-              </p>
-            </Motion.div>
-          </Motion.div>
-        </div>
+        <p className="signup-wizard-footer">Secure registration · Your information is protected</p>
       </div>
-    </Motion.div>
+    </main>
   );
 }
-
-export default Signup;

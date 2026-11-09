@@ -13,8 +13,30 @@ const jwt = require("jsonwebtoken");
 
 process.env.JWT_SECRET = "integration-test-secret-only";
 process.env.NODE_ENV = "test";
+process.env.SUPABASE_URL = "https://supabase.integration.test";
+process.env.SUPABASE_SERVICE_ROLE_KEY = "integration-test-service-role-key";
+process.env.SUPABASE_DOCTOR_VERIFICATION_BUCKET = "doctor-verification-documents";
 
 const originalHttpRequest = http.request;
+const originalFetch = global.fetch;
+const supabaseRequests = [];
+global.fetch = async (input, options = {}) => {
+  const url = typeof input === "string" ? input : input.url;
+  if (url.startsWith(process.env.SUPABASE_URL)) {
+    supabaseRequests.push({ url, options });
+    if (url.includes("/sign/")) {
+      return new Response(JSON.stringify({ signedURL: "/object/sign/doctor-verification-documents/test?token=short-lived" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response(JSON.stringify({ Key: "doctor-verification-documents/test" }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  return originalFetch(input, options);
+};
 let heartPredictionRequest;
 http.request = function mockPredictionService(options, callback) {
   if (
@@ -135,8 +157,8 @@ before(async () => {
   const [patient, otherPatient, doctorUser, unrelatedDoctorUser, admin, newDoctorUser] = await User.create([
     { name: "Patient One", email: "patient.one@example.test", password: passwordHash, role: "PATIENT" },
     { name: "Patient Two", email: "patient.two@example.test", password: passwordHash, role: "PATIENT" },
-    { name: "Assigned Doctor", email: "doctor.one@example.test", password: passwordHash, role: "DOCTOR" },
-    { name: "Other Doctor", email: "doctor.two@example.test", password: passwordHash, role: "DOCTOR" },
+    { name: "Assigned Doctor", email: "doctor.one@example.test", password: passwordHash, role: "DOCTOR", doctorVerification: { status: "APPROVED" } },
+    { name: "Other Doctor", email: "doctor.two@example.test", password: passwordHash, role: "DOCTOR", doctorVerification: { status: "APPROVED" } },
     { name: "Admin User", email: "admin@example.test", password: passwordHash, role: "ADMIN" },
     { name: "New Doctor Candidate", email: "doctor.new@example.test", password: passwordHash, role: "PATIENT" },
   ]);
@@ -164,6 +186,7 @@ before(async () => {
 
 after(async () => {
   http.request = originalHttpRequest;
+  global.fetch = originalFetch;
   if (httpServer?.listening) await closeServer(httpServer);
   if (mongoose.connection.readyState !== 0) {
     await mongoose.connection.dropDatabase();
@@ -178,13 +201,14 @@ after(async () => {
 });
 
 const request = async (method, route, token, body) => {
+  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
   const response = await fetch(`${baseUrl}${route}`, {
     method,
     headers: {
-      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+      ...(body === undefined || isFormData ? {} : { "Content-Type": "application/json" }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    ...(body === undefined ? {} : { body: isFormData ? body : JSON.stringify(body) }),
   });
   const text = await response.text();
   return {
@@ -240,19 +264,69 @@ test("backend API integration: auth, patient, doctor, admin, and lifecycles", { 
     assert.equal(adminSignup.status, 400);
     assert.equal(await User.exists({ email: "public.admin@example.test" }), null);
 
-    const doctorSignup = await request("POST", "/api/auth/signup", null, {
+    const doctorRegistration = new FormData();
+    doctorRegistration.set("registrationData", JSON.stringify({
       name: "Signup Doctor",
       email: "signup.doctor@example.test",
       password: "correct horse battery staple",
       role: "DOCTOR",
       departmentId: fixtures.department.id,
       licenseNumber: "SIGNUP-LICENSE-001",
-    });
+      professionalProfile: {
+        registrationAuthority: "Integration Council",
+      },
+    }));
+    doctorRegistration.set(
+      "verificationDocument",
+      new Blob([Buffer.from("%PDF-1.4\nIntegration license")], { type: "application/pdf" }),
+      "license.pdf"
+    );
+    const doctorSignup = await request("POST", "/api/auth/signup", null, doctorRegistration);
     assert.equal(doctorSignup.status, 201, JSON.stringify(doctorSignup.body));
     const doctorUser = await User.findOne({ email: "signup.doctor@example.test" });
     const doctorProfile = await Doctor.findOne({ userId: doctorUser._id });
     assert.equal(doctorUser.role, "DOCTOR");
+    assert.equal(doctorUser.doctorVerification.status, "PENDING");
+    assert.equal(doctorUser.doctorVerification.document.mimeType, "application/pdf");
+    assert.notEqual(doctorUser.password, "correct horse battery staple");
+    assert.equal(await bcrypt.compare("correct horse battery staple", doctorUser.password), true);
+    assert.equal(doctorSignup.body.data.password, undefined);
+    assert.equal(doctorSignup.body.data.doctorVerification, undefined);
     assert.equal(doctorProfile.departmentId.toString(), fixtures.department.id);
+
+    const doctorToken = await login("signup.doctor@example.test");
+    const pendingDashboard = await request("GET", "/api/doctors/me/dashboard", doctorToken);
+    assert.equal(pendingDashboard.status, 403);
+
+    const invalidDocument = new FormData();
+    invalidDocument.set(
+      "verificationDocument",
+      new Blob(["not a license"], { type: "text/plain" }),
+      "license.txt"
+    );
+    const rejectedUpload = await request("PUT", "/api/doctors/me/verification-document", doctorToken, invalidDocument);
+    assert.equal(rejectedUpload.status, 400);
+
+    const adminToken = await login("admin@example.test");
+    const pendingReviews = await request("GET", "/api/admin/doctor-verifications", adminToken);
+    assert.equal(pendingReviews.status, 200);
+    const candidateReview = pendingReviews.body.data.find(({ id }) => id === doctorUser._id.toString());
+    assert.ok(candidateReview);
+    assert.equal(candidateReview.verification.document.storagePath, undefined);
+    assert.ok(candidateReview.verification.document.signedUrl.startsWith("https://supabase.integration.test/"));
+    assert.equal(candidateReview.verification.status, "PENDING");
+    assert.equal(candidateReview.licenseNumber, "SIGNUP-LICENSE-001");
+    assert.equal(candidateReview.department, "Integration Medicine");
+
+    const approved = await request(
+      "PATCH",
+      `/api/admin/doctor-verifications/${doctorUser._id}`,
+      adminToken,
+      { action: "approve", reviewNote: "Registration verified" }
+    );
+    assert.equal(approved.status, 200, JSON.stringify(approved.body));
+    assert.equal(approved.body.data.status, "APPROVED");
+    assert.equal((await request("GET", "/api/doctors/me/dashboard", doctorToken)).status, 200);
   });
 
   await t.test("valid login returns a usable token; invalid login is rejected", async () => {
@@ -292,6 +366,12 @@ test("backend API integration: auth, patient, doctor, admin, and lifecycles", { 
     assert.equal(personal.status, 200, JSON.stringify(personal.body));
     assert.equal(personal.body.data.name, "Patient Updated");
     assert.equal(personal.body.data.profile.age, new Date().getFullYear() - 2000);
+
+    const genderPreference = await request("PUT", "/api/users/profile", fixtures.patientToken, {
+      gender: "Prefer not to say",
+    });
+    assert.equal(genderPreference.status, 200, JSON.stringify(genderPreference.body));
+    assert.equal(genderPreference.body.data.profile.gender, "Prefer not to say");
 
     const health = await request("PUT", "/api/users/health-profile", fixtures.patientToken, {
       heightCm: 172.5,
@@ -708,6 +788,10 @@ test("backend API integration: auth, patient, doctor, admin, and lifecycles", { 
     assert.equal(createdAdminDoctor.status, 201, JSON.stringify(createdAdminDoctor.body));
     assert.equal(createdAdminDoctor.body.data.role, "DOCTOR");
     assert.ok(await Doctor.findOne({ userId: createdAdminDoctor.body.data._id }));
+    const adminCreatedDoctorUser = await User.findById(createdAdminDoctor.body.data._id);
+    assert.equal(adminCreatedDoctorUser.doctorVerification.status, "NOT_SUBMITTED");
+    const adminCreatedDoctorToken = await login(adminCreatedDoctorUser.email, "a secure password");
+    assert.equal((await request("GET", "/api/doctors/me/dashboard", adminCreatedDoctorToken)).status, 403);
 
     const departmentToDeactivate = await request("POST", "/api/departments", fixtures.adminToken, {
       name: "Department for deactivation",
@@ -731,10 +815,14 @@ test("backend API integration: auth, patient, doctor, admin, and lifecycles", { 
     });
     assert.equal(createdDoctor.status, 201);
     assert.ok(await Doctor.findOne({ userId: fixtures.newDoctorUser.id }));
-    assert.equal((await User.findById(fixtures.newDoctorUser.id)).role, "DOCTOR");
+    const newlyAssignedDoctor = await User.findById(fixtures.newDoctorUser.id);
+    assert.equal(newlyAssignedDoctor.role, "DOCTOR");
+    assert.equal(newlyAssignedDoctor.doctorVerification.status, "NOT_SUBMITTED");
+    fixtures.newDoctorToken = await login(newlyAssignedDoctor.email);
+    assert.equal((await request("GET", "/api/doctors/me/dashboard", fixtures.newDoctorToken)).status, 403);
     const doctors = await request("GET", "/api/doctors");
     assert.equal(doctors.status, 200);
-    assert.ok(doctors.body.data.some((doctor) => doctor._id === createdDoctor.body.data._id));
+    assert.ok(!doctors.body.data.some((doctor) => doctor._id === createdDoctor.body.data._id));
 
     const changedUser = await request("PATCH", `/api/users/${fixtures.otherPatient.id}/status`, fixtures.adminToken, {
       isActive: false,

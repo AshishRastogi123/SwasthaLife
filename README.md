@@ -152,9 +152,29 @@ The profile is fetched through a shared frontend hook when a prediction form ope
 
 Prediction routes retain their existing patient-role and current-health-consent requirements.
 
+## Four-step registration and doctor verification
+
+The `/Signup` page is a four-step registration wizard. Patient registrations optionally save physical and medical-history details. Doctor registrations require a department, license number, and certificate; they create an account with `doctorVerification.status: PENDING`. Uploading a document never grants doctor privileges. Doctor-only routes and listings require an explicit administrator approval.
+
+The existing User authentication fields and roles are retained. User profile, health, medical-history, professional-profile, and verification state are nested subdocuments; the license number and department remain in the existing Doctor model to avoid duplicating them. The verification subdocument stores the private storage path and file metadata, with the path excluded from normal queries and API responses.
+
+Doctor certificate endpoints:
+
+| Method and path | Access | Purpose |
+| --- | --- | --- |
+| `POST /api/auth/signup` | Public | Create a patient using JSON, or create a pending doctor using `multipart/form-data` fields `registrationData` (JSON) and `verificationDocument` (file). |
+| `GET /api/doctors/me/verification-document` | Authenticated doctor | Return a short-lived signed URL for the caller's own document. |
+| `PUT /api/doctors/me/verification-document` | Authenticated doctor | Upload or replace a PDF/JPG/JPEG/PNG document (maximum 5 MB); the status returns to `PENDING`. |
+| `GET /api/admin/doctor-verifications?status=PENDING` | Admin | List applications and issue short-lived signed URLs for private document review. |
+| `PATCH /api/admin/doctor-verifications/:userId` | Admin | Approve or reject a pending application with `{ "action": "approve"|"reject", "reviewNote": "..." }`. |
+
+Set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in the backend environment, and optionally set `SUPABASE_DOCTOR_VERIFICATION_BUCKET` (defaults to `doctor-verification-documents`). Create that bucket as **private** in Supabase Storage. Keep the service-role key exclusively on the backend; never use a `VITE_` variable for it. The application validates file extension, MIME type, size, and file signature before upload and serves documents using signed URLs that expire after five minutes. Production deployment must provision the private bucket before doctor registration is enabled.
+
+Existing doctor accounts without an approved verification status are intentionally treated as unverified. They can sign in to submit a certificate, but doctor-only actions remain blocked until an administrator reviews and approves it. No user records are deleted or rewritten during this transition.
+
 ### Existing-user migration
 
-No data migration is required. The User schema adds optional nested `profile`, `healthProfile`, and `medicalHistory` subdocuments; existing documents continue to authenticate and receive empty profile values until users choose to add them. Mongoose timestamps continue to be maintained. No records are rewritten or removed.
+No database migration script is required. The User schema adds optional nested `profile`, `healthProfile`, `medicalHistory`, `professionalProfile`, and `doctorVerification` subdocuments; existing documents continue to authenticate and receive empty profile values until users choose to add them. Mongoose timestamps continue to be maintained. Existing doctor accounts must complete verification before using doctor-only APIs. No records are rewritten or removed.
 
 ## 🤝 Contributing
 

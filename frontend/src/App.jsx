@@ -32,6 +32,7 @@ import TermsOfService from "./components/TermsOfService.jsx";
 import HealthConsentGate from "./components/HealthConsentGate.jsx";
 import { AuthProvider } from "./auth/AuthContext.jsx";
 import ProfilePage from "./components/ProfilePage.jsx";
+import AdminDoctorVerifications from "./components/AdminDoctorVerifications.jsx";
 function App() {
   return (
     <AuthProvider>
@@ -60,6 +61,7 @@ function App() {
           <Route path="/doctor-dashboard" element={<ProtectedRoute roles={["DOCTOR"]}><DoctorDashboard /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute roles={["ADMIN"]}><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/audit-logs" element={<ProtectedRoute roles={["ADMIN"]}><AdminAuditLogs /></ProtectedRoute>} />
+          <Route path="/admin/doctor-verifications" element={<ProtectedRoute roles={["ADMIN"]}><AdminDoctorVerifications /></ProtectedRoute>} />
           <Route path="/health-history" element={<ProtectedRoute roles={["PATIENT"]}><PatientHealthHistory /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute roles={["PATIENT"]}><UserButton /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
