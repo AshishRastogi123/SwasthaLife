@@ -277,6 +277,7 @@ function Navbar() {
       </button>
       {notificationsOpen && notificationMenu}
     </div>
+    <Link className="btn btn-outline-light btn-sm" to="/profile">Profile</Link>
     {user.role === "ADMIN" && <button className="btn btn-outline-light btn-sm navbar-admin-button" type="button" onClick={() => navigate("/admin")}>Admin</button>}
     <button
       className="navbar-profile"

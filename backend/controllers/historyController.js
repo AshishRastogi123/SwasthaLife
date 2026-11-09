@@ -52,7 +52,7 @@ const buildHistory = async (patientId, limit) => {
     emergencyCount,
   ] = await Promise.all([
     Prediction.find({ userId: patientId })
-      .select("createdAt updatedAt symptoms prediction diseaseContext reviewStatus reviewedBy reviewedAt clinicalNotes")
+      .select("createdAt updatedAt symptoms prediction diseaseContext age gender reviewStatus reviewedBy reviewedAt clinicalNotes")
       .populate("reviewedBy", "name email")
       .sort({ createdAt: -1 })
       .limit(fetchLimit)
@@ -80,14 +80,22 @@ const buildHistory = async (patientId, limit) => {
       id: `assessment-${item._id}`,
       type: "ASSESSMENT",
       date: item.createdAt,
-      title: "Health assessment",
+      title: item.diseaseContext?.assessmentType === "HEART_DISEASE_MODEL"
+        ? "Heart disease model assessment"
+        : "Health assessment",
       status: item.reviewStatus,
-      summary: item.prediction?.status === "UNAVAILABLE"
-        ? "Assessment saved; automated result unavailable."
-        : item.prediction?.disease
-          ? `Possible condition: ${item.prediction.disease}`
-          : "Assessment saved.",
+      summary: item.diseaseContext?.assessmentType === "HEART_DISEASE_MODEL"
+        ? `Model class: ${item.prediction?.disease || "Unavailable"}. Positive-class score: ${Number.isFinite(item.prediction?.probability) ? `${(item.prediction.probability * 100).toFixed(1)}%` : "Unavailable"}.`
+        : item.prediction?.status === "UNAVAILABLE"
+          ? "Assessment saved; automated result unavailable."
+          : item.prediction?.disease
+            ? `Possible condition: ${item.prediction.disease}`
+            : "Assessment saved.",
       symptoms: item.symptoms,
+      assessmentType: item.diseaseContext?.assessmentType || null,
+      modelInput: item.diseaseContext?.assessmentType === "HEART_DISEASE_MODEL"
+        ? item.diseaseContext.modelInput
+        : null,
       review: item.reviewStatus === "REVIEWED" ? {
         reviewedAt: item.reviewedAt,
         reviewer: item.reviewedBy,

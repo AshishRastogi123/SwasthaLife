@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import MedicalDisclaimer from "./MedicalDisclaimer";
@@ -73,6 +73,19 @@ export default function PatientHealthHistory() {
                     </p>
                   )}
                   {event.symptoms?.length > 0 && <p className="small mb-2"><strong>Symptoms:</strong> {event.symptoms.join(", ")}</p>}
+                  {event.assessmentType === "HEART_DISEASE_MODEL" && event.modelInput && (
+                    <details className="small mb-2">
+                      <summary>Heart assessment measurements</summary>
+                      <dl className="row mt-2 mb-0">
+                        {Object.entries(event.modelInput).map(([field, value]) => (
+                          <Fragment key={field}>
+                            <dt className="col-sm-4 text-capitalize">{field}</dt>
+                            <dd className="col-sm-8">{value ?? "Not provided"}</dd>
+                          </Fragment>
+                        ))}
+                      </dl>
+                    </details>
+                  )}
                   {event.review && (
                     <div className="alert alert-light border mb-0">
                       <strong>Doctor review / outcome</strong>

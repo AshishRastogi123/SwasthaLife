@@ -1,10 +1,12 @@
 import { motion as Motion } from "framer-motion";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
 import MedicalDisclaimer from "../MedicalDisclaimer";
+import { useUserProfile } from "../../hooks/useUserProfile";
+import { mapProfileToDiseaseAssessment } from "../../utils/predictionProfileMappings";
 
 const DiseasePredictionForm = () => {
   const location = useLocation();
@@ -34,6 +36,9 @@ const DiseasePredictionForm = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [profileDerivedFields, setProfileDerivedFields] = useState(() => new Set());
+  const touchedFields = useRef(new Set());
+  const { profile, isLoading: isProfileLoading, error: profileError } = useUserProfile();
 
   const sectionVariants = {
     hidden: { opacity: 0, y: 50 },
@@ -53,8 +58,30 @@ const DiseasePredictionForm = () => {
     }
   }, [formData.heightCm, formData.weightKg]);
 
+  useEffect(() => {
+    if (!profile) return;
+    const mapped = mapProfileToDiseaseAssessment(profile);
+    setFormData((current) => {
+      const next = { ...current };
+      Object.entries(mapped).forEach(([field, value]) => {
+        if (!touchedFields.current.has(field) && current[field] === "") {
+          next[field] = value;
+        }
+      });
+      return next;
+    });
+    const mappedFields = Object.keys(mapped).filter((field) => !touchedFields.current.has(field));
+    setProfileDerivedFields((previous) => new Set([...previous, ...mappedFields]));
+  }, [profile]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    touchedFields.current.add(name);
+    setProfileDerivedFields((previous) => {
+      const next = new Set(previous);
+      next.delete(name);
+      return next;
+    });
     // allow only numbers for numeric fields (basic)
     if (name === "age" && value && !/^\d*$/.test(value)) return;
     if ((name === "heightCm" || name === "weightKg" || name === "sleepHours") && value && !/^[0-9]*\.?[0-9]*$/.test(value)) return;
@@ -175,12 +202,18 @@ const DiseasePredictionForm = () => {
                       These details are used to prepare an informational health assessment.
                     </p>
                     <MedicalDisclaimer />
+                    <p className="small text-muted">
+                      {isProfileLoading
+                        ? "Checking your saved profile..."
+                        : "Values marked Saved profile are copied from your profile. Review or edit them before continuing."}
+                    </p>
+                    {profileError && <div className="alert alert-warning" role="alert">Saved profile details could not be loaded: {profileError}</div>}
 
                     <form onSubmit={handleNext}>
                       <div className="row">
                         {/* Full Name */}
                         <div className="col-md-6 mb-3">
-                          <label className="form-label fw-semibold">Full Name</label>
+                          <label className="form-label fw-semibold">Full Name {profileDerivedFields.has("fullName") && <span className="badge text-bg-info ms-2">Saved profile</span>}</label>
                           <input
                             type="text"
                             name="fullName"
@@ -194,7 +227,7 @@ const DiseasePredictionForm = () => {
 
                         {/* Age */}
                         <div className="col-md-3 mb-3">
-                          <label className="form-label fw-semibold">Age (years)</label>
+                          <label className="form-label fw-semibold">Age (years) {profileDerivedFields.has("age") && <span className="badge text-bg-info ms-2">Saved profile</span>}</label>
                           <input
                             type="number"
                             name="age"
@@ -210,7 +243,7 @@ const DiseasePredictionForm = () => {
 
                         {/* Gender */}
                         <div className="col-md-3 mb-3">
-                          <label className="form-label fw-semibold">Gender</label>
+                          <label className="form-label fw-semibold">Gender {profileDerivedFields.has("gender") && <span className="badge text-bg-info ms-2">Saved profile</span>}</label>
                           <select
                             name="gender"
                             value={formData.gender}
@@ -227,7 +260,7 @@ const DiseasePredictionForm = () => {
 
                         {/* DOB */}
                         <div className="col-md-6 mb-3">
-                          <label className="form-label fw-semibold">Date of Birth</label>
+                          <label className="form-label fw-semibold">Date of Birth {profileDerivedFields.has("dob") && <span className="badge text-bg-info ms-2">Saved profile</span>}</label>
                           <input
                             type="date"
                             name="dob"
@@ -240,7 +273,7 @@ const DiseasePredictionForm = () => {
 
                         {/* Mobile (optional) */}
                         <div className="col-md-3 mb-3">
-                          <label className="form-label fw-semibold">Mobile (optional)</label>
+                          <label className="form-label fw-semibold">Mobile (optional) {profileDerivedFields.has("mobile") && <span className="badge text-bg-info ms-2">Saved profile</span>}</label>
                           <input
                             type="tel"
                             name="mobile"
@@ -253,7 +286,7 @@ const DiseasePredictionForm = () => {
 
                         {/* Email (optional) */}
                         <div className="col-md-3 mb-3">
-                          <label className="form-label fw-semibold">Email (optional)</label>
+                          <label className="form-label fw-semibold">Email (optional) {profileDerivedFields.has("email") && <span className="badge text-bg-info ms-2">Saved profile</span>}</label>
                           <input
                             type="email"
                             name="email"
@@ -266,7 +299,7 @@ const DiseasePredictionForm = () => {
 
                         {/* Height */}
                         <div className="col-md-4 mb-3">
-                          <label className="form-label fw-semibold">Height (cm)</label>
+                          <label className="form-label fw-semibold">Height (cm) {profileDerivedFields.has("heightCm") && <span className="badge text-bg-info ms-2">Saved profile</span>}</label>
                           <input
                             type="number"
                             name="heightCm"
@@ -283,7 +316,7 @@ const DiseasePredictionForm = () => {
 
                         {/* Weight */}
                         <div className="col-md-4 mb-3">
-                          <label className="form-label fw-semibold">Weight (kg)</label>
+                          <label className="form-label fw-semibold">Weight (kg) {profileDerivedFields.has("weightKg") && <span className="badge text-bg-info ms-2">Saved profile</span>}</label>
                           <input
                             type="number"
                             name="weightKg"
@@ -313,7 +346,7 @@ const DiseasePredictionForm = () => {
 
                         {/* Blood Pressure */}
                         <div className="col-md-6 mb-3">
-                          <label className="form-label fw-semibold">Blood Pressure (e.g., 120/80)</label>
+                          <label className="form-label fw-semibold">Blood Pressure (e.g., 120/80) {profileDerivedFields.has("bloodPressure") && <span className="badge text-bg-info ms-2">Saved profile</span>}</label>
                           <input
                             type="text"
                             name="bloodPressure"
@@ -341,7 +374,7 @@ const DiseasePredictionForm = () => {
 
                         {/* Smoking */}
                         <div className="col-md-4 mb-3">
-                          <label className="form-label fw-semibold">Smoking Habit</label>
+                          <label className="form-label fw-semibold">Smoking Habit {profileDerivedFields.has("smoking") && <span className="badge text-bg-info ms-2">Saved profile</span>}</label>
                           <select
                             name="smoking"
                             value={formData.smoking}
@@ -358,7 +391,7 @@ const DiseasePredictionForm = () => {
 
                         {/* Alcohol */}
                         <div className="col-md-4 mb-3">
-                          <label className="form-label fw-semibold">Alcohol Consumption</label>
+                          <label className="form-label fw-semibold">Alcohol Consumption {profileDerivedFields.has("alcohol") && <span className="badge text-bg-info ms-2">Saved profile</span>}</label>
                           <select
                             name="alcohol"
                             value={formData.alcohol}
@@ -374,7 +407,7 @@ const DiseasePredictionForm = () => {
 
                         {/* Physical Activity */}
                         <div className="col-md-4 mb-3">
-                          <label className="form-label fw-semibold">Daily Physical Activity Level</label>
+                          <label className="form-label fw-semibold">Daily Physical Activity Level {profileDerivedFields.has("physicalActivity") && <span className="badge text-bg-info ms-2">Saved profile</span>}</label>
                           <select
                             name="physicalActivity"
                             value={formData.physicalActivity}

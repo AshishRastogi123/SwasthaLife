@@ -1,17 +1,32 @@
 const { isObjectId } = require("./validateDomains");
 
+const isPlainObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+const hasUnsupportedKeys = (value, allowed) => Object.keys(value).some((key) => !allowed.includes(key));
+
 exports.validateSignup = (req, res, next) => {
-  const { name, email, password, role, confirmPassword, phone, departmentId, licenseNumber } = req.body;
+  const {
+    name,
+    email,
+    password,
+    role,
+    confirmPassword,
+    phone,
+    departmentId,
+    licenseNumber,
+    profile,
+    healthProfile,
+    medicalHistory,
+  } = req.body;
 
   if (!name || !email || !password) {
     return res.status(400).json({
       message: "All fields are required",
     });
   }
-  if (typeof name !== "string" || !name.trim()) {
-    return res.status(400).json({ message: "A valid name is required" });
+  if (typeof name !== "string" || !name.trim() || name.trim().length > 120) {
+    return res.status(400).json({ message: "A valid name of at most 120 characters is required" });
   }
-  if (phone !== undefined && typeof phone !== "string") {
+  if (phone !== undefined && (typeof phone !== "string" || phone.length > 30)) {
     return res.status(400).json({ message: "Phone must be a string" });
   }
   if (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -28,6 +43,93 @@ exports.validateSignup = (req, res, next) => {
   }
   if (role === "DOCTOR" && (!isObjectId(departmentId) || typeof licenseNumber !== "string" || !licenseNumber.trim())) {
     return res.status(400).json({ message: "departmentId and licenseNumber are required for doctor registration" });
+  }
+
+  if (profile !== undefined) {
+    if (!isPlainObject(profile) || hasUnsupportedKeys(profile, ["dateOfBirth", "gender"])) {
+      return res.status(400).json({ message: "Profile must contain only dateOfBirth and gender" });
+    }
+    if (profile.dateOfBirth !== undefined && profile.dateOfBirth !== "" && profile.dateOfBirth !== null) {
+      if (typeof profile.dateOfBirth !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(profile.dateOfBirth)) {
+        return res.status(400).json({ message: "Date of birth must use YYYY-MM-DD format" });
+      }
+      const date = new Date(`${profile.dateOfBirth}T00:00:00.000Z`);
+      if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== profile.dateOfBirth || date > new Date()) {
+        return res.status(400).json({ message: "Date of birth must be a valid date that is not in the future" });
+      }
+    }
+    if (profile.gender !== undefined && profile.gender !== "" && profile.gender !== null && !["Male", "Female", "Other"].includes(profile.gender)) {
+      return res.status(400).json({ message: "Gender must be Male, Female, or Other" });
+    }
+  }
+
+  const healthFields = [
+    "heightCm",
+    "weightKg",
+    "bloodGroup",
+    "bloodPressure",
+    "heartRate",
+    "bodyTemperature",
+    "smokingStatus",
+    "alcoholConsumption",
+    "physicalActivityLevel",
+  ];
+  if (healthProfile !== undefined) {
+    if (role === "DOCTOR" || !isPlainObject(healthProfile) || hasUnsupportedKeys(healthProfile, healthFields)) {
+      return res.status(400).json({ message: "Health profile information is available only for patient accounts" });
+    }
+    const numericRanges = {
+      heightCm: [30, 300],
+      weightKg: [1, 500],
+      heartRate: [20, 300],
+      bodyTemperature: [30, 45],
+    };
+    for (const [field, [minimum, maximum]] of Object.entries(numericRanges)) {
+      const value = healthProfile[field];
+      if (value !== undefined && value !== "" && value !== null &&
+        (typeof value !== "number" || !Number.isFinite(value) || value < minimum || value > maximum)) {
+        return res.status(400).json({ message: `${field} must be a finite number between ${minimum} and ${maximum}` });
+      }
+    }
+    const enumValues = {
+      bloodGroup: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"],
+      smokingStatus: ["NEVER", "FORMER", "CURRENT"],
+      alcoholConsumption: ["NONE", "OCCASIONAL", "REGULAR"],
+      physicalActivityLevel: ["SEDENTARY", "LOW", "MODERATE", "HIGH"],
+    };
+    for (const [field, values] of Object.entries(enumValues)) {
+      const value = healthProfile[field];
+      if (value !== undefined && value !== "" && value !== null && !values.includes(value)) {
+        return res.status(400).json({ message: `${field} must be one of ${values.join(", ")}` });
+      }
+    }
+    if (healthProfile.bloodPressure !== undefined && healthProfile.bloodPressure !== "" &&
+      healthProfile.bloodPressure !== null &&
+      (typeof healthProfile.bloodPressure !== "string" || !/^\d{2,3}\s*\/\s*\d{2,3}$/.test(healthProfile.bloodPressure.trim()))) {
+      return res.status(400).json({ message: "Blood pressure must be in systolic/diastolic format" });
+    }
+  }
+
+  const historyFields = [
+    "existingDiseases",
+    "allergies",
+    "currentMedications",
+    "previousSurgeries",
+    "familyMedicalHistory",
+  ];
+  if (medicalHistory !== undefined) {
+    if (role === "DOCTOR" || !isPlainObject(medicalHistory) || hasUnsupportedKeys(medicalHistory, historyFields)) {
+      return res.status(400).json({ message: "Medical history is available only for patient accounts" });
+    }
+    for (const [field, values] of Object.entries(medicalHistory)) {
+      if (
+        !Array.isArray(values) ||
+        values.length > 50 ||
+        values.some((value) => typeof value !== "string" || !value.trim() || value.trim().length > 200)
+      ) {
+        return res.status(400).json({ message: `${field} must be an array of up to 50 non-empty strings` });
+      }
+    }
   }
 
   next();

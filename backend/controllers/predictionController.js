@@ -1,4 +1,8 @@
 const http = require('http');
+const HEART_FEATURE_COLUMNS = [
+  "age", "sex", "cp", "trestbps", "chol", "fbs", "restecg",
+  "thalach", "exang", "oldpeak", "slope", "ca", "thal",
+];
 const Prediction = require("../models/Prediction");
 const Doctor = require("../models/Doctor");
 const Appointment = require("../models/Appointment");
@@ -60,6 +64,89 @@ const fetchPredictionFromML = (payload, debug = false) => {
     req.write(data);
     req.end();
   });
+};
+
+const fetchHeartPredictionFromML = (payload) => {
+  return new Promise((resolve, reject) => {
+    const data = JSON.stringify(payload);
+    const req = http.request({
+      hostname: "localhost",
+      port: 8000,
+      path: "/heart/predict",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(data),
+      },
+      timeout: 5000,
+    }, (response) => {
+      let body = "";
+      response.on("data", (chunk) => { body += chunk; });
+      response.on("end", () => {
+        let parsed;
+        try {
+          parsed = body ? JSON.parse(body) : null;
+        } catch {
+          return reject(new Error("Invalid response from heart disease model"));
+        }
+
+        if (response.statusCode >= 400) {
+          const error = new Error(parsed?.detail || `ML service error: ${response.statusCode}`);
+          error.statusCode = response.statusCode;
+          return reject(error);
+        }
+        resolve(parsed);
+      });
+    });
+
+    req.on("error", reject);
+    req.on("timeout", () => req.destroy(new Error("ML service timeout")));
+    req.write(data);
+    req.end();
+  });
+};
+
+const predictHeartDisease = async (req, res) => {
+  try {
+    const payload = Object.fromEntries(
+      HEART_FEATURE_COLUMNS.map((column) => [column, req.body[column] ?? null])
+    );
+    const result = await fetchHeartPredictionFromML(payload);
+    if (!result || typeof result.has_heart_disease !== "boolean") {
+      return res.status(502).json({ message: "Invalid response from heart disease model" });
+    }
+
+    const [firstName, ...lastNameParts] = (req.user.name || "Patient").trim().split(/\s+/);
+    const assessment = await Prediction.create({
+      userId: req.user.userId,
+      firstName: firstName || "Patient",
+      lastName: lastNameParts.join(" "),
+      age: payload.age,
+      gender: payload.sex === 1 ? "Male" : "Female",
+      symptoms: [],
+      prediction: {
+        disease: result.prediction_label,
+        probability: result.positive_class_probability,
+        modelUsed: result.model || "heart_disease_model",
+        status: "AVAILABLE",
+      },
+      diseaseContext: {
+        assessmentType: "HEART_DISEASE_MODEL",
+        modelInput: payload,
+        modelResult: result,
+      },
+    });
+
+    return res.status(200).json({
+      ...result,
+      assessmentId: assessment._id.toString(),
+      savedAt: assessment.createdAt,
+    });
+  } catch (error) {
+    console.error("Heart disease prediction error:", error.message);
+    const statusCode = error.statusCode === 503 ? 503 : 502;
+    return res.status(statusCode).json({ message: error.message || "Heart disease model error" });
+  }
 };
 
 const createPrediction = async (req, res) => {
@@ -324,6 +411,7 @@ const reviewPrediction = async (req, res) => {
 module.exports = {
   createPrediction,
   predictOnly,
+  predictHeartDisease,
   getColumns,
   listPatientPredictions,
   getPrediction,

@@ -3,7 +3,8 @@ const authMiddleware = require("../middleware/authMiddleware");
 const requireRole = require("../middleware/roleMiddleware");
 const requireCurrentHealthConsent = require("../middleware/requireCurrentHealthConsent");
 const validatePrediction = require("../middleware/validatePrediction");
-const { createPrediction } = require("../controllers/predictionController");
+const validateHeartDisease = require("../middleware/validateHeartDisease");
+const { createPrediction, predictHeartDisease } = require("../controllers/predictionController");
 
 const router = express.Router();
 
@@ -31,6 +32,15 @@ router.post(
   },
   // controller returns ML-only prediction
   (req, res, next) => require('../controllers/predictionController').predictOnly(req, res, next)
+);
+
+router.post(
+  "/heart/predict",
+  authMiddleware,
+  requireRole("PATIENT"),
+  requireCurrentHealthConsent,
+  validateHeartDisease,
+  predictHeartDisease
 );
 
 // GET /api/predict/columns (no auth) - returns canonical symptom feature list

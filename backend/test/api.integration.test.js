@@ -15,16 +15,39 @@ process.env.JWT_SECRET = "integration-test-secret-only";
 process.env.NODE_ENV = "test";
 
 const originalHttpRequest = http.request;
+let heartPredictionRequest;
 http.request = function mockPredictionService(options, callback) {
-  if (options.hostname === "localhost" && options.port === 8000 && options.path.startsWith("/predict")) {
+  if (
+    options.hostname === "localhost" &&
+    options.port === 8000 &&
+    (options.path.startsWith("/predict") || options.path === "/heart/predict")
+  ) {
     const request = new EventEmitter();
-    request.write = () => true;
+    let requestBody = "";
+    request.write = (chunk) => {
+      requestBody += chunk;
+      return true;
+    };
     request.end = () => {
       const response = new EventEmitter();
       response.statusCode = 200;
       process.nextTick(() => {
         callback(response);
-        response.emit("data", JSON.stringify({ predicted_disease: "Test assessment result", confidence: 0.75 }));
+        const body = options.path === "/heart/predict"
+          ? {
+            prediction: 1,
+            prediction_label: "Heart disease class",
+            has_heart_disease: true,
+            positive_class_probability: 0.75,
+            confidence: 0.75,
+            model: "heart_disease_model",
+            disclaimer: "Informational model result only.",
+          }
+          : { predicted_disease: "Test assessment result", confidence: 0.75 };
+        if (options.path === "/heart/predict") {
+          heartPredictionRequest = { options, body: JSON.parse(requestBody) };
+        }
+        response.emit("data", JSON.stringify(body));
         response.emit("end");
       });
     };
@@ -191,10 +214,22 @@ test("backend API integration: auth, patient, doctor, admin, and lifecycles", { 
       name: "Signup Patient",
       email: "signup.patient@example.test",
       password: "correct horse battery staple",
+      profile: { dateOfBirth: "1998-06-15", gender: "Female" },
+      healthProfile: {
+        heightCm: 165,
+        weightKg: 60,
+        bloodGroup: "A+",
+        bloodPressure: "118/76",
+        smokingStatus: "NEVER",
+      },
+      medicalHistory: { allergies: ["Pollen"] },
     });
     assert.equal(patientSignup.status, 201);
     const patientUser = await User.findOne({ email: "signup.patient@example.test" });
     assert.equal(patientUser.role, "PATIENT");
+    assert.equal(patientUser.profile.gender, "Female");
+    assert.equal(patientUser.healthProfile.heightCm, 165);
+    assert.deepEqual(patientUser.medicalHistory.allergies, ["Pollen"]);
 
     const adminSignup = await request("POST", "/api/auth/signup", null, {
       name: "Public Admin",
@@ -237,10 +272,138 @@ test("backend API integration: auth, patient, doctor, admin, and lifecycles", { 
     assert.ok(await AuditLog.exists({ action: "auth.login.failure", actorUserId: fixtures.patient._id }));
   });
 
+  await t.test("profile APIs return and update only the authenticated user's profile", async () => {
+    assert.equal((await request("GET", "/api/users/profile")).status, 401);
+
+    const emptyProfile = await request("GET", "/api/users/profile", fixtures.patientToken);
+    assert.equal(emptyProfile.status, 200);
+    assert.equal(emptyProfile.body.data.id, fixtures.patient.id);
+    assert.equal(emptyProfile.body.data.password, undefined);
+    assert.equal(emptyProfile.body.data.profile.age, null);
+    assert.equal(emptyProfile.body.data.healthProfile.heightCm, "");
+    assert.equal(emptyProfile.body.data.profileCompletion.percentage, 17);
+
+    const personal = await request("PUT", "/api/users/profile", fixtures.patientToken, {
+      name: "Patient Updated",
+      phone: "9876543210",
+      dateOfBirth: "2000-01-01",
+      gender: "Other",
+    });
+    assert.equal(personal.status, 200, JSON.stringify(personal.body));
+    assert.equal(personal.body.data.name, "Patient Updated");
+    assert.equal(personal.body.data.profile.age, new Date().getFullYear() - 2000);
+
+    const health = await request("PUT", "/api/users/health-profile", fixtures.patientToken, {
+      heightCm: 172.5,
+      weightKg: 68,
+      bloodGroup: "O+",
+      bloodPressure: "120/80",
+      heartRate: 72,
+      smokingStatus: "NEVER",
+      alcoholConsumption: "NONE",
+      physicalActivityLevel: "MODERATE",
+    });
+    assert.equal(health.status, 200, JSON.stringify(health.body));
+    assert.equal(health.body.data.healthProfile.heightCm, 172.5);
+    assert.equal(health.body.data.healthProfile.bodyTemperature, "");
+
+    const invalidHealth = await request("PUT", "/api/users/health-profile", fixtures.patientToken, {
+      heightCm: 0,
+    });
+    assert.equal(invalidHealth.status, 400);
+    const unsupportedField = await request("PUT", "/api/users/profile", fixtures.patientToken, {
+      userId: fixtures.otherPatient.id,
+    });
+    assert.equal(unsupportedField.status, 400);
+
+    const history = await request("PUT", "/api/users/medical-history", fixtures.patientToken, {
+      existingDiseases: ["Asthma"],
+      allergies: ["Peanuts", "Pollen"],
+      currentMedications: [],
+      previousSurgeries: [],
+      familyMedicalHistory: ["Heart disease"],
+    });
+    assert.equal(history.status, 200, JSON.stringify(history.body));
+    assert.deepEqual(history.body.data.medicalHistory.allergies, ["Peanuts", "Pollen"]);
+    assert.equal(history.body.data.password, undefined);
+
+    const otherProfile = await request("GET", "/api/users/profile", await login(fixtures.otherPatient.email));
+    assert.equal(otherProfile.status, 200);
+    assert.equal(otherProfile.body.data.id, fixtures.otherPatient.id);
+    assert.notEqual(otherProfile.body.data.name, personal.body.data.name);
+
+    const doctorProfile = await request("GET", "/api/users/profile", await login(fixtures.doctorUser.email));
+    assert.equal(doctorProfile.status, 200);
+    assert.equal(doctorProfile.body.data.id, fixtures.doctorUser.id);
+    const adminProfile = await request("GET", "/api/users/profile", await login(fixtures.admin.email));
+    assert.equal(adminProfile.status, 200);
+    assert.equal(adminProfile.body.data.id, fixtures.admin.id);
+
+    const invalidMedicalHistory = await request("PUT", "/api/users/medical-history", fixtures.patientToken, {
+      allergies: "not-an-array",
+    });
+    assert.equal(invalidMedicalHistory.status, 400);
+  });
+
   await t.test("protected routes return 401 for a missing or invalid token", async () => {
     assert.equal((await request("GET", "/api/appointments/mine")).status, 401);
     const invalid = await request("GET", "/api/appointments/mine", "not-a-valid-jwt");
     assert.equal(invalid.status, 401);
+    assert.equal((await request("POST", "/api/heart/predict", null, {})).status, 401);
+  });
+
+  await t.test("heart model endpoint validates input and requires current patient consent", async () => {
+    const payload = {
+      age: 63,
+      sex: 1,
+      cp: 1,
+      trestbps: 145,
+      chol: 233,
+      fbs: 1,
+      restecg: 2,
+      thalach: 150,
+      exang: 0,
+      oldpeak: 2.3,
+      slope: 0,
+      ca: null,
+      thal: null,
+    };
+
+    const invalid = await request("POST", "/api/heart/predict", fixtures.patientToken, {
+      ...payload,
+      cp: 4,
+    });
+    assert.equal(invalid.status, 400);
+
+    const noConsentUser = await User.create({
+      name: "Patient Without Consent",
+      email: "patient.without.consent@example.test",
+      password: await bcrypt.hash("correct horse battery staple", 4),
+      role: "PATIENT",
+    });
+    const noConsentToken = await login(noConsentUser.email);
+    const noConsent = await request("POST", "/api/heart/predict", noConsentToken, payload);
+    assert.equal(noConsent.status, 403);
+
+    const prediction = await request("POST", "/api/heart/predict", fixtures.patientToken, payload);
+    assert.equal(prediction.status, 200, JSON.stringify(prediction.body));
+    assert.equal(prediction.body.has_heart_disease, true);
+    assert.equal(prediction.body.positive_class_probability, 0.75);
+    assert.ok(prediction.body.assessmentId);
+    const savedAssessment = await Prediction.findById(prediction.body.assessmentId);
+    assert.ok(savedAssessment);
+    assert.equal(savedAssessment.userId.toString(), fixtures.patient._id.toString());
+    assert.equal(savedAssessment.diseaseContext.assessmentType, "HEART_DISEASE_MODEL");
+    assert.equal(heartPredictionRequest.options.path, "/heart/predict");
+    assert.deepEqual(heartPredictionRequest.body, payload);
+
+    const history = await request("GET", "/api/history/mine", fixtures.patientToken);
+    assert.equal(history.status, 200);
+    const heartHistory = history.body.data.find((event) => event.id === `assessment-${savedAssessment.id}`);
+    assert.ok(heartHistory);
+    assert.equal(heartHistory.title, "Heart disease model assessment");
+    assert.match(heartHistory.summary, /Positive-class score: 75.0%/);
+    assert.deepEqual(heartHistory.modelInput, payload);
   });
 
   await t.test("patient creates and retrieves only their own assessment", async () => {

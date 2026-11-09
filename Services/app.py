@@ -9,6 +9,8 @@ import re
 import json
 import warnings
 
+from pydantic import Field
+
 # Suppress benign sklearn feature name warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -153,12 +155,19 @@ MODEL_PATH = os.path.join(BASE_DIR, "best_model.joblib")
 LABEL_ENCODER_PATH = os.path.join(BASE_DIR, "label_encoder.joblib")
 SYMPTOM_JSON_PATH = os.path.join(BASE_DIR, "symptom_columns.json")
 SYMPTOM_JOBLIB_PATH = os.path.join(BASE_DIR, "symptom_columns.joblib")
+HEART_MODEL_PATH = os.path.join(BASE_DIR, "heart_disease_model.pkl")
+HEART_FEATURE_COLUMNS = [
+    "age", "sex", "cp", "trestbps", "chol", "fbs", "restecg",
+    "thalach", "exang", "oldpeak", "slope", "ca", "thal",
+]
 
 model = None
 label_encoder = None
 symptom_columns: List[str] = []
 json_symptom_columns: List[str] = []
 model_load_error: Optional[str] = None
+heart_model = None
+heart_model_load_error: Optional[str] = None
 
 # Lookup structures
 exact_col_map: Dict[str, int] = {}
@@ -191,30 +200,52 @@ def load_artifacts():
     """Load model, label encoder, and symptom columns with robust fallbacks."""
     global model, label_encoder, symptom_columns, json_symptom_columns, model_load_error
 
+    if os.path.exists(SYMPTOM_JSON_PATH):
+        try:
+            with open(SYMPTOM_JSON_PATH, "r", encoding="utf-8") as f:
+                json_symptom_columns = [str(s) for s in json.load(f)]
+        except Exception as json_err:
+            print(f"Notice: Failed to read {SYMPTOM_JSON_PATH}: {json_err}")
+            json_symptom_columns = []
+
     try:
-        # 1. Load trained model
         if not os.path.exists(MODEL_PATH):
             raise FileNotFoundError(f"Model file not found: {MODEL_PATH}")
         model = joblib.load(MODEL_PATH)
+    except Exception as exc:
+        model = None
+        label_encoder = None
+        model_load_error = str(exc)
 
-        # 2. Load label encoder
+        loaded_from = "CANONICAL_132_SYMPTOMS_FALLBACK"
+        if os.path.exists(SYMPTOM_JOBLIB_PATH):
+            try:
+                symptom_columns = [str(s) for s in joblib.load(SYMPTOM_JOBLIB_PATH)]
+                loaded_from = "symptom_columns.joblib"
+            except Exception as metadata_err:
+                print(f"Notice: Failed to read {SYMPTOM_JOBLIB_PATH}: {metadata_err}")
+
+        if not symptom_columns:
+            symptom_columns = list(CANONICAL_132_SYMPTOMS)
+
+        build_lookup_indexes()
+        print(
+            f"CRITICAL: Failed to load ML artifacts: {exc}. "
+            f"Serving symptom columns from {loaded_from}."
+        )
+        return
+
+    try:
         if os.path.exists(LABEL_ENCODER_PATH):
-            label_encoder = joblib.load(LABEL_ENCODER_PATH)
+            try:
+                label_encoder = joblib.load(LABEL_ENCODER_PATH)
+            except Exception as encoder_err:
+                label_encoder = None
+                print(f"Notice: Failed to load label encoder: {encoder_err}")
         else:
             label_encoder = None
             print("Notice: label_encoder.joblib not found. Predictions will return raw model classes.")
 
-        # 3. Load symptom_columns.json if present
-        if os.path.exists(SYMPTOM_JSON_PATH):
-            try:
-                with open(SYMPTOM_JSON_PATH, "r", encoding="utf-8") as f:
-                    json_symptom_columns = json.load(f)
-                    json_symptom_columns = [str(s) for s in json_symptom_columns]
-            except Exception as json_err:
-                print(f"Notice: Failed to read {SYMPTOM_JSON_PATH}: {json_err}")
-                json_symptom_columns = []
-
-        # 4. Resolve symptom columns (feature names)
         loaded_from = None
         if hasattr(model, "feature_names_in_"):
             symptom_columns = [str(s) for s in model.feature_names_in_]
@@ -242,6 +273,35 @@ def load_artifacts():
 
 # Initial load
 load_artifacts()
+
+def load_heart_model():
+    """Load the heart disease classifier independently of the symptom model."""
+    global heart_model, heart_model_load_error
+
+    try:
+        if not os.path.exists(HEART_MODEL_PATH):
+            raise FileNotFoundError(f"Heart model file not found: {HEART_MODEL_PATH}")
+
+        loaded_model = joblib.load(HEART_MODEL_PATH)
+        feature_names = getattr(loaded_model, "feature_names_in_", None)
+        if feature_names is not None and list(feature_names) != HEART_FEATURE_COLUMNS:
+            raise ValueError("Heart model feature names do not match the expected 13-column schema")
+        if getattr(loaded_model, "n_features_in_", len(HEART_FEATURE_COLUMNS)) != len(HEART_FEATURE_COLUMNS):
+            raise ValueError("Heart model must accept exactly 13 input features")
+        if not hasattr(loaded_model, "predict") or not hasattr(loaded_model, "predict_proba"):
+            raise ValueError("Heart model must support predict and predict_proba")
+        if set(getattr(loaded_model, "classes_", [])) != {0, 1}:
+            raise ValueError("Heart model must use binary target classes 0 and 1")
+
+        heart_model = loaded_model
+        heart_model_load_error = None
+        print(f"Heart disease model loaded successfully from {HEART_MODEL_PATH}.")
+    except Exception as exc:
+        heart_model = None
+        heart_model_load_error = str(exc)
+        print(f"CRITICAL: Failed to load heart disease model: {exc}")
+
+load_heart_model()
 
 # ---------------------------------------------------------------------------
 # Symptom Matching Logic
@@ -351,6 +411,21 @@ class SymptomRequest(BaseModel):
     input_vector: Optional[List[int]] = None
     debug: Optional[bool] = None
 
+class HeartDiseaseRequest(BaseModel):
+    age: int = Field(ge=1, le=120)
+    sex: int = Field(ge=0, le=1)
+    cp: int = Field(ge=0, le=3)
+    trestbps: float = Field(ge=50, le=250)
+    chol: float = Field(ge=100, le=700)
+    fbs: int = Field(ge=0, le=1)
+    restecg: int = Field(ge=0, le=2)
+    thalach: int = Field(ge=50, le=250)
+    exang: int = Field(ge=0, le=1)
+    oldpeak: float = Field(ge=-3, le=10)
+    slope: int = Field(ge=0, le=2)
+    ca: Optional[int] = Field(default=None, ge=0, le=4)
+    thal: Optional[int] = Field(default=None, ge=0, le=3)
+
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
@@ -363,7 +438,9 @@ def health_root():
         "model_loaded": model is not None,
         "features_count": len(symptom_columns),
         "version": "1.1.0",
-        "error": model_load_error
+        "error": model_load_error,
+        "heart_model_loaded": heart_model is not None,
+        "heart_model_error": heart_model_load_error,
     }
 
 @app.get("/health")
@@ -372,7 +449,9 @@ def health_check():
     return {
         "status": "ok" if is_ready else "degraded",
         "model_loaded": model is not None,
-        "error": model_load_error
+        "error": model_load_error,
+        "heart_model_loaded": heart_model is not None,
+        "heart_model_error": heart_model_load_error,
     }
 
 @app.get("/columns")
@@ -389,6 +468,40 @@ def get_columns():
 @app.get("/symptoms")
 def get_symptoms():
     return get_columns()
+
+@app.post("/heart/predict")
+def predict_heart_disease(request: HeartDiseaseRequest):
+    if heart_model is None:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Heart disease model is not available. Error: {heart_model_load_error or 'Model not loaded'}"
+        )
+
+    values = request.model_dump()
+    model_input = (
+        pd.DataFrame([[values[column] for column in HEART_FEATURE_COLUMNS]], columns=HEART_FEATURE_COLUMNS)
+        if pd is not None
+        else np.array([[values[column] for column in HEART_FEATURE_COLUMNS]], dtype=float)
+    )
+
+    try:
+        prediction = int(heart_model.predict(model_input)[0])
+        probabilities = heart_model.predict_proba(model_input)[0]
+        class_indices = list(heart_model.classes_)
+        positive_probability = float(probabilities[class_indices.index(1)])
+        confidence = float(probabilities[class_indices.index(prediction)])
+    except Exception as prediction_error:
+        raise HTTPException(status_code=500, detail=f"Heart disease prediction failed: {prediction_error}")
+
+    return {
+        "prediction": prediction,
+        "prediction_label": "Heart disease class" if prediction == 1 else "No heart disease class",
+        "has_heart_disease": prediction == 1,
+        "positive_class_probability": round(positive_probability, 4),
+        "confidence": round(confidence, 4),
+        "model": "heart_disease_model",
+        "disclaimer": "This model output is informational only and is not a medical diagnosis.",
+    }
 
 @app.post("/predict")
 def predict_disease(request: SymptomRequest, debug: bool = Query(False)):

@@ -31,6 +31,7 @@ import PrivacyPolicy from "./components/PrivacyPolicy.jsx";
 import TermsOfService from "./components/TermsOfService.jsx";
 import HealthConsentGate from "./components/HealthConsentGate.jsx";
 import { AuthProvider } from "./auth/AuthContext.jsx";
+import ProfilePage from "./components/ProfilePage.jsx";
 function App() {
   return (
     <AuthProvider>
@@ -61,6 +62,10 @@ function App() {
           <Route path="/admin/audit-logs" element={<ProtectedRoute roles={["ADMIN"]}><AdminAuditLogs /></ProtectedRoute>} />
           <Route path="/health-history" element={<ProtectedRoute roles={["PATIENT"]}><PatientHealthHistory /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute roles={["PATIENT"]}><UserButton /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/profile/edit" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/profile/health" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/profile/medical-history" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="/form" element={<ProtectedRoute roles={["PATIENT"]}><HealthConsentGate><SymptomForm /></HealthConsentGate></ProtectedRoute>} />
           <Route path="/chatbot" element={<ProtectedRoute roles={["PATIENT"]}><HealthConsentGate><Chatbot /></HealthConsentGate></ProtectedRoute>} />
         </Routes>

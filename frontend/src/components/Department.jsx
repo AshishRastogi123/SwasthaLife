@@ -388,120 +388,6 @@ const Department = () => {
           </div>
         </Motion.section>
 
-        {/* Departments Grid */}
-        <Motion.section
-          initial="hidden"
-          whileInView="visible"
-          variants={sectionVariants}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="departments-section py-5"
-          style={{
-            background: "#ffffff",
-            padding: "60px 20px",
-          }}
-        >
-          <div className="container">
-            <div className="row">
-              {departments.map((dept, index) => (
-                <Motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  className="col-lg-4 col-md-6 mb-4"
-                >
-                  <div
-                    className="card h-100 border-0 shadow-sm"
-                    style={{
-                      background: "#ffffff",
-                      borderRadius: "15px",
-                      padding: "30px 20px",
-                      textAlign: "center",
-                      border: "1px solid #e5e7eb",
-                    }}
-                  >
-                    <Motion.i
-                      whileHover={{ scale: 1.1 }}
-                      className={`${dept.icon} fa-3x mb-3`}
-                      style={{ color: "#10b981" }}
-                    ></Motion.i>
-                    <h5
-                      className="card-title fw-bold mb-3"
-                      style={{ color: "#2563eb" }}
-                    >
-                      {dept.name}
-                    </h5>
-                    <p
-                      className="card-text mb-3"
-                      style={{ color: "#374151", fontSize: "0.95rem" }}
-                    >
-                      {dept.description}
-                    </p>
-                    <div className="services-list">
-                      <h6
-                        style={{
-                          color: "#6b7280",
-                          fontSize: "0.9rem",
-                          marginBottom: "10px",
-                        }}
-                      >
-                        Services Include:
-                      </h6>
-                      <ul
-                        className="list-unstyled"
-                        style={{ fontSize: "0.85rem", color: "#6b7280" }}
-                      >
-                        {dept.services.map((service, idx) => (
-                          <li key={idx} className="mb-1">
-                            <i
-                              className="fas fa-check-circle me-2"
-                              style={{
-                                color: "#10b981",
-                                fontSize: "0.7rem",
-                              }}
-                            ></i>
-                            {service}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <Motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="btn mt-3"
-                      style={{
-                        background: "#2563eb",
-                        color: "#ffffff",
-                        border: "none",
-                        borderRadius: "25px",
-                        padding: "8px 20px",
-                      }}
-                      onClick={() => {
-                        if (dept.name === "Family Medicine") {
-                          navigate("/family-medicine");
-                        } else if (dept.name === "Female Health") {
-                          navigate("/female-health");
-                        } else if (dept.name === "Eye & Vision Services") {
-                          navigate("/EyeVisionService");
-                        } else if (dept.name === "Heart Science") {
-                          navigate("/HeartScience");
-                        }else if (dept.name === "Skin Health Department") {
-                          navigate("/SkinHealthDepartment");
-                        }else if (dept.name === "Child Health Services") {
-                          navigate("/ChildHealthServices");
-                        }
-                        // baaki departments ke liye future me alag routes add kar sakte ho
-                      }}
-                    >
-                      Learn More
-                    </Motion.button>
-                  </div>
-                </Motion.div>
-              ))}
-            </div>
-          </div>
-        </Motion.section>
-
         {/* Common Diseases by Specialty */}
         <Motion.section
           initial="hidden"
@@ -618,6 +504,122 @@ const Department = () => {
             </div>
           </div>
         </Motion.section>
+
+        {/* Departments Grid */}
+        <Motion.section
+          initial="hidden"
+          whileInView="visible"
+          variants={sectionVariants}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="departments-section py-5"
+          style={{
+            background: "#ffffff",
+            padding: "60px 20px",
+          }}
+        >
+          <div className="container">
+            <div className="row">
+              {departments.map((dept, index) => (
+                <Motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  className="col-lg-4 col-md-6 mb-4"
+                >
+                  <div
+                    className="card h-100 border-0 shadow-sm"
+                    style={{
+                      background: "#ffffff",
+                      borderRadius: "15px",
+                      padding: "30px 20px",
+                      textAlign: "center",
+                      border: "1px solid #e5e7eb",
+                    }}
+                  >
+                    <Motion.i
+                      whileHover={{ scale: 1.1 }}
+                      className={`${dept.icon} fa-3x mb-3`}
+                      style={{ color: "#10b981" }}
+                    ></Motion.i>
+                    <h5
+                      className="card-title fw-bold mb-3"
+                      style={{ color: "#2563eb" }}
+                    >
+                      {dept.name}
+                    </h5>
+                    <p
+                      className="card-text mb-3"
+                      style={{ color: "#374151", fontSize: "0.95rem" }}
+                    >
+                      {dept.description}
+                    </p>
+                    <div className="services-list">
+                      <h6
+                        style={{
+                          color: "#6b7280",
+                          fontSize: "0.9rem",
+                          marginBottom: "10px",
+                        }}
+                      >
+                        Services Include:
+                      </h6>
+                      <ul
+                        className="list-unstyled"
+                        style={{ fontSize: "0.85rem", color: "#6b7280" }}
+                      >
+                        {dept.services.map((service, idx) => (
+                          <li key={idx} className="mb-1">
+                            <i
+                              className="fas fa-check-circle me-2"
+                              style={{
+                                color: "#10b981",
+                                fontSize: "0.7rem",
+                              }}
+                            ></i>
+                            {service}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <Motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="btn mt-3"
+                      style={{
+                        background: "#2563eb",
+                        color: "#ffffff",
+                        border: "none",
+                        borderRadius: "25px",
+                        padding: "8px 20px",
+                      }}
+                      onClick={() => {
+                        if (dept.name === "Family Medicine") {
+                          navigate("/family-medicine");
+                        } else if (dept.name === "Female Health") {
+                          navigate("/female-health");
+                        } else if (dept.name === "Eye & Vision Services") {
+                          navigate("/EyeVisionService");
+                        } else if (dept.name === "Heart Science") {
+                          navigate("/HeartScience");
+                        }else if (dept.name === "Skin Health Department") {
+                          navigate("/SkinHealthDepartment");
+                        }else if (dept.name === "Child Health Services") {
+                          navigate("/ChildHealthServices");
+                        }
+                        // baaki departments ke liye future me alag routes add kar sakte ho
+                      }}
+                    >
+                      Learn More
+                    </Motion.button>
+                  </div>
+                </Motion.div>
+              ))}
+            </div>
+          </div>
+        </Motion.section>
+
+        
 
         {/* Why Choose Us Section */}
         <Motion.section

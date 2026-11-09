@@ -3,6 +3,9 @@ import React from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
+import HeartDiseaseRiskForm from "../DepartmentForms/HeartDiseaseRiskForm";
+import ProtectedRoute from "../ProtectedRoute";
+import HealthConsentGate from "../HealthConsentGate";
 
 const HeartScience = () => {
   const sectionVariants = {
@@ -384,6 +387,12 @@ const HeartScience = () => {
             </div>
           </div>
         </Motion.section>
+
+        <ProtectedRoute roles={["PATIENT"]}>
+          <HealthConsentGate showShell={false}>
+            <HeartDiseaseRiskForm />
+          </HealthConsentGate>
+        </ProtectedRoute>
 
         {/* CTA */}
         <Motion.section

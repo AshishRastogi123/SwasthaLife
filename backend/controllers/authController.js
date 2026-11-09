@@ -20,7 +20,7 @@ const authCookieOptions = () => {
 };
 
 // Signup Controller
-exports.signup = async (req, res) => {
+exports.signup = async (req, res, next) => {
   try {
     const { name, email, password, phone } = req.body;
     const role = req.body.role || "PATIENT";
@@ -48,8 +48,17 @@ exports.signup = async (req, res) => {
       name: name.trim(),
       email: normalizedEmail,
       password: hashedPassword,
-      phone,
+      phone: phone?.trim() || undefined,
       role,
+      profile: Object.fromEntries(
+        Object.entries(req.body.profile || {}).filter(([, value]) => value !== "" && value !== null && value !== undefined)
+      ),
+      healthProfile: role === "PATIENT"
+        ? Object.fromEntries(
+          Object.entries(req.body.healthProfile || {}).filter(([, value]) => value !== "" && value !== null && value !== undefined)
+        )
+        : undefined,
+      medicalHistory: role === "PATIENT" ? req.body.medicalHistory : undefined,
     });
 
     if (role === "DOCTOR") {
@@ -69,7 +78,7 @@ exports.signup = async (req, res) => {
 
     res.status(201).json({ message: "Signup successful" });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    next(error);
   }
 };
 

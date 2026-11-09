@@ -5,12 +5,16 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import MedicalDisclaimer from "./MedicalDisclaimer";
 
-export default function HealthConsentGate({ children }) {
+export default function HealthConsentGate({ children, showShell = true }) {
   const [consent, setConsent] = useState(null);
   const [acknowledged, setAcknowledged] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  const withShell = (content) => showShell
+    ? <><Navbar />{content}<Footer /></>
+    : content;
 
   useEffect(() => {
     let active = true;
@@ -44,14 +48,12 @@ export default function HealthConsentGate({ children }) {
   };
 
   if (loading) {
-    return <><Navbar /><main className="container py-5 mt-5"><p role="status">Checking your health information consent...</p></main></>;
+    return withShell(<main className="container py-5 mt-5"><p role="status">Checking your health information consent...</p></main>);
   }
 
   if (consent?.consentStatus) return children;
 
-  return (
-    <>
-      <Navbar />
+  return withShell(
       <main className="container py-5 mt-5" style={{ maxWidth: "800px" }}>
         <h1 className="h2 text-primary">Before you continue</h1>
         <p>
@@ -82,7 +84,5 @@ export default function HealthConsentGate({ children }) {
           {saving ? "Saving..." : "Continue"}
         </button>
       </main>
-      <Footer />
-    </>
   );
 }

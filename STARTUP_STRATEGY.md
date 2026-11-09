@@ -17,11 +17,12 @@ SwasthaLife is a multi-surface healthcare web prototype:
 
 - **Patient web experience:** React 19/Vite application with responsive pages for home, departments, health content, contact, login/signup, symptom forms, chatbot, and appointment requests.
 - **Symptom intake:** A categorized multi-select symptom form with personal details, vitals, lifestyle, family history, allergies, and a prediction/save flow.
-- **Prediction API:** Express routes expose a quick prediction endpoint and an authenticated endpoint that saves a prediction record.
-- **ML microservice:** FastAPI loads a serialized scikit-learn-style model plus label encoder and symptom-column metadata. It accepts symptom names or a binary feature vector and returns a disease label and optional probability.
+- **Prediction API:** Express routes expose symptom predictions, saved assessments, and an authenticated, consent-gated heart disease estimate endpoint at `POST /api/heart/predict`.
+- **ML microservice:** FastAPI loads the symptom classifier and the separate `Services/heart_disease_model.pkl` classifier. The heart model accepts the 13 fields in its training schema at `POST /heart/predict`; missing `ca` and `thal` values are permitted. Heart model results are informational only and are not medical diagnoses.
+- **Heart assessment UI:** The HeartScience page contains the model-input form and displays the model class and positive-class score. Results are not persisted by this endpoint.
 - **Persistence/authentication:** MongoDB/Mongoose stores users and prediction records. JWT authentication is supported through an HTTP-only cookie and an authorization header; the frontend also stores the token in local storage.
 - **Conversational assistant:** The browser uses the Google Generative AI SDK directly, with prompts that request symptom assessment, emergency guidance, Hindi/English responses, and a non-diagnosis disclaimer.
-- **Data/model assets:** Multiple CSV datasets and notebooks cover heart attack, hypertension, arrhythmia, stroke, asthma, brain tumor, cancer, and general disease themes. A checked-in `best_model.joblib`, encoder, and symptom-column file support the current prediction service.
+- **Data/model assets:** Multiple CSV datasets and notebooks cover heart attack, hypertension, arrhythmia, stroke, asthma, brain tumor, cancer, and general disease themes. The symptom service uses its model, encoder, and symptom-column metadata; the separate heart assessment model is loaded from `Services/heart_disease_model.pkl`.
 
 ### Current maturity
 

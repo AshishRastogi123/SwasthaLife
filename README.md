@@ -110,6 +110,52 @@ SwasthaLife is currently in the launch stage, with a vision to scale across Indi
 5. Book appointments with healthcare professionals through the appointment system.
 6. Explore different medical departments to learn about available services.
 
+## User profiles and prediction autofill
+
+Patient accounts can save personal details, physical measurements, and medical history in their account profile. Date of birth is stored once; age is calculated when the profile is read. Existing users remain valid with an incomplete profile, and missing values are returned as empty values rather than fabricated measurements.
+
+### Profile API
+
+These endpoints require the existing authenticated session (HTTP-only JWT cookie or bearer token). Updates use the application's existing CSRF protection for cookie-authenticated requests. Each route operates only on the current user's account; profile responses never include the password hash.
+
+| Method and path | Purpose |
+| --- | --- |
+| `GET /api/users/profile` | Read the current user's personal, health, and medical-history details and completion percentage. |
+| `PUT /api/users/profile` | Update `name`, `email`, `phone`, `dateOfBirth` (`YYYY-MM-DD`), and `gender`. |
+| `PUT /api/users/health-profile` | Update `heightCm`, `weightKg`, `bloodGroup`, `bloodPressure` (`systolic/diastolic`), `heartRate`, `bodyTemperature` (°C), `smokingStatus`, `alcoholConsumption`, and `physicalActivityLevel`. |
+| `PUT /api/users/medical-history` | Update `existingDiseases`, `allergies`, `currentMedications`, `previousSurgeries`, and `familyMedicalHistory` as arrays of strings. |
+
+Example health-profile update:
+
+```json
+{
+  "heightCm": 170,
+  "weightKg": 65,
+  "bloodPressure": "120/80",
+  "heartRate": 72,
+  "smokingStatus": "NEVER",
+  "alcoholConsumption": "OCCASIONAL",
+  "physicalActivityLevel": "MODERATE"
+}
+```
+
+The existing authentication system requires an email address as the sign-in identifier, so registration email remains required even though profile health/contact details are optional. Changing that would require a separate login-identity design and is intentionally not part of this backward-compatible profile upgrade.
+
+### Prediction feature mappings
+
+The profile is fetched through a shared frontend hook when a prediction form opens. Matching values are labelled as profile-derived and remain editable in the form; editing a prediction does not update the saved profile. Profile-derived data is only submitted to an assessment when the user explicitly submits that form.
+
+- Heart disease model: age from date of birth; model sex code from Male/Female only; systolic value from a valid saved blood-pressure reading for resting blood pressure. Other model features (cholesterol, fasting glucose, ECG, exercise measurements, and coded clinical results) remain blank for user entry.
+- Symptom-vector model: profile demographics and matching values are used only in the saved assessment record. The ML input is the selected symptom vector; profile demographics are not converted into symptoms or model inputs.
+- Disease-specific assessment wizard: maps matching personal, contact, measurement, and lifestyle values into its editable first step. Its disease-specific questions remain user-entered.
+- There are no separate kidney, liver, or diabetes model endpoints in the current application. These are not treated as model inputs or auto-filled from unrelated fields.
+
+Prediction routes retain their existing patient-role and current-health-consent requirements.
+
+### Existing-user migration
+
+No data migration is required. The User schema adds optional nested `profile`, `healthProfile`, and `medicalHistory` subdocuments; existing documents continue to authenticate and receive empty profile values until users choose to add them. Mongoose timestamps continue to be maintained. No records are rewritten or removed.
+
 ## 🤝 Contributing
 
 We welcome contributions from the community! To contribute:

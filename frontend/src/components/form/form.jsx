@@ -1,10 +1,12 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Select from "react-select";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
 import MedicalDisclaimer from "../MedicalDisclaimer";
 import { apiRequest } from "../../api";
+import { useUserProfile } from "../../hooks/useUserProfile";
+import { mapProfileToSymptomAssessment } from "../../utils/predictionProfileMappings";
 import "./HealthAssessmentForm.css";
 
 // Categorized symptoms for better organization
@@ -205,6 +207,9 @@ const SymptomForm = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [profileDerivedFields, setProfileDerivedFields] = useState(() => new Set());
+  const touchedFields = useRef(new Set());
+  const { profile, isLoading: isProfileLoading, error: profileError } = useUserProfile();
   const [showModal, setShowModal] = useState(false);
   const requestControllerRef = useRef(null);
   // Prediction & save states
@@ -213,8 +218,30 @@ const SymptomForm = () => {
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState(null);
 
+  useEffect(() => {
+    if (!profile) return;
+    const mapped = mapProfileToSymptomAssessment(profile);
+    setForm((current) => {
+      const next = { ...current };
+      Object.entries(mapped).forEach(([field, value]) => {
+        if (!touchedFields.current.has(field) && current[field] === "") {
+          next[field] = value;
+        }
+      });
+      return next;
+    });
+    const mappedFields = Object.keys(mapped).filter((field) => !touchedFields.current.has(field));
+    setProfileDerivedFields((previous) => new Set([...previous, ...mappedFields]));
+  }, [profile]);
+
   const handleFieldChange = (e) => {
     const { name, value } = e.target;
+    touchedFields.current.add(name);
+    setProfileDerivedFields((previous) => {
+      const next = new Set(previous);
+      next.delete(name);
+      return next;
+    });
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -382,6 +409,12 @@ const SymptomForm = () => {
                 </div>
               </header>
               <MedicalDisclaimer className="assessment-disclaimer" />
+              <p className="small text-muted">
+                {isProfileLoading
+                  ? "Checking your saved profile..."
+                  : "Values marked Saved profile are copied from your profile. Review or edit them; changes here are not saved to your profile."}
+              </p>
+              {profileError && <div className="alert alert-warning" role="alert">Saved profile details could not be loaded: {profileError}</div>}
             <form onSubmit={handleSubmit} noValidate>
               {/* Name */}
               <section className="assessment-section">
@@ -393,6 +426,7 @@ const SymptomForm = () => {
                 <div className="col-md-6">
                   <label className="form-label" htmlFor="assessment-first-name">
                     First Name <span className="text-danger">*</span>
+                    {profileDerivedFields.has("firstName") && <span className="badge text-bg-info ms-2">Saved profile</span>}
                   </label>
                   <input
                     id="assessment-first-name"
@@ -411,6 +445,7 @@ const SymptomForm = () => {
                 <div className="col-md-6">
                   <label className="form-label" htmlFor="assessment-last-name">
                     Last Name <span className="text-danger">*</span>
+                    {profileDerivedFields.has("lastName") && <span className="badge text-bg-info ms-2">Saved profile</span>}
                   </label>
                   <input
                     id="assessment-last-name"
@@ -432,6 +467,7 @@ const SymptomForm = () => {
                 <div className="col-md-3">
                   <label className="form-label" htmlFor="assessment-age">
                     Age <span className="text-danger">*</span>
+                    {profileDerivedFields.has("age") && <span className="badge text-bg-info ms-2">Saved profile</span>}
                   </label>
                   <input
                     id="assessment-age"
@@ -450,7 +486,7 @@ const SymptomForm = () => {
                 </div>
 
                 <div className="col-md-3">
-                  <label className="form-label" htmlFor="assessment-dob">Date of Birth</label>
+                  <label className="form-label" htmlFor="assessment-dob">Date of Birth {profileDerivedFields.has("dob") && <span className="badge text-bg-info ms-2">Saved profile</span>}</label>
                   <input
                     id="assessment-dob"
                     name="dob"
@@ -465,6 +501,7 @@ const SymptomForm = () => {
                 <div className="col-md-6">
                   <label className="form-label" htmlFor="assessment-gender">
                     Gender <span className="text-danger">*</span>
+                    {profileDerivedFields.has("gender") && <span className="badge text-bg-info ms-2">Saved profile</span>}
                   </label>
                   <select
                     id="assessment-gender"
@@ -493,7 +530,7 @@ const SymptomForm = () => {
                 </div>
               <div className="row g-3 mb-3">
                 <div className="col-md-4">
-                  <label className="form-label" htmlFor="assessment-phone">Phone (optional)</label>
+                  <label className="form-label" htmlFor="assessment-phone">Phone (optional) {profileDerivedFields.has("phone") && <span className="badge text-bg-info ms-2">Saved profile</span>}</label>
                   <input
                     id="assessment-phone"
                     name="phone"
@@ -506,7 +543,7 @@ const SymptomForm = () => {
                   />
                 </div>
                 <div className="col-md-4">
-                  <label className="form-label" htmlFor="assessment-height">Height (cm) · optional</label>
+                  <label className="form-label" htmlFor="assessment-height">Height (cm) · optional {profileDerivedFields.has("height") && <span className="badge text-bg-info ms-2">Saved profile</span>}</label>
                   <input
                     id="assessment-height"
                     name="height"
@@ -520,7 +557,7 @@ const SymptomForm = () => {
                   />
                 </div>
                 <div className="col-md-4">
-                  <label className="form-label" htmlFor="assessment-weight">Weight (kg) · optional</label>
+                  <label className="form-label" htmlFor="assessment-weight">Weight (kg) · optional {profileDerivedFields.has("weight") && <span className="badge text-bg-info ms-2">Saved profile</span>}</label>
                   <input
                     id="assessment-weight"
                     name="weight"
@@ -540,7 +577,7 @@ const SymptomForm = () => {
                 <h3 className="assessment-subheading">Vital signs <span>Optional</span></h3>
                 <div className="row g-3">
                   <div className="col-md-3">
-                    <label className="form-label" htmlFor="assessment-bp">Blood pressure</label>
+                    <label className="form-label" htmlFor="assessment-bp">Blood pressure {profileDerivedFields.has("bp") && <span className="badge text-bg-info ms-2">Saved profile</span>}</label>
                     <input
                       id="assessment-bp"
                       name="bp"
@@ -551,7 +588,7 @@ const SymptomForm = () => {
                     />
                   </div>
                   <div className="col-md-3">
-                    <label className="form-label" htmlFor="assessment-pulse">Pulse (bpm)</label>
+                    <label className="form-label" htmlFor="assessment-pulse">Pulse (bpm) {profileDerivedFields.has("pulse") && <span className="badge text-bg-info ms-2">Saved profile</span>}</label>
                     <input
                       id="assessment-pulse"
                       name="pulse"
@@ -620,7 +657,7 @@ const SymptomForm = () => {
                   </select>
                 </div>
                 <div className="col-md-4">
-                  <label className="form-label" htmlFor="assessment-family-history">Family History (optional)</label>
+                  <label className="form-label" htmlFor="assessment-family-history">Family History (optional) {profileDerivedFields.has("familyHistory") && <span className="badge text-bg-info ms-2">Saved profile</span>}</label>
                   <input
                     id="assessment-family-history"
                     name="familyHistory"
@@ -631,7 +668,7 @@ const SymptomForm = () => {
                   />
                 </div>
                 <div className="col-md-4">
-                  <label className="form-label" htmlFor="assessment-allergies">Allergies (optional)</label>
+                  <label className="form-label" htmlFor="assessment-allergies">Allergies (optional) {profileDerivedFields.has("allergies") && <span className="badge text-bg-info ms-2">Saved profile</span>}</label>
                   <input
                     id="assessment-allergies"
                     name="allergies"
